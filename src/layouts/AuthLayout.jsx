@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { IoStorefrontSharp } from "react-icons/io5";
 const AuthLayout = () => {
   return (
@@ -23,21 +23,6 @@ const AuthLayout = () => {
               {/* Formulario */}
               <Outlet />
               {/* FinFormulario */}
-
-              <div className="divider font-label-sm text-label-sm text-outline-variant uppercase tracking-widest">
-                o
-              </div>
-              <div className="text-center flex flex-col gap-4">
-                <p className="font-body-md text-body-md text-on-surface-variant">
-                  ¿No tienes una cuenta?
-                  <a
-                    className="font-label-md text-label-md text-primary font-bold hover:underline ml-1"
-                    href="#"
-                  >
-                    Regístrate
-                  </a>
-                </p>
-              </div>
             </div>
           </div>
         </div>
