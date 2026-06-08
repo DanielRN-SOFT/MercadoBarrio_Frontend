@@ -9,6 +9,7 @@ import Register from "./pages/Auth/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import PublicLayout from "./layouts/PublicLayout";
 import Inicio from "./pages/Publica/Inicio";
+import TiendaDetalle from "./pages/Publica/TiendaDetalle";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -23,6 +24,7 @@ export const router = createBrowserRouter(
       {/* Rutas de la pagina publica */}
       <Route path="/inicio" element={<PublicLayout />}>
         <Route index element={<Inicio />}></Route>
+        <Route path="tienda/:id" element={<TiendaDetalle />}></Route>
       </Route>
     </>,
   ),
