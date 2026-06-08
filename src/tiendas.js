@@ -7,6 +7,8 @@ export const tiendas = [
     rating: 4.3,
     isOpen: true,
     category: "Minimercado",
+    phone: "123456789",
+    schedule: "Lunes a Viernes: 9:00 am a 6:00pm",
     description:
       "Granos, lácteos, aseo y todo lo del diario. El mercado del barrio de toda la vida.",
     image:
@@ -61,6 +63,8 @@ export const tiendas = [
     rating: 4.5,
     isOpen: true,
     category: "Tienda de barrio",
+    schedule: "Lunes a Domingo: 8:00 am a 6:00pm",
+    phone: "987654321",
     description:
       "Gaseosas, snacks, granos y productos de la canasta familiar. Atención personalizada de siempre.",
     image:
@@ -115,6 +119,8 @@ export const tiendas = [
     rating: 4.1,
     isOpen: false,
     category: "Supermercado",
+    phone: "2131232132",
+    schedule: "Lunes a Viernes: 9:00 am a 6:00pm",
     description:
       "Frutas, verduras, carnes y abarrotes. Todo lo que necesita su hogar en un solo lugar.",
     image:
