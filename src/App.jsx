@@ -6,9 +6,9 @@ function App() {
 
   return (
   <>
-  <div className='badge badge-primary'>
-    <p className='text-white'>Hello world</p>
-  </div>
+    <div>
+      <p className='text-primary font-bold'>Hello World</p>
+    </div>
   </>
   )
 }
