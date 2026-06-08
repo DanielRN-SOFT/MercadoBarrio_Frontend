@@ -17,12 +17,12 @@ const Login = () => {
         <div className="form-control w-full">
           <div className="flex justify-between items-center pb-1">
             <Label id={"password-input"} label={"Contraseña"} />
-            <a
+            <Link
               className="link link-hover font-label-sm text-label-sm text-primary"
-              href="#"
+              to="/olvide-password"
             >
               ¿Olvidaste tu contraseña?
-            </a>
+            </Link>
           </div>
           <div className="relative">
             <Input

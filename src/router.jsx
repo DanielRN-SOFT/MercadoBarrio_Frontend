@@ -6,6 +6,7 @@ import {
 import AuthLayout from "./layouts/AuthLayout";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -13,6 +14,7 @@ export const router = createBrowserRouter(
     <Route path="/" element={<AuthLayout />}>
       <Route index element={<Login />}></Route>
       <Route path="/register" element={<Register />}></Route>
+      <Route path="/olvide-password" element={<ForgotPassword />}></Route>
     </Route>,
   ),
 );
