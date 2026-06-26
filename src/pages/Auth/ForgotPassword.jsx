@@ -2,15 +2,50 @@ import { Link } from "react-router-dom";
 import Label from "../../components/ui/Label";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import { useState } from "react";
+import useToast from "../../hooks/useToast";
+import ToastContainer from "../../components/ui/ToastContainer";
+import fetchCliente from "../../config/fetchCliente";
 
 const ForgotPassword = () => {
+  const [email, setEmail] = useState("");
+  const { toasts, addToast, removeToast } = useToast();
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (email.trim() === "") {
+      console.log("esta vacio..");
+      addToast({ message: "El email es obligatorio", type: "error" });
+      return;
+    }
+
+    try {
+      const response = await fetchCliente("/auth/forgot-password", {
+        method: "POST",
+        body: {email}
+      });
+
+      addToast({ message: response.message, type: "success" });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <>
-      <form className="flex flex-col gap-4" id="recoveryForm">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4"
+        id="recoveryForm"
+      >
         <div className="form-control w-full">
           <Label label={"Correo electrónico"} />
           <div className="relative flex items-center">
-            <Input placeholder={"ejemplo@correo.com"} type={"email"} />
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={"ejemplo@correo.com"}
+              type={"email"}
+            />
           </div>
         </div>
         <Button mensaje={"Enviar instrucciones"} />
@@ -27,6 +62,7 @@ const ForgotPassword = () => {
           </Link>
         </p>
       </div>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
   );
 };
