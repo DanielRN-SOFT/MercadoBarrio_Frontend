@@ -2,17 +2,66 @@ import React, { useState } from "react";
 import Input from "../../components/ui/Input";
 import Label from "../../components/ui/Label";
 import { MdOutlineVisibility } from "react-icons/md";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import useToast from "../../hooks/useToast";
+import ToastContainer from "../../components/ui/ToastContainer";
+import fetchCliente from "../../config/fetchCliente";
+import useAuth from "../../hooks/useAuth";
 
 const Login = () => {
   const [visibility, setVisibily] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { toasts, addToast, removeToast } = useToast();
+  const { setAuth } = useAuth();
+
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if ([email.trim(), password.trim()].includes("")) {
+        addToast({
+          message: "Todos los campos son obligatorios",
+          type: "error",
+        });
+        return;
+      }
+
+      const response = await fetchCliente("/auth/login", {
+        method: "POST",
+        body: { email, password },
+      });
+
+      console.log(response);
+      if (response.id) {
+       addToast({
+        message: "Login exitoso",
+        type: "success"
+       })
+      }
+    } catch (error) {
+      if (error.statusCode === 500) {
+        addToast({
+          message: error.message,
+          type: "error",
+        });
+      }
+      console.log(error);
+    }
+  };
   return (
     <>
-      <form className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="form-control w-full">
           <Label label={"Correo electrónico"} />
-          <Input placeholder={"ejemplo@correo.com"} type={"email"} />
+          <Input
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
+            placeholder={"ejemplo@correo.com"}
+            type={"email"}
+          />
         </div>
         <div className="form-control w-full">
           <div className="flex justify-between items-center pb-1">
@@ -26,6 +75,8 @@ const Login = () => {
           </div>
           <div className="relative">
             <Input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               id={"password-input"}
               placeholder={"••••••••"}
               type={visibility ? "text" : "password"}
@@ -56,6 +107,7 @@ const Login = () => {
           </Link>
         </p>
       </div>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
   );
 };
