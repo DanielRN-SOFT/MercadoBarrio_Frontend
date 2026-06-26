@@ -13,7 +13,7 @@ const AuthProvider = ({ children }) => {
         const response = await fetchCliente("/auth/profile");
         setAuth(response);
       } catch (error) {
-        console.log(error);
+        // console.log(error);
         setAuth({});
       }
       setCargando(false);
@@ -24,11 +24,11 @@ const AuthProvider = ({ children }) => {
   const cerrarSesion = async () => {
     try {
       const response = await fetchCliente("/auth/logout");
-      if (response.ok) {
+      if (response.message) {
         setAuth({});
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setAuth({});
     }
   };

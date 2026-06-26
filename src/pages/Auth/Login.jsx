@@ -34,12 +34,14 @@ const Login = () => {
         body: { email, password },
       });
 
-      console.log(response);
       if (response.id) {
-       addToast({
-        message: "Login exitoso",
-        type: "success"
-       })
+        setAuth(response);
+        addToast({
+          message: "Login exitoso",
+          type: "success",
+        });
+
+        navigate("/panel");
       }
     } catch (error) {
       if (error.statusCode === 500) {
