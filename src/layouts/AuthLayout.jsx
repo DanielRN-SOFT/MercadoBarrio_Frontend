@@ -16,7 +16,7 @@ const AuthLayout = () => {
                 <h1 className="font-headline-lg text-headline-lg text-primary tracking-tight">
                   MercadoBarrio
                 </h1>
-                <p className="font-body-md text-body-md text-on-surface-variant max-w-[280px]">
+                <p className="font-body-md text-body-md text-on-surface-variant max-w-70">
                   Bienvenido de nuevo a tu comunidad local.
                 </p>
               </div>
@@ -24,6 +24,14 @@ const AuthLayout = () => {
               <Outlet />
               {/* FinFormulario */}
             </div>
+          </div>
+          <div className="flex justify-center items-center mt-5">
+            <Link
+              className="font-label-md text-label-md text-primary font-bold hover:underline ml-1"
+              to={"/inicio"}
+            >
+              Acceder a la pagina publica
+            </Link>
           </div>
         </div>
       </main>

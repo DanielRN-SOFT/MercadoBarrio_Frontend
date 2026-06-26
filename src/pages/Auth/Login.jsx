@@ -94,21 +94,6 @@ const Login = () => {
         </div>
         <Button mensaje={"Iniciar sesión"} />
       </form>
-
-      <div className="divider font-label-sm text-label-sm text-outline-variant uppercase tracking-widest">
-        o
-      </div>
-      <div className="text-center flex flex-col gap-4">
-        <p className="font-body-md text-body-md text-on-surface-variant">
-          ¿No tienes una cuenta?
-          <Link
-            className="font-label-md text-label-md text-primary font-bold hover:underline ml-1"
-            to={"/register"}
-          >
-            Regístrate
-          </Link>
-        </p>
-      </div>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
   );
