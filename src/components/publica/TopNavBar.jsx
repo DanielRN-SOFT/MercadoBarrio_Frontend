@@ -5,7 +5,6 @@ import TopNavUser from "../privada/_partials/TopNavUser";
 
 const TopNavBar = () => {
   const { auth } = useAuth();
-  console.log(auth);
   const NavLinkClases =
     "text-on-surface-variant hover:text-primary/90 transition-colors font-label-md text-label-md px-2";
   return (
