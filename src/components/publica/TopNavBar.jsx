@@ -6,8 +6,6 @@ import TopNavUser from "../privada/_partials/TopNavUser";
 const TopNavBar = () => {
   const { auth } = useAuth();
   const location = useLocation();
-  console.log(location);
-
   const NAVLINKS = [
     {
       name: "Inicio",
@@ -17,10 +15,8 @@ const TopNavBar = () => {
       name: "Tiendas",
       to: "/tiendas",
     },
-   
   ];
-  console.log(NAVLINKS);
-  console.log(location.pathname);
+
   const NavLinkClases =
     "text-on-surface-variant hover:text-primary/90 transition-colors font-label-md text-label-md px-2";
   return (
@@ -33,6 +29,7 @@ const TopNavBar = () => {
           <nav className="flex gap-4">
             {NAVLINKS.map((link) => (
               <Link
+                key={link.to}
                 className={
                   location.pathname == link.to
                     ? "text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md"
