@@ -23,10 +23,8 @@ const AuthProvider = ({ children }) => {
 
   const cerrarSesion = async () => {
     try {
-      const response = await fetchCliente("/auth/logout");
-      if (response.message) {
-        setAuth({});
-      }
+      const response = await fetchCliente("/auth/logout", { method: "POST" });
+      setAuth({});
     } catch (error) {
       // console.log(error);
       setAuth({});

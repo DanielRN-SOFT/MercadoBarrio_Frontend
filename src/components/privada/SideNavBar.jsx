@@ -9,7 +9,7 @@ import {
   MdOutlinePayments,
   MdOutlineSettings,
 } from "react-icons/md";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
 const navItems = [
@@ -114,7 +114,6 @@ const SideNavItem = ({ to, icon, label, filled, active }) => (
 );
 
 const SideNavFooter = () => {
-  const { cerrarSesion } = useAuth();
   return (
     <div className="mt-auto space-y-2 pt-4 border-t border-outline-variant">
       <Link
@@ -131,13 +130,6 @@ const SideNavFooter = () => {
         <span className="material-symbols-outlined">contact_support</span>
         Centro de Ayuda
       </Link>
-      <button
-        onClick={cerrarSesion}
-        className="flex items-center gap-3 px-4 py-2 text-error hover:opacity-80 transition-opacity text-label-sm w-full cursor-pointer"
-      >
-        <MdLogout className="text-xl" />
-        Cerrar sesión
-      </button>
     </div>
   );
 };

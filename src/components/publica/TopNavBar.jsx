@@ -1,7 +1,11 @@
 import { IoIosNotifications } from "react-icons/io";
 import { Link, Outlet } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import TopNavUser from "../privada/_partials/TopNavUser";
 
 const TopNavBar = () => {
+  const { auth } = useAuth();
+  console.log(auth);
   const NavLinkClases =
     "text-on-surface-variant hover:text-primary/90 transition-colors font-label-md text-label-md px-2";
   return (
@@ -29,15 +33,16 @@ const TopNavBar = () => {
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="p-2 text-primary hover:bg-surface-container-low transition-colors rounded-full active:scale-95 cursor-pointer">
-            <IoIosNotifications className="text-2xl" />
-          </button>
-          <div className="ml-2">
-            <Link to={"/"} className="btn btn-primary">
-              Iniciar sesión
-            </Link>
-          </div>
+        <div className="flex items-center gap-1">
+          {!auth.id ? (
+            <div className="ml-2">
+              <Link to={"/"} className="btn btn-primary">
+                Iniciar sesión
+              </Link>
+            </div>
+          ) : (
+            <TopNavUser link={"/panel"} nameLink={"Panel"} />
+          )}
         </div>
       </div>
     </header>
