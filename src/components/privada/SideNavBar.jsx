@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { IoStorefrontSharp } from "react-icons/io5";
 import {
   MdLogout,
+  MdClose,
   MdOutlineDashboard,
   MdOutlineGroup,
   MdOutlineInventory2,
@@ -8,7 +10,6 @@ import {
   MdOutlineSettings,
 } from "react-icons/md";
 import { Link, useLocation } from "react-router-dom";
-import fetchCliente from "../../config/fetchCliente";
 import useAuth from "../../hooks/useAuth";
 
 const navItems = [
@@ -19,23 +20,61 @@ const navItems = [
   { to: "/settings", icon: <MdOutlineSettings />, label: "Ajustes" },
 ];
 
-const SideNavBar = () => {
+const SideNavBar = ({ open, onClose }) => {
   const { pathname } = useLocation();
 
+  useEffect(() => {
+    onClose();
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   return (
-    <aside className="h-screen w-64 fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant flex flex-col p-4 z-50">
-      <SideNavBrand />
-      <nav className="flex-1 space-y-2">
-        {navItems.map((item) => (
-          <SideNavItem
-            key={item.to}
-            {...item}
-            active={pathname.startsWith(item.to)}
-          />
-        ))}
-      </nav>
-      <SideNavFooter />
-    </aside>
+    <>
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <aside
+        className={`
+          fixed left-0 top-0 h-screen w-64 z-50
+          bg-surface-container-low border-r border-outline-variant
+          flex flex-col p-4
+          transition-transform duration-300 ease-in-out
+          ${open ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0
+        `}
+      >
+        <button
+          onClick={onClose}
+          className="lg:hidden self-end mb-2 p-1 text-secondary hover:text-on-surface cursor-pointer"
+        >
+          <MdClose className="text-2xl" />
+        </button>
+
+        <SideNavBrand />
+
+        <nav className="flex-1 space-y-1">
+          {navItems.map((item) => (
+            <SideNavItem
+              key={item.to}
+              {...item}
+              active={pathname.startsWith(item.to)}
+            />
+          ))}
+        </nav>
+
+        <SideNavFooter />
+      </aside>
+    </>
   );
 };
 
@@ -54,16 +93,20 @@ const SideNavBrand = () => (
 const SideNavItem = ({ to, icon, label, filled, active }) => (
   <Link
     to={to}
-    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-label-md font-semibold ${
-      active
-        ? "bg-primary-container text-on-primary-container"
-        : "text-secondary hover:bg-surface-container-high"
-    }`}
+    className={`
+      relative flex items-center gap-3 px-4 py-3 rounded-lg
+      transition-all text-label-md font-semibold
+      ${
+        active
+          ? "bg-primary-container text-on-primary-container"
+          : "text-secondary hover:bg-surface-container-high"
+      }
+    `}
   >
-    <span
-      className="material-symbols-outlined"
-      style={active && filled ? { fontVariationSettings: "'FILL' 1" } : {}}
-    >
+    {active && (
+      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+    )}
+    <span style={active && filled ? { fontVariationSettings: "'FILL' 1" } : {}}>
       {icon}
     </span>
     {label}
@@ -90,7 +133,7 @@ const SideNavFooter = () => {
       </Link>
       <button
         onClick={cerrarSesion}
-        className="flex items-center gap-3 px-4 py-2 text-error hover:opacity-80 transition-opacity text-label-sm w-full cursor-pointer hover:text-error/80"
+        className="flex items-center gap-3 px-4 py-2 text-error hover:opacity-80 transition-opacity text-label-sm w-full cursor-pointer"
       >
         <MdLogout className="text-xl" />
         Cerrar sesión

@@ -1,12 +1,20 @@
 import { Link } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import { MdOutlinePersonOutline, MdStore } from "react-icons/md";
-import { PiUser } from "react-icons/pi";
+import { MdOutlinePersonOutline, MdStore, MdMenu } from "react-icons/md";
 
-const TopNavBar = ({ title = "Dashboard" }) => {
+const TopNavBar = ({ title = "Dashboard", onMenuClick }) => {
   return (
     <header className="w-full sticky top-0 z-40 bg-surface border-b border-outline-variant px-6 py-4 flex justify-between items-center">
-      <h2 className="text-headline-md font-bold text-primary">{title}</h2>
+      <div className="flex items-center gap-3">
+        {/* Hamburguesa solo en móvil/tablet */}
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden cursor-pointer p-1 rounded-lg text-on-surface hover:bg-surface-container-high transition-colors"
+        >
+          <MdMenu className="text-2xl" />
+        </button>
+        <h2 className="text-headline-md font-bold text-primary">{title}</h2>
+      </div>
       <TopNavActions />
     </header>
   );
@@ -23,7 +31,6 @@ const TopNavActions = () => (
 
 const TopNavUser = () => {
   const { auth } = useAuth();
-
   const getInitials = (name) => {
     if (!name) return "??";
     return name
@@ -33,7 +40,6 @@ const TopNavUser = () => {
       .join("")
       .toUpperCase();
   };
-
   return (
     <div className="dropdown cursor-pointer mx-2">
       <div
@@ -64,8 +70,7 @@ const TopNavUser = () => {
         </li>
         <li className="py-0.5">
           <Link to={"/inicio"} className="text-primary">
-            <MdStore className="text-2xl" />
-            Directorio
+            <MdStore className="text-2xl" /> Directorio
           </Link>
         </li>
       </ul>
