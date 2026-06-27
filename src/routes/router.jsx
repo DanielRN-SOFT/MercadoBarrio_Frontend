@@ -13,6 +13,7 @@ import Index from "../pages/Privada/Index";
 import TiendaDetalle from "../pages/Publica/TiendaDetalle";
 import PrivateLayout from "../layouts/PrivateLayout";
 import NuevaPassword from "../pages/Auth/NuevaPassword";
+import Tiendas from "../pages/Publica/Tiendas";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -30,6 +31,7 @@ export const router = createBrowserRouter(
       {/* Rutas de la pagina publica */}
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<Inicio />}></Route>
+        <Route path="tiendas" element={<Tiendas />}></Route>
         <Route path="tienda/:id" element={<TiendaDetalle />}></Route>
       </Route>
 

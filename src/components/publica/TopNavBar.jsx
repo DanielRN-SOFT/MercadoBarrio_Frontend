@@ -1,10 +1,29 @@
 import { IoIosNotifications } from "react-icons/io";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import TopNavUser from "../privada/_partials/TopNavUser";
 
 const TopNavBar = () => {
   const { auth } = useAuth();
+  const location = useLocation();
+  console.log(location);
+
+  const NAVLINKS = [
+    {
+      name: "Inicio",
+      to: "/",
+    },
+    {
+      name: "Sobre Nosotros",
+      to: "/sobre-nosotros",
+    },
+    {
+      name: "Tiendas",
+      to: "/tiendas",
+    },
+  ];
+  console.log(NAVLINKS);
+  console.log(location.pathname);
   const NavLinkClases =
     "text-on-surface-variant hover:text-primary/90 transition-colors font-label-md text-label-md px-2";
   return (
@@ -15,21 +34,18 @@ const TopNavBar = () => {
         </h1>
         <div className="hidden md:flex items-center gap-6">
           <nav className="flex gap-4">
-            <Link
-              className="text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md"
-              to="/inicio"
-            >
-              Inicio
-            </Link>
-            <Link className={NavLinkClases} to="/inicio/mapa">
-              Mapa
-            </Link>
-            <Link className={NavLinkClases} to="/inicio/tiendas">
-              Tiendas
-            </Link>
-            <Link className={NavLinkClases} to="/inicio/perfil">
-              Perfil
-            </Link>
+            {NAVLINKS.map((link) => (
+              <Link
+                className={
+                  location.pathname == link.to
+                    ? "text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md"
+                    : NavLinkClases
+                }
+                to={link.to}
+              >
+                {link.name}
+              </Link>
+            ))}
           </nav>
         </div>
         <div className="flex items-center gap-1">
