@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import CardProducto from "../../components/publica/Inicio/CardProducto";
 import HeroSection from "../../components/publica/Inicio/HeroSection";
-import SelectorCategorias from "../../components/publica/Inicio/SelectorCategorias";
+import ComoFunciona from "../../components/publica/Inicio/ComoFunciona";
+import PorQueMercadoBarrio from "../../components/publica/Inicio/PorQueMercadoBarrio";
+import CTATenderos from "../../components/publica/Inicio/CTATenderos";
 import fetchCliente from "../../config/fetchCliente";
 
 const Inicio = () => {
@@ -13,12 +15,12 @@ const Inicio = () => {
       try {
         const response = await fetchCliente("/stores/public");
         setTiendas(response.data.slice(0, 3));
-        setLoading(false);
       } catch (error) {
         console.log(error);
+      } finally {
+        setLoading(false);
       }
     };
-
     obtenerStores();
   }, []);
 
@@ -27,13 +29,15 @@ const Inicio = () => {
       <section className="bg-primary-container text-on-primary py-12 px-margin-mobile md:px-margin-desktop">
         <HeroSection />
       </section>
-      <section className="mt-8 px-margin-mobile md:px-margin-desktop">
-        <SelectorCategorias />
-      </section>
-      <section className="mt-8 px-margin-mobile md:px-margin-desktop mb-24 md:mb-12">
+
+      <ComoFunciona />
+
+      <PorQueMercadoBarrio />
+
+      <section className="mt-8 px-margin-mobile md:px-margin-desktop mb-8">
         <div className="flex justify-between items-end mb-6">
           <h3 className="font-headline-md text-headline-md text-on-surface">
-            Tiendas cercanas
+            Nuestras últimas tiendas agregadas
           </h3>
           <button className="text-primary cursor-pointer font-label-md text-label-md hover:underline">
             Ver mapa
@@ -60,6 +64,8 @@ const Inicio = () => {
           </div>
         )}
       </section>
+
+      <CTATenderos />
     </main>
   );
 };
