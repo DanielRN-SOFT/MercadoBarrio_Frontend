@@ -75,7 +75,7 @@ const NuevaPassword = () => {
 
       setTimeout(() => {
         navigate("/");
-      }, 3000);
+      }, 2000);
     } catch (error) {
       addToast({
         message: "Hubo un error",

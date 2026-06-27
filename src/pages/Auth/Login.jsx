@@ -70,7 +70,7 @@ const Login = () => {
             <Label id={"password-input"} label={"Contraseña"} />
             <Link
               className="link link-hover font-label-sm text-label-sm text-primary"
-              to="/olvide-password"
+              to="/auth/olvide-password"
             >
               ¿Olvidaste tu contraseña?
             </Link>

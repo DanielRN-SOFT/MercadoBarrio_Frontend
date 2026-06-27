@@ -18,17 +18,17 @@ export const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       {/* Rutas de Auth */}
-      <Route path="/" element={<AuthLayout />}>
-        <Route index element={<Login />}></Route>
-        <Route path="/olvide-password" element={<ForgotPassword />}></Route>
+      <Route path="/auth" element={<AuthLayout />}>
+        <Route path="login" element={<Login />}></Route>
+        <Route path="olvide-password" element={<ForgotPassword />}></Route>
         <Route
-          path="/cambiar-password/:token"
+          path="cambiar-password/:token"
           element={<NuevaPassword />}
         ></Route>
       </Route>
 
       {/* Rutas de la pagina publica */}
-      <Route path="/inicio" element={<PublicLayout />}>
+      <Route path="/" element={<PublicLayout />}>
         <Route index element={<Inicio />}></Route>
         <Route path="tienda/:id" element={<TiendaDetalle />}></Route>
       </Route>

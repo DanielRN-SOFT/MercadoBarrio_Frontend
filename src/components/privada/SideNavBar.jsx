@@ -106,7 +106,7 @@ const SideNavItem = ({ to, icon, label, filled, active }) => (
     {active && (
       <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
     )}
-    <span style={active && filled ? { fontVariationSettings: "'FILL' 1" } : {}}>
+    <span className="text-3xl" style={active && filled ? { fontVariationSettings: "'FILL' 1" } : {}}>
       {icon}
     </span>
     {label}

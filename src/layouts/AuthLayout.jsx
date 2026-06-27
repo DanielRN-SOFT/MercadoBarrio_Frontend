@@ -28,7 +28,7 @@ const AuthLayout = () => {
           <div className="flex justify-center items-center mt-5">
             <Link
               className="font-label-md text-label-md text-primary font-bold hover:underline ml-1"
-              to={"/inicio"}
+              to={"/"}
             >
               Acceder a la pagina publica
             </Link>

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
-import { MdLogout, MdOutlinePersonOutline, MdStore } from "react-icons/md";
+import { MdLogout, MdOutlineDashboardCustomize, MdOutlinePersonOutline, MdStore } from "react-icons/md";
 
 const TopNavUser = ({ link, nameLink }) => {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ const TopNavUser = ({ link, nameLink }) => {
         </li>
         <li className="py-0.5">
           <Link to={link} className="text-primary">
-            <MdStore className="text-2xl" /> {nameLink}
+            <MdOutlineDashboardCustomize className="text-2xl" /> {nameLink}
           </Link>
         </li>
         <li>

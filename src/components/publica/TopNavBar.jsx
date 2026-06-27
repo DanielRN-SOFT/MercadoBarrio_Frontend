@@ -35,7 +35,7 @@ const TopNavBar = () => {
         <div className="flex items-center gap-1">
           {!auth.id ? (
             <div className="ml-2">
-              <Link to={"/"} className="btn btn-primary">
+              <Link to={"/auth/login"} className="btn btn-primary">
                 Iniciar sesión
               </Link>
             </div>
