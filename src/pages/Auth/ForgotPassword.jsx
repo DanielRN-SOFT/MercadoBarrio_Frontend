@@ -13,7 +13,6 @@ const ForgotPassword = () => {
   async function handleSubmit(e) {
     e.preventDefault();
     if (email.trim() === "") {
-      console.log("esta vacio..");
       addToast({ message: "El email es obligatorio", type: "error" });
       return;
     }
@@ -21,12 +20,13 @@ const ForgotPassword = () => {
     try {
       const response = await fetchCliente("/auth/forgot-password", {
         method: "POST",
-        body: {email}
+        body: { email },
       });
 
       addToast({ message: response.message, type: "success" });
+      setEmail("");
     } catch (error) {
-      console.log(error);
+      addToast({ message: error.message, type: "error" });
     }
   }
 

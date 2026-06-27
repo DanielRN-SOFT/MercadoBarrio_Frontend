@@ -12,6 +12,7 @@ import Inicio from "../pages/Publica/Inicio";
 import Index from "../pages/Privada/Index";
 import TiendaDetalle from "../pages/Publica/TiendaDetalle";
 import PrivateLayout from "../layouts/PrivateLayout";
+import NuevaPassword from "../pages/Auth/NuevaPassword";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -20,6 +21,10 @@ export const router = createBrowserRouter(
       <Route path="/" element={<AuthLayout />}>
         <Route index element={<Login />}></Route>
         <Route path="/olvide-password" element={<ForgotPassword />}></Route>
+        <Route
+          path="/cambiar-password/:token"
+          element={<NuevaPassword />}
+        ></Route>
       </Route>
 
       {/* Rutas de la pagina publica */}
