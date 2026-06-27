@@ -14,13 +14,10 @@ const TopNavBar = () => {
       to: "/",
     },
     {
-      name: "Sobre Nosotros",
-      to: "/sobre-nosotros",
-    },
-    {
       name: "Tiendas",
       to: "/tiendas",
     },
+   
   ];
   console.log(NAVLINKS);
   console.log(location.pathname);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import CardProducto from "../../components/publica/Inicio/CardProducto";
+import CardProducto from "../../components/publica/Tiendas/CardProducto";
 import HeroSection from "../../components/publica/Inicio/HeroSection";
 import ComoFunciona from "../../components/publica/Inicio/ComoFunciona";
 import PorQueMercadoBarrio from "../../components/publica/Inicio/PorQueMercadoBarrio";
