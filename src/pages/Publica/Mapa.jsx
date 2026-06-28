@@ -112,7 +112,7 @@ const Mapa = () => {
         {/* Mapa */}
         <section className="relative bg-surface-dim overflow-hidden h-[45vh] md:h-full">
           {loading && (
-            <div className="absolute inset-0 z-[400] flex items-center justify-center bg-surface/60">
+            <div className="absolute inset-0 z-400 flex items-center justify-center bg-surface/60">
               <span className="loading loading-spinner loading-md text-primary" />
             </div>
           )}
@@ -123,8 +123,8 @@ const Mapa = () => {
             scrollWheelZoom
           >
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
             />
             {tiendas.length > 0 && <FitBounds tiendas={tiendas} />}
             {tiendas.map((tienda) => {
@@ -179,7 +179,7 @@ const Mapa = () => {
                         to={`/tiendas/${tienda.id}`}
                         className="btn btn-primary btn-sm w-full mt-1"
                       >
-                        Ver perfil
+                        <p className="text-white">Ver perfil</p>
                       </Link>
                     </div>
                   </Popup>
@@ -193,26 +193,44 @@ const Mapa = () => {
         <div className="hidden md:block bg-outline-variant" />
 
         {/* Lista */}
+        {/* Lista */}
         <section className="flex flex-col border-t md:border-t-0 border-outline-variant bg-surface md:overflow-hidden md:min-h-0">
-          <div className="px-4 py-3 border-b border-outline-variant bg-primary-container shrink-0">
-            <h3 className="text-label-md font-label-md text-base-100 uppercase tracking-wider">
-              {loading
-                ? "Cargando..."
-                : `Tiendas encontradas (${tiendas.length})`}
-            </h3>
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-outline-variant bg-primary-container shrink-0 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-on-primary-container text-[18px]">
+                storefront
+              </span>
+              <h3 className="text-label-md font-label-md text-on-primary-container uppercase tracking-wider">
+                {loading
+                  ? "Buscando..."
+                  : `${tiendas.length} tienda${tiendas.length !== 1 ? "s" : ""}`}
+              </h3>
+            </div>
+            {loading && (
+              <span className="loading loading-dots loading-xs text-primary" />
+            )}
           </div>
 
-          <div className="md:flex-1 md:overflow-y-auto p-4 space-y-4 md:min-h-0 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-outline-variant [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="md:flex-1 md:overflow-y-auto p-3 space-y-2 md:min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-outline-variant [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
             {!loading && tiendas.length === 0 && (
               <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-                <span className="material-symbols-outlined text-5xl text-on-surface/20">
-                  storefront
-                </span>
-                <p className="text-body-md text-on-surface-variant">
-                  No se encontraron tiendas con estos filtros.
-                </p>
+                <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center">
+                  <span className="material-symbols-outlined text-3xl text-on-surface/30">
+                    storefront
+                  </span>
+                </div>
+                <div>
+                  <p className="font-medium text-on-surface/60 text-sm">
+                    Sin resultados
+                  </p>
+                  <p className="text-xs text-on-surface/40 mt-0.5">
+                    Intenta con otros filtros
+                  </p>
+                </div>
               </div>
             )}
+
             {tiendas.map((tienda) => {
               const color = getColor(tienda.storeCategory?.id);
               const abierto = tienda.status === "Active";
@@ -221,62 +239,80 @@ const Mapa = () => {
                 <div
                   key={tienda.id}
                   onClick={() => handleCardClick(tienda)}
-                  className={`card card-bordered cursor-pointer transition-colors ${
+                  className={`group flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-150 ${
                     activa
-                      ? "border-primary bg-surface-container"
-                      : "border-outline-variant bg-surface hover:bg-surface-container-low"
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-outline-variant bg-surface hover:bg-surface-container-low hover:border-outline hover:shadow-sm"
                   }`}
                 >
-                  <div className="card-body p-4 flex-row gap-4 items-center">
-                    <div className="avatar">
-                      <div className="w-16 h-16 rounded-xl border border-outline-variant overflow-hidden bg-surface-container-low">
-                        {tienda.logo || tienda.photo ? (
-                          <img
-                            src={tienda.logo || tienda.photo}
-                            alt={tienda.name}
-                            className={!abierto ? "grayscale" : ""}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-2xl text-on-surface/20">
-                              storefront
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                  {/* Avatar */}
+                  <div className="relative shrink-0">
+                    <div className="w-14 h-14 rounded-xl border border-outline-variant overflow-hidden bg-surface-container-low">
+                      {tienda.logo || tienda.photo ? (
+                        <img
+                          src={tienda.logo || tienda.photo}
+                          alt={tienda.name}
+                          className={`w-full h-full object-cover ${!abierto ? "grayscale opacity-60" : ""}`}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="material-symbols-outlined text-xl text-on-surface/20">
+                            storefront
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex-1 space-y-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2">
-                        <h4
-                          className={`text-headline-md font-headline-md text-on-surface leading-tight truncate ${!abierto ? "opacity-70" : ""}`}
-                        >
-                          {tienda.name}
-                        </h4>
-                        <span
-                          className={`badge badge-sm shrink-0 py-2 px-3 rounded-md ${abierto ? "badge-success text-white" : "badge-ghost text-on-surface-variant border-outline-variant"}`}
-                        >
-                          {abierto ? "Abierto" : "Cerrado"}
+                    {/* Dot estado */}
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-surface ${abierto ? "bg-success" : "bg-outline-variant"}`}
+                    />
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-1">
+                      <h4
+                        className={`text-sm font-semibold leading-tight truncate ${!abierto ? "text-on-surface/50" : "text-on-surface"}`}
+                      >
+                        {tienda.name}
+                      </h4>
+                      {activa && (
+                        <span className="material-symbols-outlined text-primary text-[16px] shrink-0">
+                          chevron_right
                         </span>
-                      </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                       {tienda.storeCategory && (
                         <span
-                          className="badge badge-sm text-white"
+                          className="inline-flex items-center text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full"
                           style={{ backgroundColor: color }}
                         >
                           {tienda.storeCategory.name}
                         </span>
                       )}
-                      {tienda.neighborhood && (
-                        <div
-                          className={`flex items-center gap-1 text-label-sm font-label-sm text-secondary ${!abierto ? "opacity-70" : ""}`}
-                        >
-                          <span className="material-symbols-outlined text-[14px]">
-                            location_on
-                          </span>
-                          {tienda.neighborhood}
-                        </div>
-                      )}
+                      <span
+                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                          abierto
+                            ? "bg-success/10 text-success"
+                            : "bg-outline-variant/30 text-on-surface/40"
+                        }`}
+                      >
+                        {abierto ? "Abierto" : "Cerrado"}
+                      </span>
                     </div>
+
+                    {tienda.neighborhood && (
+                      <div className="flex items-center gap-0.5 mt-1">
+                        <span className="material-symbols-outlined text-[12px] text-on-surface/30">
+                          location_on
+                        </span>
+                        <span className="text-[11px] text-on-surface/40 truncate">
+                          {tienda.neighborhood}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

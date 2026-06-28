@@ -59,10 +59,7 @@ const FilterBar = ({ onFilter }) => {
   };
 
   const limpiarCampo = (campo) => {
-    const nuevosFiltros = {
-      ...filtros,
-      [campo]: campo === "openNow" ? false : "",
-    };
+    const nuevosFiltros = { ...filtros, [campo]: campo === "openNow" ? false : "" };
     setFiltros(nuevosFiltros);
     emitir(nuevosFiltros);
   };
@@ -235,10 +232,7 @@ const FilterBar = ({ onFilter }) => {
               <div className="badge badge-outline gap-1 badge-sm">
                 <FaLocationDot className="text-xs" />
                 {filtros.neighborhood}
-                <button
-                  onClick={() => limpiarCampo("neighborhood")}
-                  className="ml-0.5"
-                >
+                <button onClick={() => limpiarCampo("neighborhood")} className="ml-0.5">
                   <IoCloseSharp className="text-xs" />
                 </button>
               </div>
@@ -246,15 +240,8 @@ const FilterBar = ({ onFilter }) => {
             {filtros.storeCategoryId && (
               <div className="badge badge-outline gap-1 badge-sm">
                 <IoStorefrontSharp className="text-xs" />
-                {
-                  categorias.find(
-                    (c) => String(c.id) === String(filtros.storeCategoryId),
-                  )?.name
-                }
-                <button
-                  onClick={() => limpiarCampo("storeCategoryId")}
-                  className="ml-0.5"
-                >
+                {categorias.find((c) => String(c.id) === String(filtros.storeCategoryId))?.name}
+                <button onClick={() => limpiarCampo("storeCategoryId")} className="ml-0.5">
                   <IoCloseSharp className="text-xs" />
                 </button>
               </div>
@@ -263,10 +250,7 @@ const FilterBar = ({ onFilter }) => {
               <div className="badge badge-success badge-outline gap-1 badge-sm">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
                 Abierto ahora
-                <button
-                  onClick={() => limpiarCampo("openNow")}
-                  className="ml-0.5"
-                >
+                <button onClick={() => limpiarCampo("openNow")} className="ml-0.5">
                   <IoCloseSharp className="text-xs" />
                 </button>
               </div>
