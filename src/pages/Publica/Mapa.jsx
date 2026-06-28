@@ -101,16 +101,16 @@ const Mapa = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px-64px)] md:h-[calc(100vh-64px)] overflow-hidden">
-      {/* Barra de filtros */}
-      <div className="px-4 pt-4 pb-2 bg-surface border-b border-outline-variant z-10">
+    <div className="flex flex-col min-h-[calc(100vh-64px-64px)] md:h-[calc(100vh-64px)] md:overflow-hidden">
+      {/* Filtros — siempre arriba */}
+      <div className="px-4 pt-20 pb-5 bg-surface border-b border-outline-variant z-10">
         <FilterBar onFilter={setFiltros} />
       </div>
 
       {/* Split view */}
-      <main className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* Mapa — 60% desktop */}
-        <section className="w-full md:w-[60%] relative bg-surface-dim overflow-hidden">
+      <main className="flex flex-col md:grid md:grid-cols-[60%_1px_1fr] md:overflow-hidden md:flex-1 md:min-h-0">
+        {/* Mapa */}
+        <section className="relative bg-surface-dim overflow-hidden h-[45vh] md:h-full">
           {loading && (
             <div className="absolute inset-0 z-[400] flex items-center justify-center bg-surface/60">
               <span className="loading loading-spinner loading-md text-primary" />
@@ -121,7 +121,6 @@ const Mapa = () => {
             zoom={14}
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom
-            className="h-full w-full"
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -154,7 +153,7 @@ const Mapa = () => {
                         />
                       )}
                       <div className="flex items-start justify-between gap-2">
-                        <span className="font-semibold text-on-surface leading-tight text-sm">
+                        <span className="font-semibold leading-tight text-sm">
                           {tienda.name}
                         </span>
                         <span
@@ -178,9 +177,9 @@ const Mapa = () => {
                       )}
                       <Link
                         to={`/tiendas/${tienda.id}`}
-                        className="btn-primary btn btn-sm w-full mt-1"
+                        className="btn btn-primary btn-sm w-full mt-1"
                       >
-                        <p className="text-white">Ver perfil</p>
+                        Ver perfil
                       </Link>
                     </div>
                   </Popup>
@@ -191,19 +190,19 @@ const Mapa = () => {
         </section>
 
         {/* Divider desktop */}
-        <div className="hidden md:flex divider divider-horizontal m-0 border-outline-variant" />
+        <div className="hidden md:block bg-outline-variant" />
 
-        {/* Lista — 40% desktop */}
-        <section className="w-full md:w-[40%] bg-surface flex flex-col h-full border-t md:border-t-0 border-outline-variant">
-          <div className="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
-            <h3 className="text-label-md font-label-md text-on-surface uppercase tracking-wider">
+        {/* Lista */}
+        <section className="flex flex-col border-t md:border-t-0 border-outline-variant bg-surface md:overflow-hidden md:min-h-0">
+          <div className="px-4 py-3 border-b border-outline-variant bg-primary-container shrink-0">
+            <h3 className="text-label-md font-label-md text-base-100 uppercase tracking-wider">
               {loading
                 ? "Cargando..."
                 : `Tiendas encontradas (${tiendas.length})`}
             </h3>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-surface [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-outline-variant [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="md:flex-1 md:overflow-y-auto p-4 space-y-4 md:min-h-0 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-outline-variant [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
             {!loading && tiendas.length === 0 && (
               <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
                 <span className="material-symbols-outlined text-5xl text-on-surface/20">
@@ -214,7 +213,6 @@ const Mapa = () => {
                 </p>
               </div>
             )}
-
             {tiendas.map((tienda) => {
               const color = getColor(tienda.storeCategory?.id);
               const abierto = tienda.status === "Active";
@@ -247,7 +245,6 @@ const Mapa = () => {
                         )}
                       </div>
                     </div>
-
                     <div className="flex-1 space-y-1 min-w-0">
                       <div className="flex justify-between items-start gap-2">
                         <h4
@@ -261,7 +258,6 @@ const Mapa = () => {
                           {abierto ? "Abierto" : "Cerrado"}
                         </span>
                       </div>
-
                       {tienda.storeCategory && (
                         <span
                           className="badge badge-sm text-white"
@@ -270,7 +266,6 @@ const Mapa = () => {
                           {tienda.storeCategory.name}
                         </span>
                       )}
-
                       {tienda.neighborhood && (
                         <div
                           className={`flex items-center gap-1 text-label-sm font-label-sm text-secondary ${!abierto ? "opacity-70" : ""}`}
