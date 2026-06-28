@@ -15,6 +15,10 @@ const TopNavBar = () => {
       name: "Tiendas",
       to: "/tiendas",
     },
+    {
+      name: "Mapa",
+      to: "/mapa",
+    },
   ];
 
   const NavLinkClases =

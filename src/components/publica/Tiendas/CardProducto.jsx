@@ -8,7 +8,7 @@ const CardProducto = ({ tienda }) => {
 
   return (
     <Link
-      to={`/tienda/${tienda.id}`}
+      to={`/tiendas/${tienda.id}`}
       className="card bg-base-100 border border-base-300 hover:shadow-md transition-shadow group cursor-pointer"
     >
       <div className="h-36 bg-base-200 relative overflow-hidden">
