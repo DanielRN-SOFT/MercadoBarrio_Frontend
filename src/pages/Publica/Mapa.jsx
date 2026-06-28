@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import FilterBar from "../../components/publica/Tiendas/FilterBar";
 import fetchCliente from "../../config/fetchCliente";
 import ContainerMapa from "../../components/Mapa/ContainerMapa";
+import HeaderLista from "../../components/Mapa/HeaderLista";
+import SinResultados from "../../components/Mapa/SinResultados";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -76,7 +78,7 @@ const Mapa = () => {
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px-64px)] md:h-[calc(100vh-64px)] md:overflow-hidden">
       {/* Filtros — siempre arriba */}
-      <div className="px-4 pt-20 pb-5 bg-surface border-b border-outline-variant z-10">
+      <div className="px-4 pt-20 pb-5 bg-surface z-10">
         <FilterBar onFilter={setFiltros} />
       </div>
 
@@ -89,7 +91,11 @@ const Mapa = () => {
               <span className="loading loading-spinner loading-md text-primary" />
             </div>
           )}
-          <ContainerMapa markerRefs={markerRefs} getColor={getColor} tiendas={tiendas}/>
+          <ContainerMapa
+            markerRefs={markerRefs}
+            getColor={getColor}
+            tiendas={tiendas}
+          />
         </section>
 
         {/* Divider desktop */}
@@ -98,40 +104,10 @@ const Mapa = () => {
         {/* Lista */}
         <section className="flex flex-col border-t md:border-t-0 border-outline-variant bg-surface md:overflow-hidden md:min-h-0">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-outline-variant bg-primary-container shrink-0 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-on-primary-container text-[18px]">
-                storefront
-              </span>
-              <h3 className="text-label-md font-label-md text-on-primary-container uppercase tracking-wider">
-                {loading
-                  ? "Buscando..."
-                  : `${tiendas.length} tienda${tiendas.length !== 1 ? "s" : ""}`}
-              </h3>
-            </div>
-            {loading && (
-              <span className="loading loading-dots loading-xs text-primary" />
-            )}
-          </div>
+          <HeaderLista loading={loading} tiendas={tiendas} />
 
           <div className="md:flex-1 md:overflow-y-auto p-3 space-y-2 md:min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-outline-variant [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
-            {!loading && tiendas.length === 0 && (
-              <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-                <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center">
-                  <span className="material-symbols-outlined text-3xl text-on-surface/30">
-                    storefront
-                  </span>
-                </div>
-                <div>
-                  <p className="font-medium text-on-surface/60 text-sm">
-                    Sin resultados
-                  </p>
-                  <p className="text-xs text-on-surface/40 mt-0.5">
-                    Intenta con otros filtros
-                  </p>
-                </div>
-              </div>
-            )}
+            {!loading && tiendas.length === 0 && <SinResultados />}
 
             {tiendas.map((tienda) => {
               const color = getColor(tienda.storeCategory?.id);
