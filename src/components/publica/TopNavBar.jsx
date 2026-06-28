@@ -12,12 +12,12 @@ const TopNavBar = () => {
       to: "/",
     },
     {
-      name: "Tiendas",
-      to: "/tiendas",
-    },
-    {
       name: "Mapa",
       to: "/mapa",
+    },
+    {
+      name: "Tiendas",
+      to: "/tiendas",
     },
   ];
 
