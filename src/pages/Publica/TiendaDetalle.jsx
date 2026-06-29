@@ -9,16 +9,9 @@ import InfoPrincipal from "../../components/publica/Tiendas/Show/InfoPrincipal";
 import Horarios from "../../components/publica/Tiendas/Show/Horarios";
 import Productos from "../../components/publica/Tiendas/Show/Productos";
 import ButtonCategorias from "../../components/publica/Tiendas/Show/ButtonCategorias";
+import MapaTienda from "../../components/publica/Tiendas/Show/MapaTienda";
 
-const diasOrden = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+const diasOrden = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const TiendaDetalle = () => {
   const { id } = useParams();
@@ -62,17 +55,10 @@ const TiendaDetalle = () => {
 
   const horarios = [...(tienda.schedules || [])]
     .filter((s) => s.status === "Active")
-    .sort(
-      (a, b) => diasOrden.indexOf(a.weekDay) - diasOrden.indexOf(b.weekDay),
-    );
+    .sort((a, b) => diasOrden.indexOf(a.weekDay) - diasOrden.indexOf(b.weekDay));
 
-  const categorias = [
-    "",
-    ...new Set(tienda.products.map((p) => p.productCategory.name)),
-  ];
-  const productosFiltrados = categoriaActiva
-    ? tienda.products.filter((p) => p.productCategory.name === categoriaActiva)
-    : tienda.products;
+  const categorias = ["", ...new Set(tienda.products.map((p) => p.productCategory.name))];
+  const productosFiltrados = categoriaActiva ? tienda.products.filter((p) => p.productCategory.name === categoriaActiva) : tienda.products;
 
   return (
     <main className="pt-16 mb-24 md:mb-12">
@@ -86,12 +72,13 @@ const TiendaDetalle = () => {
         {/* Horarios */}
         {horarios.length > 0 && <Horarios horarios={horarios} />}
 
+        {/* Mapa */}
+        <MapaTienda tienda={tienda} />
+
         {/* Productos */}
         {tienda.products.length > 0 && (
           <div>
-            <h2 className="text-xl font-bold text-on-surface mb-4">
-              Productos disponibles
-            </h2>
+            <h2 className="text-xl font-bold text-on-surface mb-4">Productos disponibles</h2>
 
             {/* Filtro por categoría */}
             {categorias.length > 1 && (
@@ -101,7 +88,7 @@ const TiendaDetalle = () => {
                     cat={cat}
                     categoriaActiva={categoriaActiva}
                     setCategoriaActiva={setCategoriaActiva}
-                    key={cat.id}
+                    key={cat || "todos"}
                   />
                 ))}
               </div>

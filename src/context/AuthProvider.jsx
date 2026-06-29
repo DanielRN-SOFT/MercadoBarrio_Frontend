@@ -30,7 +30,13 @@ const AuthProvider = ({ children }) => {
       }
       setCargando(false);
     };
-    autenticarUsuario();
+
+    // Solo llama al perfil si hay datos guardados (posible sesión activa)
+    if (localStorage.getItem("auth")) {
+      autenticarUsuario();
+    } else {
+      setCargando(false);
+    }
   }, []);
 
   const cerrarSesion = async () => {
