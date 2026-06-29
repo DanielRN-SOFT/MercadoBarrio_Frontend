@@ -4,17 +4,29 @@ import fetchCliente from "../config/fetchCliente";
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
-  const [auth, setAuth] = useState({});
-  const [cargando, setCargando] = useState(true);
+  const [auth, setAuth] = useState(() => {
+    try {
+      const saved = localStorage.getItem("auth");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // ← Cambia esto: si ya hay auth guardado, no mostrar spinner
+  const [cargando, setCargando] = useState(() => {
+    return !localStorage.getItem("auth");
+  });
 
   useEffect(() => {
     const autenticarUsuario = async () => {
       try {
         const response = await fetchCliente("/auth/profile");
         setAuth(response);
+        localStorage.setItem("auth", JSON.stringify(response));
       } catch (error) {
-        // console.log(error);
         setAuth({});
+        localStorage.removeItem("auth");
       }
       setCargando(false);
     };
@@ -23,19 +35,14 @@ const AuthProvider = ({ children }) => {
 
   const cerrarSesion = async () => {
     try {
-      const response = await fetchCliente("/auth/logout", { method: "POST" });
-      setAuth({});
+      await fetchCliente("/auth/logout", { method: "POST" });
     } catch (error) {
-      // console.log(error);
-      setAuth({});
+      // silence
     }
+    setAuth({});
+    localStorage.removeItem("auth");
   };
-
-  return (
-    <AuthContext.Provider value={{ auth, setAuth, cargando, cerrarSesion }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ auth, setAuth, cargando, cerrarSesion }}>{children}</AuthContext.Provider>;
 };
 
 export { AuthProvider };
