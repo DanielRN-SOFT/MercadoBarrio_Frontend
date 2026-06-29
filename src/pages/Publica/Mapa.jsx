@@ -79,7 +79,7 @@ const Mapa = () => {
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px-64px)] md:h-[calc(100vh-64px)] md:overflow-hidden">
       {/* Filtros — siempre arriba */}
-      <div className="px-4 pt-20 pb-5 bg-surface z-10">
+      <div className="px-4 pt-20 pb-5 bg-surface border border-surface-container  z-10">
         <FilterBar onFilter={setFiltros} />
       </div>
 
@@ -93,6 +93,7 @@ const Mapa = () => {
             </div>
           )}
           <ContainerMapa
+            setTiendaActiva={setTiendaActiva}
             markerRefs={markerRefs}
             getColor={getColor}
             tiendas={tiendas}

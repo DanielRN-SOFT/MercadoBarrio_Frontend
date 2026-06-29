@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import { Link } from "react-router-dom";
 
-const ContainerMapa = ({ tiendas, getColor, markerRefs }) => {
+const ContainerMapa = ({ tiendas, getColor, markerRefs, setTiendaActiva }) => {
  
   const createPin = (color) =>
     L.divIcon({
