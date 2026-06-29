@@ -26,6 +26,13 @@ import {
 
 const COLORS = ["#2a78d6", "#1baf7a", "#eda100", "#4a3aa7", "#e34948"];
 
+const MOVEMENT_TYPE_LABEL = {
+  Entry: "Entrada",
+  Exit: "Salida",
+  AdjustEntry: "Ajuste-Entrada",
+  AdjustExit: "Ajuste-Salida",
+};
+
 const fmt = (n) =>
   new Intl.NumberFormat("es-CO", {
     style: "currency",
@@ -95,13 +102,6 @@ const StoreDashboard = () => {
 
   return (
     <div className="p-4 md:p-6 space-y-8">
-      {/* Cabecera */}
-      <div>
-        <h1 className="text-2xl font-bold text-on-surface">
-          Hola, {auth?.name?.split(" ")[0]} 👋
-        </h1>
-        <p className="text-on-surface/50 text-sm mt-1">{data.store.name}</p>
-      </div>
 
       {/* Stock */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -184,48 +184,55 @@ const StoreDashboard = () => {
       {/* Ventas diarias */}
       <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
         <SectionTitle>Ventas últimos 30 días</SectionTitle>
-        <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={charts.dailySales}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis
-              dataKey="date"
-              tick={{ fontSize: 11 }}
-              tickFormatter={(v) => v.slice(5)}
-              interval={4}
-            />
-            <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              tick={{ fontSize: 11 }}
-              tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
-            />
-            <Tooltip
-              formatter={(val, name) =>
-                name === "revenue" ? [fmt(val), "Ingresos"] : [val, "Ventas"]
-              }
-              labelFormatter={(l) => `Fecha: ${l}`}
-            />
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="count"
-              stroke="#2a78d6"
-              strokeWidth={2}
-              dot={false}
-              name="count"
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="revenue"
-              stroke="#1baf7a"
-              strokeWidth={2}
-              dot={false}
-              name="revenue"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-[320px]">
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={charts.dailySales}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10 }}
+                  tickFormatter={(v) => v.slice(5)}
+                  interval={4}
+                />
+                <YAxis yAxisId="left" tick={{ fontSize: 10 }} width={30} />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 10 }}
+                  width={45}
+                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                />
+                <Tooltip
+                  formatter={(val, name) =>
+                    name === "revenue"
+                      ? [fmt(val), "Ingresos"]
+                      : [val, "Ventas"]
+                  }
+                  labelFormatter={(l) => `Fecha: ${l}`}
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#2a78d6"
+                  strokeWidth={2}
+                  dot={false}
+                  name="count"
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#1baf7a"
+                  strokeWidth={2}
+                  dot={false}
+                  name="revenue"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
         <div className="flex gap-4 mt-2 text-xs text-on-surface/50">
           <span className="flex items-center gap-1">
             <span className="w-3 h-0.5 bg-blue-500 inline-block" /> Ventas
@@ -240,25 +247,29 @@ const StoreDashboard = () => {
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
           <SectionTitle>Ventas por día de semana (este mes)</SectionTitle>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={charts.salesByWeekDay}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip
-                formatter={(v, name) => [
-                  name === "revenue" ? fmt(v) : v,
-                  name === "revenue" ? "Ingresos" : "Ventas",
-                ]}
-              />
-              <Bar
-                dataKey="count"
-                fill="#2a78d6"
-                radius={[4, 4, 0, 0]}
-                name="count"
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-[280px]">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={charts.salesByWeekDay}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} width={25} />
+                  <Tooltip
+                    formatter={(v, name) => [
+                      name === "revenue" ? fmt(v) : v,
+                      name === "revenue" ? "Ingresos" : "Ventas",
+                    ]}
+                  />
+                  <Bar
+                    dataKey="count"
+                    fill="#2a78d6"
+                    radius={[4, 4, 0, 0]}
+                    name="count"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
@@ -271,20 +282,18 @@ const StoreDashboard = () => {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={75}
+                outerRadius={70}
                 label={({ name, value }) =>
-                  `${name === "Entry" ? "Entradas" : "Salidas"}: ${value}`
+                  `${MOVEMENT_TYPE_LABEL[name] ?? name}: ${value}`
                 }
+                labelLine={false}
               >
                 {charts.movementsByType.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip
-                formatter={(v, name) => [
-                  v,
-                  name === "Entry" ? "Entradas" : "Salidas",
-                ]}
+                formatter={(v, name) => [v, MOVEMENT_TYPE_LABEL[name] ?? name]}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -294,34 +303,38 @@ const StoreDashboard = () => {
       {/* Top productos */}
       <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
         <SectionTitle>Productos más vendidos (este mes)</SectionTitle>
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={charts.topProducts} layout="vertical">
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="#e5e7eb"
-              horizontal={false}
-            />
-            <XAxis type="number" tick={{ fontSize: 11 }} />
-            <YAxis
-              type="category"
-              dataKey="name"
-              tick={{ fontSize: 11 }}
-              width={110}
-            />
-            <Tooltip
-              formatter={(v, name) => [
-                name === "revenue" ? fmt(v) : v,
-                name === "revenue" ? "Ingresos" : "Cantidad",
-              ]}
-            />
-            <Bar
-              dataKey="quantitySold"
-              fill="#2a78d6"
-              radius={[0, 4, 4, 0]}
-              name="quantitySold"
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-[300px]">
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={charts.topProducts} layout="vertical">
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#e5e7eb"
+                  horizontal={false}
+                />
+                <XAxis type="number" tick={{ fontSize: 10 }} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ fontSize: 10 }}
+                  width={100}
+                />
+                <Tooltip
+                  formatter={(v, name) => [
+                    name === "revenue" ? fmt(v) : v,
+                    name === "revenue" ? "Ingresos" : "Cantidad",
+                  ]}
+                />
+                <Bar
+                  dataKey="quantitySold"
+                  fill="#2a78d6"
+                  radius={[0, 4, 4, 0]}
+                  name="quantitySold"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
       {/* Alertas de stock bajo */}
@@ -392,7 +405,8 @@ const StoreDashboard = () => {
                     {m.details
                       ?.map((d) => d.product?.name)
                       .join(", ")
-                      .slice(0, 40) || m.type}
+                      .slice(0, 40) ||
+                      (MOVEMENT_TYPE_LABEL[m.type] ?? m.type)}
                   </p>
                   <p className="text-on-surface/40 text-xs">
                     {m.user?.name} ·{" "}
@@ -402,7 +416,7 @@ const StoreDashboard = () => {
                 <span
                   className={`badge badge-sm ${m.type === "Entry" ? "badge-success" : "badge-warning"}`}
                 >
-                  {m.type === "Entry" ? "Entrada" : "Salida"}
+                  {MOVEMENT_TYPE_LABEL[m.type] ?? m.type}
                 </span>
               </div>
             ))}

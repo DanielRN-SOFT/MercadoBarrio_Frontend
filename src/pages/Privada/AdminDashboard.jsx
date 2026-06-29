@@ -36,6 +36,21 @@ const COLORS = [
   "#eb6834",
 ];
 
+const MOVEMENT_TYPE_LABEL = {
+  Entry: "Entrada",
+  Exit: "Salida",
+  AdjustEntry: "Ajuste-Entrada",
+  AdjustExit: "Ajuste-Salida",
+};
+
+const STORE_STATUS_LABEL = {
+  Active: "Activo",
+  Inactive: "Inactivo",
+  Pending: "Pendiente",
+  Incomplete: "Incompleto",
+  Rejected: "Rechazado",
+};
+
 const fmt = (n) =>
   new Intl.NumberFormat("es-CO", {
     style: "currency",
@@ -252,14 +267,21 @@ const AdminDashboard = () => {
                 cx="50%"
                 cy="50%"
                 outerRadius={75}
-                label={({ name, count }) => `${name}: ${count}`}
+                label={({ name, count }) =>
+                  `${MOVEMENT_TYPE_LABEL[name] ?? name}: ${count}`
+                }
                 labelLine={false}
               >
                 {charts.movementsByType.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip
+                formatter={(val, name) => [
+                  val,
+                  MOVEMENT_TYPE_LABEL[name] ?? name,
+                ]}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -291,13 +313,20 @@ const AdminDashboard = () => {
                 cx="50%"
                 cy="50%"
                 outerRadius={75}
-                label={({ name, value }) => `${name}: ${value}`}
+                label={({ name, value }) =>
+                  `${STORE_STATUS_LABEL[name] ?? name}: ${value}`
+                }
               >
                 {charts.storesByStatus.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip
+                formatter={(val, name) => [
+                  val,
+                  STORE_STATUS_LABEL[name] ?? name,
+                ]}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -339,14 +368,14 @@ const AdminDashboard = () => {
                 <div>
                   <p className="font-medium text-on-surface">{m.store?.name}</p>
                   <p className="text-on-surface/40 text-xs">
-                    {m.user?.name} · {m.type} ·{" "}
+                    {m.user?.name} · {MOVEMENT_TYPE_LABEL[m.type] ?? m.type} ·{" "}
                     {new Date(m.date).toLocaleDateString("es-CO")}
                   </p>
                 </div>
                 <span
                   className={`badge badge-sm ${m.type === "Entry" ? "badge-success" : "badge-warning"}`}
                 >
-                  {m.type === "Entry" ? "Entrada" : "Salida"}
+                  {MOVEMENT_TYPE_LABEL[m.type] ?? m.type}
                 </span>
               </div>
             ))}

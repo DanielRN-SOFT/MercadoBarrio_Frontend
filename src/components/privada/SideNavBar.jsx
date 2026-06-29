@@ -13,19 +13,59 @@ import { Link, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
 const allNavItems = [
-  { to: "/panel", icon: <MdOutlineDashboard />, label: "Panel", roles: ["Admin", "Grocer"] },
-  { to: "/panel/mi-tienda", icon: <IoStorefrontSharp />, label: "Mi Tienda", roles: ["Grocer"] },
-  { to: "/products", icon: <MdOutlineInventory2 />, label: "Productos", roles: ["Admin", "Grocer"], filled: true },
-  { to: "/sales", icon: <MdOutlinePayments />, label: "Ventas", roles: ["Admin", "Grocer"], filled: true },
-  { to: "/customers", icon: <MdOutlineGroup />, label: "Clientes", roles: ["Admin"] },
-  { to: "/settings", icon: <MdOutlineSettings />, label: "Ajustes", roles: ["Admin", "Grocer"] },
+  {
+    to: "/panel/tienda",
+    icon: <MdOutlineDashboard />,
+    label: "Panel",
+    roles: ["Grocer"],
+  },
+  {
+    to: "/panel/admin",
+    icon: <MdOutlineDashboard />,
+    label: "Panel",
+    roles: ["Admin"],
+  },
+  {
+    to: "/panel/mi-tienda",
+    icon: <IoStorefrontSharp />,
+    label: "Mi Tienda",
+    roles: ["Grocer"],
+  },
+  {
+    to: "/products",
+    icon: <MdOutlineInventory2 />,
+    label: "Productos",
+    roles: ["Admin", "Grocer"],
+    filled: true,
+  },
+  {
+    to: "/sales",
+    icon: <MdOutlinePayments />,
+    label: "Ventas",
+    roles: ["Admin", "Grocer"],
+    filled: true,
+  },
+  {
+    to: "/customers",
+    icon: <MdOutlineGroup />,
+    label: "Clientes",
+    roles: ["Admin"],
+  },
+  {
+    to: "/settings",
+    icon: <MdOutlineSettings />,
+    label: "Ajustes",
+    roles: ["Admin", "Grocer"],
+  },
 ];
 
 const SideNavBar = ({ open, onClose }) => {
   const { pathname } = useLocation();
   const { auth, cargando } = useAuth();
 
-  const navItems = allNavItems.filter((item) => item.roles.includes(auth?.role));
+  const navItems = allNavItems.filter((item) =>
+    item.roles.includes(auth?.role),
+  );
 
   useEffect(() => {
     onClose();
@@ -39,7 +79,12 @@ const SideNavBar = ({ open, onClose }) => {
   }, [open]);
   return (
     <>
-      {open && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={onClose} />}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
 
       <aside
         className={`
@@ -51,7 +96,10 @@ const SideNavBar = ({ open, onClose }) => {
           lg:translate-x-0
         `}
       >
-        <button onClick={onClose} className="lg:hidden self-end mb-2 p-1 text-secondary hover:text-on-surface cursor-pointer">
+        <button
+          onClick={onClose}
+          className="lg:hidden self-end mb-2 p-1 text-secondary hover:text-on-surface cursor-pointer"
+        >
           <MdClose className="text-2xl" />
         </button>
 
@@ -64,7 +112,10 @@ const SideNavBar = ({ open, onClose }) => {
                 <SideNavItem
                   key={item.to}
                   {...item}
-                  active={pathname === item.to || (item.to !== "/panel" && pathname.startsWith(item.to))}
+                  active={
+                    pathname === item.to ||
+                    (item.to !== "/panel" && pathname.startsWith(item.to))
+                  }
                 />
               ))}
         </nav>
@@ -96,8 +147,13 @@ const SideNavItem = ({ to, icon, label, filled, active }) => (
       ${active ? "bg-primary-container text-on-primary-container" : "text-secondary hover:bg-surface-container-high"}
     `}
   >
-    {active && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />}
-    <span className="text-3xl" style={active && filled ? { fontVariationSettings: "'FILL' 1" } : {}}>
+    {active && (
+      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full" />
+    )}
+    <span
+      className="text-2xl"
+      style={active && filled ? { fontVariationSettings: "'FILL' 1" } : {}}
+    >
       {icon}
     </span>
     {label}
@@ -116,7 +172,10 @@ const SideNavFooter = ({ role }) => {
           Publicar Producto
         </Link>
       )}
-      <Link to="/help" className="flex items-center gap-3 px-4 py-2 text-secondary hover:text-primary transition-colors text-label-sm">
+      <Link
+        to="/help"
+        className="flex items-center gap-3 px-4 py-2 text-secondary hover:text-primary transition-colors text-label-sm"
+      >
         <span className="material-symbols-outlined">contact_support</span>
         Centro de Ayuda
       </Link>
