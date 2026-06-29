@@ -11,6 +11,7 @@ import TiendaDetalle from "../pages/Publica/TiendaDetalle";
 import PrivateLayout from "../layouts/PrivateLayout";
 import NuevaPassword from "../pages/Auth/NuevaPassword";
 import Tiendas from "../pages/Publica/Tiendas";
+import BuscarProducto from "../pages/Publica/BuscarProducto";
 import Mapa from "../pages/Publica/Mapa";
 
 export const router = createBrowserRouter(
@@ -28,6 +29,7 @@ export const router = createBrowserRouter(
         <Route index element={<Inicio />}></Route>
         <Route path="tiendas" element={<Tiendas />}></Route>
         <Route path="tiendas/:id" element={<TiendaDetalle />}></Route>
+        <Route path="buscar" element={<BuscarProducto />} />
         <Route path="mapa" element={<Mapa />}></Route>
       </Route>
 
