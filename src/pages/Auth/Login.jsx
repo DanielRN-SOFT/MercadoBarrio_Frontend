@@ -36,6 +36,7 @@ const Login = () => {
 
       if (response.id) {
         setAuth(response);
+        localStorage.setItem("auth", JSON.stringify(response));
         addToast({
           message: "Login exitoso",
           type: "success",
