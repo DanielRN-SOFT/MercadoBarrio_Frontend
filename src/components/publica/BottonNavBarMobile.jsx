@@ -2,30 +2,11 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const NAVLINKS = [
-  {
-    name: "Inicio",
-    to: "/",
-    icon: "home",
-    fill: true,
-  },
-  {
-    name: "Mapa",
-    to: "/mapa",
-    icon: "map",
-    fill: false,
-  },
-  {
-    name: "Tiendas",
-    to: "/tiendas",
-    icon: "storefront",
-    fill: false,
-  },
-  {
-    name: "Perfil",
-    to: "/perfil",
-    icon: "person",
-    fill: false,
-  },
+  { name: "Inicio", to: "/", icon: "home", fill: true },
+  { name: "Mapa", to: "/mapa", icon: "map", fill: false },
+  { name: "Tiendas", to: "/tiendas", icon: "storefront", fill: false },
+  { name: "Buscar", to: "/buscar", icon: "search", fill: false },
+  { name: "Perfil", to: "/perfil", icon: "person", fill: false },
 ];
 
 const BottonNavBarMobile = () => {
@@ -48,9 +29,7 @@ const BottonNavBarMobile = () => {
             <span
               className="material-symbols-outlined"
               data-icon={link.icon}
-              style={
-                isActive ? { fontVariationSettings: "'FILL' 1" } : undefined
-              }
+              style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
             >
               {link.icon}
             </span>
