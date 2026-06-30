@@ -26,7 +26,7 @@ const Inicio = () => {
 
   return (
     <main className="pt-16 mx-auto">
-      <section className="bg-primary-container text-on-primary py-12 px-margin-mobile md:px-margin-desktop">
+      <section className="bg-primary-container text-on-primary">
         <HeroSection />
       </section>
 
