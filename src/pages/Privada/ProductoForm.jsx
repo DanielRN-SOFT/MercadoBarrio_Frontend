@@ -80,7 +80,8 @@ const ProductoForm = () => {
       };
 
       if (isEditing) {
-        await fetchCliente(`/products/${id}`, { method: "PUT", body });
+        const { currentStock, ...bodyWithoutStock } = body;
+        await fetchCliente(`/products/${id}`, { method: "PUT", body: bodyWithoutStock });
         addToast({ message: "Producto actualizado correctamente", type: "success" });
       } else {
         await fetchCliente("/products", { method: "POST", body });
@@ -201,8 +202,20 @@ const ProductoForm = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="form-control w-full">
-                  <Label label="Stock inicial *" />
-                  <Input name="currentStock" value={form.currentStock} onChange={handleChange} placeholder="Ej: 20" type="number" />
+                  <Label label={isEditing ? "Stock actual" : "Stock inicial *"} />
+                  <Input
+                    name="currentStock"
+                    value={form.currentStock}
+                    onChange={handleChange}
+                    placeholder="Ej: 20"
+                    type="number"
+                    disabled={isEditing}
+                  />
+                  {isEditing && (
+                    <p className="text-label-sm text-secondary mt-1 px-1">
+                      El stock se actualiza con tus ventas y movimientos de inventario, no desde aquí.
+                    </p>
+                  )}
                 </div>
                 <div className="form-control w-full">
                   <Label label="Alerta de stock bajo" />

@@ -7,17 +7,28 @@ import fetchCliente from "../../config/fetchCliente";
 
 const BuscarProducto = () => {
   const [query, setQuery] = useState("");
+  const [productCategoryId, setProductCategoryId] = useState("");
+  const [categorias, setCategorias] = useState([]);
   const [resultados, setResultados] = useState([]);
   const [loading, setLoading] = useState(false);
   const [buscado, setBuscado] = useState(false);
   const debounceRef = useRef(null);
 
-  const buscar = async (valor) => {
+  useEffect(() => {
+    fetchCliente("/product-categories")
+      .then((res) => setCategorias(res?.data ?? []))
+      .catch(() => {});
+  }, []);
+
+  const buscar = async (valor, categoriaId) => {
     setLoading(true);
     setBuscado(true);
     try {
-      const params = valor.trim() ? `?name=${encodeURIComponent(valor)}` : "";
-      const res = await fetchCliente(`/products/public/search${params}`);
+      const params = new URLSearchParams();
+      if (valor.trim()) params.set("name", valor.trim());
+      if (categoriaId) params.set("productCategoryId", categoriaId);
+      const qs = params.toString();
+      const res = await fetchCliente(`/products/public/search${qs ? `?${qs}` : ""}`);
       setResultados(res.data);
     } catch {
       setResultados([]);
@@ -27,20 +38,29 @@ const BuscarProducto = () => {
   };
 
   useEffect(() => {
-    buscar("");
+    buscar("", "");
   }, []);
 
   const handleChange = (e) => {
     const valor = e.target.value;
     setQuery(valor);
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => buscar(valor), 400);
+    debounceRef.current = setTimeout(() => buscar(valor, productCategoryId), 400);
+  };
+
+  const handleCategoriaChange = (e) => {
+    const categoriaId = e.target.value;
+    setProductCategoryId(categoriaId);
+    buscar(query, categoriaId);
   };
 
   const handleLimpiar = () => {
     setQuery("");
-    buscar("");
+    setProductCategoryId("");
+    buscar("", "");
   };
+
+  const hayFiltrosActivos = query || productCategoryId;
 
   return (
     <main className="pt-16 px-margin-mobile md:px-margin-desktop mb-24 md:mb-12">
@@ -61,6 +81,16 @@ const BuscarProducto = () => {
             </button>
           )}
         </label>
+
+        {/* Filtro por categoría */}
+        <select value={productCategoryId} onChange={handleCategoriaChange} className="select select-bordered mt-3 w-full">
+          <option value="">Todas las categorías</option>
+          {categorias.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Resultados */}
@@ -85,8 +115,10 @@ const BuscarProducto = () => {
         {!loading && buscado && resultados.length === 0 && (
           <div className="text-center py-16 text-on-surface/40">
             <IoStorefrontSharp className="text-6xl mx-auto mb-3" />
-            <p className="font-medium">No encontramos "{query}" en ninguna tienda activa.</p>
-            <p className="text-sm mt-1">Intenta con otro nombre o revisa la ortografía.</p>
+            <p className="font-medium">
+              {hayFiltrosActivos ? `No encontramos resultados con esos filtros.` : "No hay productos disponibles."}
+            </p>
+            {query && <p className="text-sm mt-1">Intenta con otro nombre o revisa la ortografía.</p>}
           </div>
         )}
 
