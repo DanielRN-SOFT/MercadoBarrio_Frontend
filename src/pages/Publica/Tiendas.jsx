@@ -49,7 +49,7 @@ const Tiendas = () => {
 
       <div className="pt-12">
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="card bg-base-100 border border-base-300">
                 <div className="h-32 skeleton" />
@@ -67,7 +67,7 @@ const Tiendas = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {tiendas.map((tienda) => (
                 <CardProducto key={tienda.id} tienda={tienda} />
               ))}

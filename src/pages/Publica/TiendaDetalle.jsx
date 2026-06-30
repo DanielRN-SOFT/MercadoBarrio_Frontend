@@ -140,7 +140,7 @@ const TiendaDetalle = () => {
               </div>
             ) : tienda.products.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {tienda.products.map((producto) => (
                     <Productos key={producto.id} producto={producto} />
                   ))}
