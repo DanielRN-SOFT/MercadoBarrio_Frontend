@@ -5,7 +5,7 @@ const HeroSection = () => {
     <div className="relative w-full min-h-105 md:min-h-120 flex items-center justify-center overflow-hidden">
       {/* Imagen de fondo */}
       <img
-        src="/images/hero-mercado3.jpg"
+        src="/images/hero-mercado.jpg"
         alt="Tu mercado local"
         className="absolute inset-0 w-full h-full object-cover"
       />
