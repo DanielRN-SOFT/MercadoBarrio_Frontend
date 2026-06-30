@@ -248,7 +248,7 @@ const StoreDashboard = () => {
         <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
           <SectionTitle>Ventas por día de semana (este mes)</SectionTitle>
           <div className="w-full overflow-x-auto">
-            <div className="min-w-[280px]">
+            <div className="min-w-70">
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={charts.salesByWeekDay}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -304,7 +304,7 @@ const StoreDashboard = () => {
       <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
         <SectionTitle>Productos más vendidos (este mes)</SectionTitle>
         <div className="w-full overflow-x-auto">
-          <div className="min-w-[300px]">
+          <div className="min-w-75">
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={charts.topProducts} layout="vertical">
                 <CartesianGrid

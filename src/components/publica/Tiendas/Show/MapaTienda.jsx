@@ -24,10 +24,10 @@ const MapaTienda = ({ tienda }) => {
       <h2 className="text-xl font-bold text-on-surface mb-4">Ubicación</h2>
       <div className="rounded-2xl overflow-hidden border border-base-300 h-56 md:h-72 w-full z-0">
         <MapContainer center={[lat, lng]} zoom={16} scrollWheelZoom={false} className="h-full w-full">
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+         <TileLayer
+               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+               attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+             />
           <Marker position={[lat, lng]} icon={defaultIcon}>
             <Popup>
               <span className="font-semibold">{tienda.name}</span>
