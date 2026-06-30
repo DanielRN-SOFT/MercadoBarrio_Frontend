@@ -1,8 +1,4 @@
-import {
-  createBrowserRouter,
-  createRoutesFromElements,
-  Route,
-} from "react-router-dom";
+import { createBrowserRouter, createRoutesFromElements, Route } from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
 import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
@@ -11,6 +7,8 @@ import PublicLayout from "../layouts/PublicLayout";
 import Inicio from "../pages/Publica/Inicio";
 import Index from "../pages/Privada/Index";
 import MiTienda from "../pages/Privada/MiTienda";
+import MisProductos from "../pages/Privada/MisProductos";
+import ProductoForm from "../pages/Privada/ProductoForm";
 import TiendaDetalle from "../pages/Publica/TiendaDetalle";
 import PrivateLayout from "../layouts/PrivateLayout";
 import NuevaPassword from "../pages/Auth/NuevaPassword";
@@ -27,10 +25,7 @@ export const router = createBrowserRouter(
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={<Login />}></Route>
         <Route path="olvide-password" element={<ForgotPassword />}></Route>
-        <Route
-          path="cambiar-password/:token"
-          element={<NuevaPassword />}
-        ></Route>
+        <Route path="cambiar-password/:token" element={<NuevaPassword />}></Route>
       </Route>
 
       {/* Rutas de la pagina publica */}
@@ -46,6 +41,9 @@ export const router = createBrowserRouter(
         <Route path="admin" element={<AdminDashboard />}></Route>
         <Route path="tienda" element={<StoreDashboard />}></Route>
         <Route path="mi-tienda" element={<MiTienda />}></Route>
+        <Route path="productos" element={<MisProductos />}></Route>
+        <Route path="productos/nuevo" element={<ProductoForm />}></Route>
+        <Route path="productos/:id/editar" element={<ProductoForm />}></Route>
       </Route>
     </>,
   ),
