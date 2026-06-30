@@ -22,7 +22,7 @@ const MisProductos = () => {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-    fetchCliente("/product-categories")
+    fetchCliente("/product-categories/store/mine")
       .then((res) => setCategorias(res?.data ?? []))
       .catch(() => {});
   }, []);
@@ -49,7 +49,6 @@ const MisProductos = () => {
     fetchProducts(page);
   }, [page]);
 
-  // Debounce de búsqueda y reset de página al filtrar
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (page === 1) fetchProducts(1);

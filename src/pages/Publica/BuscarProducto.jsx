@@ -15,7 +15,7 @@ const BuscarProducto = () => {
   const debounceRef = useRef(null);
 
   useEffect(() => {
-    fetchCliente("/product-categories")
+    fetchCliente("/product-categories/public/search")
       .then((res) => setCategorias(res?.data ?? []))
       .catch(() => {});
   }, []);
@@ -64,33 +64,34 @@ const BuscarProducto = () => {
 
   return (
     <main className="pt-16 px-margin-mobile md:px-margin-desktop mb-24 md:mb-12">
-      <div className="mt-8 max-w-2xl mx-auto">
+      <div className="mt-10 max-w-4xl mx-auto">
         {/* Título */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-on-surface">Buscar productos</h1>
           <p className="text-sm text-on-surface/60 mt-1">Encuentra qué tiendas cercanas tienen el producto que necesitas.</p>
         </div>
 
-        {/* Buscador */}
-        <label className="input input-bordered flex items-center gap-2 pr-2">
-          <IoSearchSharp className="text-on-surface/40 text-lg shrink-0" />
-          <input type="text" value={query} onChange={handleChange} placeholder="Ej: Arroz, Aceite, Jabón..." className="grow" autoFocus />
-          {query && (
-            <button onClick={handleLimpiar} className="btn btn-ghost btn-xs btn-circle">
-              <IoCloseSharp />
-            </button>
-          )}
-        </label>
+        {/* Buscador + Filtro por categoría */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <label className="input input-bordered flex items-center gap-2 pr-2 flex-1">
+            <IoSearchSharp className="text-on-surface/40 text-lg shrink-0" />
+            <input type="text" value={query} onChange={handleChange} placeholder="Ej: Arroz, Aceite, Jabón..." className="grow" autoFocus />
+            {query && (
+              <button onClick={handleLimpiar} className="btn btn-ghost btn-xs btn-circle">
+                <IoCloseSharp />
+              </button>
+            )}
+          </label>
 
-        {/* Filtro por categoría */}
-        <select value={productCategoryId} onChange={handleCategoriaChange} className="select select-bordered mt-3 w-full">
-          <option value="">Todas las categorías</option>
-          {categorias.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+          <select value={productCategoryId} onChange={handleCategoriaChange} className="select select-bordered sm:w-56">
+            <option value="">Todas las categorías</option>
+            {categorias.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Resultados */}
