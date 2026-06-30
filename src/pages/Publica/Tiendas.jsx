@@ -2,34 +2,43 @@ import { useEffect, useState } from "react";
 import FilterBar from "../../components/publica/Tiendas/FilterBar";
 import fetchCliente from "../../config/fetchCliente";
 import CardProducto from "../../components/publica/Tiendas/CardProducto";
+import Paginacion from "../../components/publica/Tiendas/Paginacion";
 
 const Tiendas = () => {
   const [tiendas, setTiendas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filtros, setFiltros] = useState({});
+  const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 });
+
+  const obtenerStores = async (pagina = 1, filtrosActuales = {}) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams(
+        Object.fromEntries(
+          Object.entries(filtrosActuales).filter(([, v]) => v !== ""),
+        ),
+      );
+      params.set("page", pagina);
+
+      const response = await fetchCliente(
+        `/stores/public?${params.toString()}`,
+      );
+      setTiendas(response.data);
+      setMeta(response.meta);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const obtenerStores = async () => {
-      try {
-        const response = await fetchCliente("/stores/public");
-        setTiendas(response.data);
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    obtenerStores();
+    obtenerStores(1, {});
   }, []);
 
   const handleFilter = (nuevosFiltros) => {
-    const params = new URLSearchParams(
-      Object.fromEntries(
-        Object.entries(nuevosFiltros).filter(([, v]) => v !== ""),
-      ),
-    ).toString();
-    fetchCliente(`/stores/public?${params}`)
-      .then((res) => setTiendas(res.data))
-      .catch(console.error);
+    setFiltros(nuevosFiltros);
+    obtenerStores(1, nuevosFiltros); // al filtrar, siempre volvemos a la página 1
   };
 
   return (
@@ -52,12 +61,22 @@ const Tiendas = () => {
               </div>
             ))}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tiendas.map((tienda) => (
-              <CardProducto key={tienda.id} tienda={tienda} />
-            ))}
+        ) : tiendas.length === 0 ? (
+          <div className="text-center py-16 text-base-content/60">
+            No se encontraron tiendas con esos filtros.
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tiendas.map((tienda) => (
+                <CardProducto key={tienda.id} tienda={tienda} />
+              ))}
+            </div>
+
+            {meta.totalPages > 1 && (
+              <Paginacion meta={meta} obtenerStores={obtenerStores} filtros={filtros} />
+            )}
+          </>
         )}
       </div>
     </main>
