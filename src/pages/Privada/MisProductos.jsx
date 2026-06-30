@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { MdOutlineInventory2, MdAdd, MdEdit, MdRestoreFromTrash } from "react-icons/md";
-import { IoCloseCircle } from "react-icons/io5";
+import { IoCloseCircle, IoSearchSharp, IoCloseSharp } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
@@ -9,16 +9,33 @@ import ToastContainer from "../../components/ui/ToastContainer";
 const MisProductos = () => {
   const { toasts, addToast, removeToast } = useToast();
   const [products, setProducts] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
   const [confirmId, setConfirmId] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Filtros
+  const [name, setName] = useState("");
+  const [productCategoryId, setProductCategoryId] = useState("");
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    fetchCliente("/product-categories")
+      .then((res) => setCategorias(res?.data ?? []))
+      .catch(() => {});
+  }, []);
+
   const fetchProducts = async (p = 1) => {
     setLoading(true);
     try {
-      const res = await fetchCliente(`/products?page=${p}`);
+      const params = new URLSearchParams({ page: p });
+      if (name.trim()) params.set("name", name.trim());
+      if (productCategoryId) params.set("productCategoryId", productCategoryId);
+      if (status) params.set("status", status);
+
+      const res = await fetchCliente(`/products?${params.toString()}`);
       setProducts(res.data);
       setMeta(res.meta);
     } catch {
@@ -31,6 +48,15 @@ const MisProductos = () => {
   useEffect(() => {
     fetchProducts(page);
   }, [page]);
+
+  // Debounce de búsqueda y reset de página al filtrar
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (page === 1) fetchProducts(1);
+      else setPage(1);
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [name, productCategoryId, status]);
 
   const handleDelete = async (id) => {
     setActionLoading(true);
@@ -59,6 +85,14 @@ const MisProductos = () => {
     }
   };
 
+  const handleClearFilters = () => {
+    setName("");
+    setProductCategoryId("");
+    setStatus("");
+  };
+
+  const hasFilters = name || productCategoryId || status;
+
   return (
     <>
       <div className="max-w-4xl mx-auto space-y-6">
@@ -66,9 +100,7 @@ const MisProductos = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-headline-lg font-bold text-on-surface">Mis Productos</h1>
-            <p className="text-body-md text-secondary mt-1">
-              Gestiona el catálogo de tu establecimiento.
-            </p>
+            <p className="text-body-md text-secondary mt-1">Gestiona el catálogo de tu establecimiento.</p>
           </div>
           <Link
             to="/panel/productos/nuevo"
@@ -77,6 +109,61 @@ const MisProductos = () => {
             <MdAdd className="text-xl" />
             Nuevo producto
           </Link>
+        </div>
+
+        {/* Filtros */}
+        <div className="card bg-surface-container-low border border-outline-variant rounded-2xl">
+          <div className="card-body p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Búsqueda por nombre */}
+              <label className="input input-bordered flex items-center gap-2 flex-1 rounded-full">
+                <IoSearchSharp className="text-on-surface/40 text-lg shrink-0" />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Buscar por nombre..."
+                  className="grow"
+                />
+                {name && (
+                  <button onClick={() => setName("")} className="btn btn-ghost btn-xs btn-circle">
+                    <IoCloseSharp />
+                  </button>
+                )}
+              </label>
+
+              {/* Categoría */}
+              <select
+                value={productCategoryId}
+                onChange={(e) => setProductCategoryId(e.target.value)}
+                className="select select-bordered border-outline-variant bg-surface focus:border-primary font-body-md text-body-md rounded-full sm:w-48"
+              >
+                <option value="">Todas las categorías</option>
+                {categorias.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Estado */}
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="select select-bordered border-outline-variant bg-surface focus:border-primary font-body-md text-body-md rounded-full sm:w-40"
+              >
+                <option value="">Todos los estados</option>
+                <option value="Active">Activo</option>
+                <option value="Inactive">Inactivo</option>
+              </select>
+            </div>
+
+            {hasFilters && (
+              <button onClick={handleClearFilters} className="btn btn-ghost btn-sm self-start mt-2 text-secondary font-label-sm">
+                Limpiar filtros
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tabla / Lista */}
@@ -98,14 +185,23 @@ const MisProductos = () => {
             ) : products.length === 0 ? (
               <div className="text-center py-20 text-secondary">
                 <MdOutlineInventory2 className="text-6xl mx-auto mb-3 opacity-30" />
-                <p className="font-semibold text-on-surface">Aún no tienes productos</p>
-                <p className="text-body-md mt-1">Agrega tu primer producto para comenzar.</p>
-                <Link
-                  to="/panel/productos/nuevo"
-                  className="btn bg-primary text-white border-none rounded-full mt-6 font-label-md text-label-md"
-                >
-                  <MdAdd className="text-xl" /> Agregar producto
-                </Link>
+                {hasFilters ? (
+                  <>
+                    <p className="font-semibold text-on-surface">Sin resultados</p>
+                    <p className="text-body-md mt-1">No encontramos productos con esos filtros. Intenta ajustarlos.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-semibold text-on-surface">Aún no tienes productos</p>
+                    <p className="text-body-md mt-1">Agrega tu primer producto para comenzar.</p>
+                    <Link
+                      to="/panel/productos/nuevo"
+                      className="btn bg-primary text-white border-none rounded-full mt-6 font-label-md text-label-md"
+                    >
+                      <MdAdd className="text-xl" /> Agregar producto
+                    </Link>
+                  </>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -113,6 +209,7 @@ const MisProductos = () => {
                   <thead>
                     <tr className="text-secondary text-label-sm border-outline-variant">
                       <th>Producto</th>
+                      <th>Categoría</th>
                       <th>Precio</th>
                       <th>Stock</th>
                       <th>Estado</th>
@@ -127,20 +224,17 @@ const MisProductos = () => {
                             <div className="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0">
                               <MdOutlineInventory2 className="text-secondary text-lg" />
                             </div>
-                            <span className="font-semibold text-on-surface text-body-md">
-                              {p.name}
-                            </span>
+                            <span className="font-semibold text-on-surface text-body-md">{p.name}</span>
                           </div>
                         </td>
-                        <td className="text-primary font-bold text-body-md">
-                          ${Number(p.price).toLocaleString("es-CO")}
+                        <td>
+                          <span className="badge badge-ghost badge-sm">{p.productCategory?.name ?? "—"}</span>
                         </td>
+                        <td className="text-primary font-bold text-body-md">${Number(p.price).toLocaleString("es-CO")}</td>
                         <td>
                           <span
                             className={`badge badge-sm text-white ${
-                              p.currentStock <= p.lowStockThreshold
-                                ? "badge-warning"
-                                : "badge-success"
+                              p.currentStock <= p.lowStockThreshold ? "badge-warning" : "badge-success"
                             }`}
                           >
                             {p.currentStock} uds
@@ -198,11 +292,7 @@ const MisProductos = () => {
         {/* Paginación */}
         {meta.totalPages > 1 && (
           <div className="flex justify-center gap-2">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="btn btn-ghost btn-sm rounded-full"
-            >
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="btn btn-ghost btn-sm rounded-full">
               Anterior
             </button>
             <span className="flex items-center text-body-md text-secondary px-2">
@@ -225,14 +315,10 @@ const MisProductos = () => {
           <div className="modal-box bg-surface-container-low rounded-2xl">
             <h3 className="font-bold text-title-md text-on-surface">¿Desactivar producto?</h3>
             <p className="text-body-md text-secondary mt-2">
-              El producto dejará de ser visible en el catálogo público. Puedes reactivarlo en
-              cualquier momento.
+              El producto dejará de ser visible en el catálogo público. Puedes reactivarlo en cualquier momento.
             </p>
             <div className="modal-action gap-2">
-              <button
-                onClick={() => setConfirmId(null)}
-                className="btn btn-ghost rounded-full font-label-md"
-              >
+              <button onClick={() => setConfirmId(null)} className="btn btn-ghost rounded-full font-label-md">
                 Cancelar
               </button>
               <button
@@ -240,11 +326,7 @@ const MisProductos = () => {
                 disabled={actionLoading}
                 className="btn bg-error text-on-error border-none rounded-full font-label-md"
               >
-                {actionLoading ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : (
-                  "Desactivar"
-                )}
+                {actionLoading ? <span className="loading loading-spinner loading-sm" /> : "Desactivar"}
               </button>
             </div>
           </div>
