@@ -2,9 +2,11 @@ import { FaLocationDot, FaPhone } from "react-icons/fa6";
 import { IoStorefrontSharp } from "react-icons/io5";
 import { MdLocationCity } from "react-icons/md";
 import { Link } from "react-router-dom";
-
+import { estaAbierto } from "../../../helpers/horarioTienda";
 const CardProducto = ({ tienda }) => {
   const imagen = tienda.photo || tienda.logo || null;
+  const abierto = estaAbierto(tienda.schedules);
+  console.log(abierto);
 
   return (
     <Link
@@ -25,12 +27,15 @@ const CardProducto = ({ tienda }) => {
         )}
         {tienda.status === "Active" && (
           <div className="absolute top-2 right-2">
-            <span className="badge badge-success text-white text-[10px] font-bold uppercase tracking-wider">
-              Abierto
+            <span
+              className={`badge text-white text-[10px] font-bold uppercase tracking-wider ${
+                abierto ? "badge-success" : "badge-error"
+              }`}
+            >
+              {abierto ? "Abierto" : "Cerrado"}
             </span>
           </div>
         )}
-        {/* Logo encima de la foto */}
         {tienda.logo && tienda.photo && (
           <div className="absolute bottom-2 left-2">
             <div className="w-10 h-10 rounded-lg border-2 border-base-100 overflow-hidden bg-base-100">
