@@ -57,7 +57,8 @@ const Mapa = () => {
           Object.entries(params).filter(([, v]) => v !== "" && v !== undefined),
         ),
       ).toString();
-      const res = await fetchCliente(`/stores/public?limit=100&${query}`);
+      const res = await fetchCliente(`/stores/public/map?${query}`);
+        console.log(res);
       setTiendas(res.data.filter((t) => t.latitude && t.longitude));
     } catch (err) {
       console.error(err);
