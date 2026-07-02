@@ -22,22 +22,14 @@ L.Icon.Default.mergeOptions({
     .href,
 });
 
-const CATEGORY_COLORS = [
-  "#1960a6",
-  "#2e7d32",
-  "#c62828",
-  "#f57c00",
-  "#6a1b9a",
-  "#00838f",
-  "#ad1457",
-  "#558b2f",
-];
-
+// Genera colores únicos e ilimitados usando el "golden angle" para
+// máxima separación visual entre matices consecutivos
 const colorCache = {};
 const getColor = (categoryId) => {
   if (!colorCache[categoryId]) {
-    const idx = Object.keys(colorCache).length % CATEGORY_COLORS.length;
-    colorCache[categoryId] = CATEGORY_COLORS[idx];
+    const idx = Object.keys(colorCache).length;
+    const hue = (idx * 137.508) % 360;
+    colorCache[categoryId] = `hsl(${hue}, 65%, 42%)`;
   }
   return colorCache[categoryId];
 };
@@ -58,7 +50,7 @@ const Mapa = () => {
         ),
       ).toString();
       const res = await fetchCliente(`/stores/public/map?${query}`);
-        console.log(res);
+      console.log(res);
       setTiendas(res.data.filter((t) => t.latitude && t.longitude));
     } catch (err) {
       console.error(err);
@@ -109,7 +101,7 @@ const Mapa = () => {
           {/* Header */}
           <HeaderLista loading={loading} tiendas={tiendas} />
 
-          <div className="md:flex-1 md:overflow-y-auto p-3 space-y-2 md:min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-outline-variant [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="md:flex-1 md:overflow-y-auto p-3 pb-6 space-y-2.5 md:min-h-0 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-outline-variant [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
             {!loading && tiendas.length === 0 && <SinResultados />}
 
             {tiendas.map((tienda) => {
