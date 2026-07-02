@@ -141,7 +141,7 @@ const ProductoForm = () => {
             className="flex items-center gap-2 text-on-surface-variant mb-2 hover:text-primary transition-colors"
           >
             <MdArrowBack className="text-base" />
-            <span className="font-label-sm text-label-sm hover:underline">
+            <span className="font-label-sm text-label-sm hover:underline cursor-pointer">
               Volver a Productos
             </span>
           </button>
@@ -403,7 +403,7 @@ const ProductoForm = () => {
                   <button
                     type="button"
                     onClick={() => navigate("/panel/productos")}
-                    className="btn btn-ghost w-full rounded-full font-label-md text-label-md h-12 text-secondary"
+                    className="btn btn-secondary w-full rounded-full font-label-md text-label-md h-12 text-on-secondary"
                   >
                     Cancelar y salir
                   </button>

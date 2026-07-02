@@ -1,3 +1,4 @@
+import { icon } from "leaflet";
 import { useEffect } from "react";
 import { IoStorefrontSharp } from "react-icons/io5";
 import {
@@ -5,6 +6,7 @@ import {
   MdOutlineDashboard,
   MdOutlineInventory2,
   MdOutlinePayments,
+  MdOutlineSchedule,
   MdOutlineSettings,
   MdOutlineStore,
 } from "react-icons/md";
@@ -17,6 +19,12 @@ const navItems = [
     to: "/panel/productos",
     icon: <MdOutlineInventory2 />,
     label: "Productos",
+    filled: true,
+  },
+  {
+    to: "/panel/horarios-atencion",
+    icon: <MdOutlineSchedule />,
+    label: "Horarios",
     filled: true,
   },
   { to: "/sales", icon: <MdOutlinePayments />, label: "Ventas", filled: true },

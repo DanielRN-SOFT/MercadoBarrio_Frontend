@@ -1,4 +1,8 @@
-import { createBrowserRouter, createRoutesFromElements, Route } from "react-router-dom";
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Route,
+} from "react-router-dom";
 import AuthLayout from "../layouts/AuthLayout";
 import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
@@ -17,6 +21,7 @@ import BuscarProducto from "../pages/Publica/BuscarProducto";
 import Mapa from "../pages/Publica/Mapa";
 import AdminDashboard from "../pages/Privada/AdminDashboard";
 import StoreDashboard from "../pages/Privada/StoreDashboard";
+import MisHorarios from "../pages/Privada/MisHorarios";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -25,7 +30,10 @@ export const router = createBrowserRouter(
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={<Login />}></Route>
         <Route path="olvide-password" element={<ForgotPassword />}></Route>
-        <Route path="cambiar-password/:token" element={<NuevaPassword />}></Route>
+        <Route
+          path="cambiar-password/:token"
+          element={<NuevaPassword />}
+        ></Route>
       </Route>
 
       {/* Rutas de la pagina publica */}
@@ -43,6 +51,7 @@ export const router = createBrowserRouter(
         <Route path="mi-tienda" element={<MiTienda />}></Route>
         <Route path="productos" element={<MisProductos />}></Route>
         <Route path="productos/nuevo" element={<ProductoForm />}></Route>
+        <Route path="horarios-atencion" element={<MisHorarios />}></Route>
         <Route path="productos/:id/editar" element={<ProductoForm />}></Route>
       </Route>
     </>,
