@@ -11,8 +11,10 @@ import {
 const TopNavUser = () => {
   const navigate = useNavigate();
   const { auth, cerrarSesion } = useAuth();
-  const { pathname } = useLocation();
+  let { pathname } = useLocation();
   const pathPrivate = auth.role == "Admin" ? "panel/admin" : "panel/tienda";
+  console.log(pathname.includes("panel"));
+  console.log(pathname);
 
   const getInitials = (name) => {
     if (!name) return "??";
@@ -73,15 +75,15 @@ const TopNavUser = () => {
         </li>
         <li>
           <Link
-            to={pathname == "/" ? pathPrivate : "/"}
+            to={!pathname.includes("panel") ? pathPrivate : "/"}
             className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-on-surface hover:bg-base-200 transition-colors"
           >
-            {pathname == "/" ? (
+            {!pathname.includes("panel") ? (
               <MdOutlineDashboardCustomize className="text-lg text-secondary shrink-0" />
             ) : (
               <MdOutlineStore className="text-lg text-secondary shrink-0" />
             )}
-            {pathname == "/" ? "Panel" : "Directorio"}
+            {!pathname.includes("panel") ? "Panel" : "Directorio"}
           </Link>
         </li>
 
