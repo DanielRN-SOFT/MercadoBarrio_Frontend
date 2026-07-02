@@ -112,8 +112,8 @@ const HeroSection = () => {
               onChange={handleChange}
               onKeyDown={handleKeyDown}
               onFocus={() => resultados.length > 0 && setOpen(true)}
-              className="rounded-full mx-2 w-full text-on-surface px-4 py-2 font-body-md text-body-md"
-              placeholder="¿Qué buscas hoy en tu barrio?"
+              className="rounded-full mx-2 w-lg text-on-surface px-4 py-2 font-body-md text-body-md"
+              placeholder="¿Qué producto buscas hoy en tu barrio?"
               type="text"
               autoComplete="off"
             />
