@@ -1,15 +1,18 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import {
   MdLogout,
   MdOutlineDashboardCustomize,
   MdOutlinePersonOutline,
+  MdOutlineStore,
   MdStore,
 } from "react-icons/md";
 
-const TopNavUser = ({ link, nameLink }) => {
+const TopNavUser = () => {
   const navigate = useNavigate();
   const { auth, cerrarSesion } = useAuth();
+  const { pathname } = useLocation();
+  const pathPrivate = auth.role == "Admin" ? "panel/admin" : "panel/tienda";
 
   const getInitials = (name) => {
     if (!name) return "??";
@@ -70,11 +73,15 @@ const TopNavUser = ({ link, nameLink }) => {
         </li>
         <li>
           <Link
-            to={link}
+            to={pathname == "/" ? pathPrivate : "/"}
             className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-on-surface hover:bg-base-200 transition-colors"
           >
-            <MdOutlineDashboardCustomize className="text-lg text-secondary shrink-0" />
-            {nameLink}
+            {pathname == "/" ? (
+              <MdOutlineDashboardCustomize className="text-lg text-secondary shrink-0" />
+            ) : (
+              <MdOutlineStore className="text-lg text-secondary shrink-0" />
+            )}
+            {pathname == "/" ? "Panel" : "Directorio"}
           </Link>
         </li>
 
@@ -92,5 +99,5 @@ const TopNavUser = ({ link, nameLink }) => {
     </div>
   );
 };
-  
+
 export default TopNavUser;

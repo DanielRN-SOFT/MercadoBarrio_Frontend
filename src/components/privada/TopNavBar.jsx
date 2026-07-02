@@ -25,7 +25,7 @@ const TopNavActions = () => (
     <button className="text-on-surface-variant hover:text-primary transition-colors">
       <span className="material-symbols-outlined">notifications</span>
     </button>
-    <TopNavUser nameLink={"Directorio"} link={"/"} />
+    <TopNavUser />
   </div>
 );
 

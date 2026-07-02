@@ -43,7 +43,7 @@ const TopNavBar = () => {
               </Link>
             </div>
           ) : (
-            <TopNavUser link={"/panel"} nameLink={"Panel"} />
+            <TopNavUser />
           )}
         </div>
       </div>
