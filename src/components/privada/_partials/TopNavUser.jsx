@@ -13,8 +13,6 @@ const TopNavUser = () => {
   const { auth, cerrarSesion } = useAuth();
   let { pathname } = useLocation();
   const pathPrivate = auth.role == "Admin" ? "panel/admin" : "panel/tienda";
-  console.log(pathname.includes("panel"));
-  console.log(pathname);
 
   const getInitials = (name) => {
     if (!name) return "??";
