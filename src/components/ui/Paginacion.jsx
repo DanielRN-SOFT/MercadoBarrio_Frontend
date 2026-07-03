@@ -17,47 +17,42 @@ const Paginacion = ({
 }) => {
   if (!meta || meta.totalPages <= 1) return null;
 
+  const currentPage = Number(meta.page); // 👈 fuerza a number
+  const totalPages = Number(meta.totalPages);
+
   const handlePageChange = (nuevaPagina) => {
     if (
       nuevaPagina < 1 ||
-      nuevaPagina > meta.totalPages ||
-      nuevaPagina === meta.page
+      nuevaPagina > totalPages ||
+      nuevaPagina === currentPage
     )
       return;
     onPageChange(nuevaPagina);
     if (scrollTop) window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Genera un rango corto de páginas (ej: 1 ... 4 5 [6] 7 8 ... 12)
   const getPageNumbers = () => {
-    const { page, totalPages } = meta;
     const delta = 1;
     const range = [];
     const rangeWithDots = [];
     let l;
-
     for (let i = 1; i <= totalPages; i++) {
       if (
         i === 1 ||
         i === totalPages ||
-        (i >= page - delta && i <= page + delta)
+        (i >= currentPage - delta && i <= currentPage + delta)
       ) {
         range.push(i);
       }
     }
-
     range.forEach((i) => {
       if (l) {
-        if (i - l === 2) {
-          rangeWithDots.push(l + 1);
-        } else if (i - l !== 1) {
-          rangeWithDots.push("...");
-        }
+        if (i - l === 2) rangeWithDots.push(l + 1);
+        else if (i - l !== 1) rangeWithDots.push("...");
       }
       rangeWithDots.push(i);
       l = i;
     });
-
     return rangeWithDots;
   };
 
@@ -65,14 +60,13 @@ const Paginacion = ({
     <div className="flex flex-col items-center gap-2">
       <div className="flex items-center gap-1.5">
         <button
-          onClick={() => handlePageChange(meta.page - 1)}
-          disabled={meta.page === 1}
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
           className="btn btn-ghost btn-sm btn-circle disabled:opacity-30"
           aria-label="Página anterior"
         >
           <IoChevronBack className="text-lg" />
         </button>
-
         {getPageNumbers().map((p, idx) =>
           p === "..." ? (
             <span
@@ -85,32 +79,30 @@ const Paginacion = ({
             <button
               key={p}
               onClick={() => handlePageChange(p)}
-              className={`w-8 h-8 rounded-full text-label-md font-semibold transition-colors ${
-                p === meta.page
+              className={`w-8 h-8 rounded-full cursor-pointer text-label-md font-semibold transition-colors ${
+                p === currentPage
                   ? "bg-primary text-on-primary shadow-sm shadow-primary/25"
                   : "text-on-surface-variant hover:bg-surface-container-high"
               }`}
-              aria-current={p === meta.page ? "page" : undefined}
+              aria-current={p === currentPage ? "page" : undefined}
             >
               {p}
             </button>
           ),
         )}
-
         <button
-          onClick={() => handlePageChange(meta.page + 1)}
-          disabled={meta.page === meta.totalPages}
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
           className="btn btn-ghost btn-sm btn-circle disabled:opacity-30"
           aria-label="Página siguiente"
         >
           <IoChevronForward className="text-lg" />
         </button>
       </div>
-
       <span className="text-body-md text-on-surface-variant">
         Página{" "}
-        <span className="font-semibold text-on-surface">{meta.page}</span> de{" "}
-        {meta.totalPages}
+        <span className="font-semibold text-on-surface">{currentPage}</span> de{" "}
+        {totalPages}
         {typeof meta.total === "number" && (
           <>
             {" "}
@@ -121,5 +113,4 @@ const Paginacion = ({
     </div>
   );
 };
-
 export default Paginacion;

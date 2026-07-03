@@ -213,7 +213,7 @@ const RegistrarVenta = () => {
             </label>
 
             <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
-              <div className="card-body p-2 sm:p-3 gap-1 max-h-[28rem] overflow-y-auto">
+              <div className="card-body p-2 sm:p-3 gap-1 max-h-112 overflow-y-auto">
                 {searching ? (
                   [1, 2, 3].map((i) => (
                     <div key={i} className="flex gap-3 items-center p-2">
