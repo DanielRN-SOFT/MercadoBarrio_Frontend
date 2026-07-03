@@ -22,6 +22,7 @@ import Mapa from "../pages/Publica/Mapa";
 import AdminDashboard from "../pages/Privada/AdminDashboard";
 import StoreDashboard from "../pages/Privada/StoreDashboard";
 import MisHorarios from "../pages/Privada/MisHorarios";
+import MisVentas from "../pages/Privada/MisVentas";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -50,6 +51,7 @@ export const router = createBrowserRouter(
         <Route path="tienda" element={<StoreDashboard />}></Route>
         <Route path="mi-tienda" element={<MiTienda />}></Route>
         <Route path="productos" element={<MisProductos />}></Route>
+        <Route path="ventas" element={<MisVentas />}></Route>
         <Route path="productos/nuevo" element={<ProductoForm />}></Route>
         <Route path="horarios-atencion" element={<MisHorarios />}></Route>
         <Route path="productos/:id/editar" element={<ProductoForm />}></Route>

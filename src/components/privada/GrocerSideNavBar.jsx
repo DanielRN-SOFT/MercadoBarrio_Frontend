@@ -16,6 +16,12 @@ const navItems = [
   { to: "/panel/tienda", icon: <MdOutlineDashboard />, label: "Panel" },
   { to: "/panel/mi-tienda", icon: <MdOutlineStore />, label: "Mi Tienda" },
   {
+    to: "/panel/ventas",
+    icon: <MdOutlinePayments />,
+    label: "Ventas",
+    filled: true,
+  },
+  {
     to: "/panel/productos",
     icon: <MdOutlineInventory2 />,
     label: "Productos",
@@ -27,7 +33,7 @@ const navItems = [
     label: "Horarios",
     filled: true,
   },
-  { to: "/sales", icon: <MdOutlinePayments />, label: "Ventas", filled: true },
+
   { to: "/settings", icon: <MdOutlineSettings />, label: "Ajustes" },
 ];
 
