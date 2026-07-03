@@ -12,6 +12,7 @@ import { IoSearchSharp, IoCloseSharp } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
+import Paginacion from "../../components/ui/Paginacion"; // 👈 ajusta la ruta si es distinta
 
 const getInitials = (str = "") =>
   str
@@ -52,17 +53,27 @@ const RegistrarVenta = () => {
 
   const [name, setName] = useState("");
   const [results, setResults] = useState([]);
+  const [meta, setMeta] = useState(null); // { page, totalPages, total }
+  const [page, setPage] = useState(1);
   const [searching, setSearching] = useState(false);
   const [cart, setCart] = useState([]); // [{ productId, name, photo, price, stock, quantity }]
   const [submitting, setSubmitting] = useState(false);
 
+  // Si cambia el texto de búsqueda, siempre volvemos a la página 1
+  useEffect(() => {
+    setPage(1);
+  }, [name]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       setSearching(true);
-      const params = new URLSearchParams({ page: 1, status: "Active" });
+      const params = new URLSearchParams({ page, status: "Active" });
       if (name.trim()) params.set("name", name.trim());
       fetchCliente(`/products?${params.toString()}`)
-        .then((res) => setResults(res?.data ?? []))
+        .then((res) => {
+          setResults(res?.data ?? []);
+          setMeta(res?.meta ?? null);
+        })
         .catch(() =>
           addToast({ message: "Error al buscar productos", type: "error" }),
         )
@@ -70,7 +81,7 @@ const RegistrarVenta = () => {
     }, 350);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name]);
+  }, [name, page]);
 
   const addToCart = (product) => {
     if (product.currentStock <= 0) {
@@ -251,6 +262,18 @@ const RegistrarVenta = () => {
                   ))
                 )}
               </div>
+
+              {/* Paginación del catálogo */}
+              {!searching && meta && meta.totalPages > 1 && (
+                <div className="border-t border-outline-variant/50 p-3">
+                  <Paginacion
+                    meta={meta}
+                    onPageChange={(nuevaPagina) => setPage(nuevaPagina)}
+                    itemLabel="productos"
+                    scrollTop={false}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
