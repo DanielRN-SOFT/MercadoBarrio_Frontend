@@ -23,6 +23,7 @@ import AdminDashboard from "../pages/Privada/AdminDashboard";
 import StoreDashboard from "../pages/Privada/StoreDashboard";
 import MisHorarios from "../pages/Privada/MisHorarios";
 import MisVentas from "../pages/Privada/MisVentas";
+import RegistrarVenta from "../pages/Privada/RegistrarVenta";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -52,6 +53,7 @@ export const router = createBrowserRouter(
         <Route path="mi-tienda" element={<MiTienda />}></Route>
         <Route path="productos" element={<MisProductos />}></Route>
         <Route path="ventas" element={<MisVentas />}></Route>
+        <Route path="ventas/nueva" element={<RegistrarVenta />}></Route>
         <Route path="productos/nuevo" element={<ProductoForm />}></Route>
         <Route path="horarios-atencion" element={<MisHorarios />}></Route>
         <Route path="productos/:id/editar" element={<ProductoForm />}></Route>

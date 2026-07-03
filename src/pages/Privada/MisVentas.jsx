@@ -138,7 +138,7 @@ const MisVentas = () => {
     try {
       await fetchCliente(`/sales/cancel/${cancelSale.id}`, {
         method: "PUT",
-        body: JSON.stringify({ cancellationReason }),
+        body: {cancellationReason},
       });
       addToast({ message: "Venta cancelada correctamente", type: "success" });
       setCancelSale(null);

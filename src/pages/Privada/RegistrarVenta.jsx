@@ -151,7 +151,7 @@ const RegistrarVenta = () => {
       };
       await fetchCliente("/sales", {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: payload,
       });
       addToast({ message: "Venta registrada correctamente", type: "success" });
       navigate("/panel/ventas");
