@@ -290,7 +290,7 @@ const RegistrarVenta = () => {
                     Aún no has agregado productos
                   </p>
                 ) : (
-                  <div className="divide-y divide-outline-variant/50">
+                  <div className="divide-y divide-outline-variant/50 max-h-96 overflow-y-auto pr-1">
                     {cart.map((i) => (
                       <div
                         key={i.productId}
