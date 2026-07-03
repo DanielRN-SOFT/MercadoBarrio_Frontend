@@ -13,6 +13,7 @@ import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Paginacion from "../../components/ui/Paginacion";
+import { exportSalesToExcel } from "../../helpers/exportSalesToExcel";
 
 const MAX_CANCEL_HOURS = 24;
 
@@ -84,6 +85,7 @@ const MisVentas = () => {
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
   const [actionLoading, setActionLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Filtros
   const [startDate, setStartDate] = useState("");
@@ -199,21 +201,45 @@ const MisVentas = () => {
 
   // Exporta la página actual de resultados filtrados a Excel (para reportes completos por período,
   // considerar un endpoint de exportación server-side que no dependa de la paginación visible).
-  const handleExport = async () => {
+  const handleExport = async (scope = "page") => {
     try {
-      const XLSX = await import("xlsx");
-      const rows = sales.map((s) => ({
-        ID: s.id,
-        Fecha: formatDateTime(s.date),
-        Total: Number(s.total),
-        Estado: s.status === "Completed" ? "Completada" : "Cancelada",
-      }));
-      const ws = XLSX.utils.json_to_sheet(rows);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Ventas");
-      XLSX.writeFile(wb, `ventas_pagina_${page}.xlsx`);
+      let dataToExport = sales;
+
+      if (scope === "all") {
+        setExportLoading(true);
+        const params = new URLSearchParams({ all: "true" });
+        if (startDate) params.set("startDate", startDate);
+        if (endDate) params.set("endDate", endDate);
+        if (minTotal) params.set("minTotal", minTotal);
+        if (maxTotal) params.set("maxTotal", maxTotal);
+        if (productId) params.set("productId", productId);
+        if (status) params.set("status", status);
+
+        const res = await fetchCliente(`/sales?${params.toString()}`);
+        dataToExport = res.data;
+      }
+
+      if (dataToExport.length === 0) {
+        addToast({ message: "No hay ventas para exportar", type: "info" });
+        return;
+      }
+
+      const filtersSummary = [
+        startDate && `Desde: ${startDate}`,
+        endDate && `Hasta: ${endDate}`,
+        minTotal && `Monto mín: ${formatCOP(minTotal)}`,
+        maxTotal && `Monto máx: ${formatCOP(maxTotal)}`,
+        status &&
+          `Estado: ${status === "Completed" ? "Completada" : "Cancelada"}`,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      exportSalesToExcel(dataToExport, { scope, filtersSummary });
     } catch {
       addToast({ message: "Error al exportar el reporte", type: "error" });
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -242,14 +268,52 @@ const MisVentas = () => {
             </div>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <button
-              onClick={handleExport}
-              disabled={sales.length === 0}
-              className="btn btn-outline border-outline-variant text-secondary hover:bg-surface-container-high gap-2 rounded-full font-label-md text-label-md flex-1 sm:flex-none"
-            >
-              <MdOutlineFileDownload className="text-xl" />
-              Exportar
-            </button>
+            <div className="dropdown dropdown-end flex-1 sm:flex-none">
+              <div
+                tabIndex={0}
+                role="button"
+                className={`btn btn-outline border-outline-variant text-secondary hover:bg-surface-container-high gap-2 rounded-full font-label-md text-label-md w-full ${
+                  sales.length === 0 ? "btn-disabled" : ""
+                }`}
+              >
+                {exportLoading ? (
+                  <span className="loading loading-spinner loading-sm" />
+                ) : (
+                  <MdOutlineFileDownload className="text-xl" />
+                )}
+                Exportar
+              </div>
+              <ul
+                tabIndex={0}
+                className="dropdown-content menu bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-lg z-10 w-60 p-2 mt-1"
+              >
+                <li>
+                  <button
+                    onClick={() => handleExport("page")}
+                    className="rounded-xl text-body-sm text-on-surface"
+                  >
+                    Página actual
+                    <span className="text-on-surface-variant">
+                      ({sales.length})
+                    </span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => handleExport("all")}
+                    disabled={exportLoading}
+                    className="rounded-xl text-body-sm text-on-surface"
+                  >
+                    Todos los resultados
+                    {meta.total > 0 && (
+                      <span className="text-on-surface-variant">
+                        ({meta.total})
+                      </span>
+                    )}
+                  </button>
+                </li>
+              </ul>
+            </div>
             <Link
               to="/panel/ventas/nueva"
               className="btn bg-primary text-on-primary border-none hover:bg-primary-container gap-2 rounded-full font-label-md text-label-md shadow-sm shadow-primary/25 transition-colors flex-1 sm:flex-none"
