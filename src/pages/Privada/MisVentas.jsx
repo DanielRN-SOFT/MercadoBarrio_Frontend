@@ -8,7 +8,7 @@ import {
   MdOutlineFileDownload,
   MdOutlineInventory2,
 } from "react-icons/md";
-import { IoCloseCircle, IoCloseSharp, IoTimeOutline } from "react-icons/io5";
+import { IoCloseCircle, IoCloseSharp, IoTimeOutline, IoWarning } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
@@ -804,33 +804,38 @@ const MisVentas = () => {
       {/* Modal confirmación cancelar */}
       {cancelSale && (
         <dialog open className="modal modal-bottom sm:modal-middle">
-          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
-            <div className="w-11 h-11 rounded-2xl bg-error-container flex items-center justify-center mb-3">
-              <IoCloseCircle className="text-xl text-on-error-container" />
+          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl p-6">
+            {/* Icono de advertencia */}
+            <div className="w-12 h-12 rounded-2xl bg-error-container flex items-center justify-center mb-4">
+              <IoWarning className="text-2xl text-on-error-container" />
             </div>
+
             <h3 className="font-bold text-title-md text-on-surface">
               ¿Cancelar venta #{cancelSale.id}?
             </h3>
-            <p className="text-body-md text-secondary mt-2 flex items-start gap-1.5">
-              <IoTimeOutline className="text-lg shrink-0 mt-0.5" />
+
+            <p className="text-body-md text-on-surface-variant mt-1.5">
               El stock de los productos involucrados será restituido. Esta
               acción no se puede deshacer.
             </p>
 
-            <label className="form-control mt-3">
-              <span className="text-label-sm text-on-surface-variant mb-1">
+            <label className="form-control mt-4">
+              <span className="text-label-sm text-on-surface-variant mb-1.5 flex items-center gap-1">
                 Motivo de la cancelación
+                <span className="text-error">*</span>
               </span>
               <textarea
                 value={cancellationReason}
                 onChange={(e) => setCancellationReason(e.target.value)}
                 placeholder="Ej: Producto ingresado por error"
-                className="textarea textarea-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-2xl text-body-sm"
+                className="textarea textarea-bordered bg-surface-container-low border-outline-variant focus:border-primary focus:outline-none rounded-2xl text-body-sm resize-none"
                 rows={3}
               />
             </label>
 
-            <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
+            <div className="divider my-5 before:bg-outline-variant/40 after:bg-outline-variant/40" />
+
+            <div className="modal-action gap-2 flex-col-reverse sm:flex-row mt-0">
               <button
                 onClick={() => {
                   setCancelSale(null);
@@ -842,19 +847,23 @@ const MisVentas = () => {
               </button>
               <button
                 onClick={handleCancel}
-                disabled={actionLoading}
-                className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto"
+                disabled={actionLoading || !cancellationReason.trim()}
+                className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 disabled:opacity-40 w-full sm:w-auto gap-1.5"
               >
                 {actionLoading ? (
                   <span className="loading loading-spinner loading-sm" />
                 ) : (
-                  "Cancelar venta"
+                  <>
+                    <IoCloseCircle className="text-lg" />
+                    Cancelar venta
+                  </>
                 )}
               </button>
             </div>
           </div>
+
           <div
-            className="modal-backdrop"
+            className="modal-backdrop bg-scrim/40 backdrop-blur-[2px]"
             onClick={() => {
               setCancelSale(null);
               setCancellationReason("");
