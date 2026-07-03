@@ -6,6 +6,7 @@ import {
   MdOutlineFilterAlt,
   MdVisibility,
   MdOutlineFileDownload,
+  MdOutlineInventory2,
 } from "react-icons/md";
 import { IoCloseCircle, IoCloseSharp, IoTimeOutline } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
@@ -32,6 +33,48 @@ const hoursSince = (date) =>
 
 const canCancel = (sale) =>
   sale.status === "Completed" && hoursSince(sale.date) <= MAX_CANCEL_HOURS;
+
+// Iniciales para el avatar del producto cuando no hay imagen
+const getInitials = (str = "") =>
+  str
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+
+// Avatar/foto del producto con fallback a iniciales si no hay foto o falla la carga
+const ProductAvatar = ({
+  product,
+  size = "w-12 h-12",
+  textSize = "text-label-sm",
+}) => {
+  const [imgError, setImgError] = useState(false);
+  const name = product?.name ?? "";
+
+  if (product?.photo && !imgError) {
+    return (
+      <img
+        src={product.photo}
+        alt={name}
+        onError={() => setImgError(true)}
+        className={`${size} rounded-xl object-cover shrink-0 border border-outline-variant/50`}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${size} rounded-xl bg-primary flex items-center justify-center shrink-0`}
+    >
+      <span className={`${textSize} font-bold text-on-primary`}>
+        {getInitials(name) || (
+          <MdOutlineInventory2 className="text-on-primary text-lg" />
+        )}
+      </span>
+    </div>
+  );
+};
 
 const MisVentas = () => {
   const { toasts, addToast, removeToast } = useToast();
@@ -138,7 +181,7 @@ const MisVentas = () => {
     try {
       await fetchCliente(`/sales/cancel/${cancelSale.id}`, {
         method: "PUT",
-        body: {cancellationReason},
+        body: { cancellationReason },
       });
       addToast({ message: "Venta cancelada correctamente", type: "success" });
       setCancelSale(null);
@@ -540,61 +583,122 @@ const MisVentas = () => {
       {/* Modal detalle de venta */}
       {detailSale && (
         <dialog open className="modal modal-bottom sm:modal-middle">
-          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl max-w-xl">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-bold text-title-md text-on-surface">
-                Venta #{detailSale.id}
-              </h3>
-              <button
-                onClick={() => setDetailSale(null)}
-                className="btn btn-ghost btn-sm btn-circle"
-              >
-                <IoCloseSharp className="text-lg" />
-              </button>
+          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl max-w-2xl p-0 overflow-hidden">
+            {/* Encabezado */}
+            <div className="flex items-start justify-between gap-3 p-4 sm:p-5 border-b border-outline-variant/60">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-2xl bg-primary flex items-center justify-center shrink-0">
+                  <MdReceiptLong className="text-xl text-on-primary" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-title-md text-on-surface leading-tight">
+                    Venta #{detailSale.id}
+                  </h3>
+                  {!detailLoading && (
+                    <p className="text-body-sm text-secondary truncate">
+                      {formatDateTime(detailSale.date)}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {!detailLoading && (
+                  <span
+                    className={`hidden sm:inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
+                      detailSale.status === "Completed"
+                        ? "bg-primary-fixed text-on-primary-fixed-variant"
+                        : "bg-error-container text-on-error-container"
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        detailSale.status === "Completed"
+                          ? "bg-primary"
+                          : "bg-error"
+                      }`}
+                    />
+                    {detailSale.status === "Completed"
+                      ? "Completada"
+                      : "Cancelada"}
+                  </span>
+                )}
+                <button
+                  onClick={() => setDetailSale(null)}
+                  className="btn btn-ghost btn-sm btn-circle"
+                >
+                  <IoCloseSharp className="text-lg" />
+                </button>
+              </div>
             </div>
 
             {detailLoading ? (
-              <div className="space-y-3 py-4">
-                <div className="skeleton h-4 w-1/2 rounded-full" />
-                <div className="skeleton h-4 w-full rounded-full" />
-                <div className="skeleton h-4 w-full rounded-full" />
+              <div className="space-y-3 p-4 sm:p-5">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex gap-3 items-center">
+                    <div className="skeleton w-12 h-12 rounded-xl shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="skeleton h-4 w-1/2 rounded-full" />
+                      <div className="skeleton h-3 w-1/3 rounded-full" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <>
-                <p className="text-body-sm text-secondary">
-                  {formatDateTime(detailSale.date)}
-                </p>
-
-                <div className="divide-y divide-outline-variant/50 mt-3 border border-outline-variant/50 rounded-xl overflow-hidden">
-                  {(detailSale.details ?? []).map((d) => (
-                    <div
-                      key={d.id}
-                      className="flex items-center justify-between p-3 bg-surface-container-low"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium text-on-surface text-body-sm truncate">
-                          {d.product?.name ?? `Producto #${d.productId}`}
-                        </p>
-                        <p className="text-label-sm text-on-surface-variant">
-                          {d.quantity} x {formatCOP(d.unitPrice)}
-                        </p>
-                      </div>
-                      <span className="font-semibold text-on-surface text-body-sm shrink-0">
-                        {formatCOP(d.subtotal)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between pt-3 mt-1 border-t border-outline-variant/50">
-                  <span className="font-semibold text-on-surface">Total</span>
-                  <span className="font-bold text-primary text-title-md">
-                    {formatCOP(detailSale.total)}
+                {/* Estado en móvil (badge ya no cabe junto al header) */}
+                <div className="sm:hidden px-4 pt-3">
+                  <span
+                    className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
+                      detailSale.status === "Completed"
+                        ? "bg-primary-fixed text-on-primary-fixed-variant"
+                        : "bg-error-container text-on-error-container"
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        detailSale.status === "Completed"
+                          ? "bg-primary"
+                          : "bg-error"
+                      }`}
+                    />
+                    {detailSale.status === "Completed"
+                      ? "Completada"
+                      : "Cancelada"}
                   </span>
                 </div>
 
+                {/* Lista de productos */}
+                <div className="px-4 sm:px-5 pt-3">
+                  <p className="text-label-sm uppercase tracking-wide font-semibold text-on-surface-variant mb-2">
+                    {(detailSale.details ?? []).length} producto
+                    {(detailSale.details ?? []).length === 1 ? "" : "s"}
+                  </p>
+                  <div className="space-y-2 max-h-[22rem] overflow-y-auto pr-1">
+                    {(detailSale.details ?? []).map((d) => (
+                      <div
+                        key={d.id}
+                        className="flex items-center gap-3 p-3 rounded-2xl bg-surface-container-low border border-outline-variant/40"
+                      >
+                        <ProductAvatar product={d.product} size="w-12 h-12" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-on-surface text-body-sm truncate">
+                            {d.product?.name ?? `Producto #${d.productId}`}
+                          </p>
+                          <p className="text-label-sm text-on-surface-variant">
+                            {d.quantity} uds × {formatCOP(d.unitPrice)}
+                          </p>
+                        </div>
+                        <span className="font-semibold text-on-surface text-body-md shrink-0">
+                          {formatCOP(d.subtotal)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Motivo de cancelación */}
                 {detailSale.status === "Cancelled" && (
-                  <div className="mt-3 p-3 rounded-xl bg-error-container/40 text-on-error-container">
+                  <div className="mx-4 sm:mx-5 mt-3 p-3 rounded-2xl bg-error-container/40 text-on-error-container">
                     <p className="text-label-sm font-semibold uppercase tracking-wide">
                       Venta cancelada
                     </p>
@@ -608,17 +712,26 @@ const MisVentas = () => {
                     )}
                   </div>
                 )}
+
+                {/* Resumen y total */}
+                <div className="mt-4 p-4 sm:p-5 bg-surface-container-high/60 border-t border-outline-variant/60 flex items-center justify-between">
+                  <div>
+                    <p className="text-label-sm text-on-surface-variant uppercase tracking-wide">
+                      Total de la venta
+                    </p>
+                    <p className="font-bold text-primary text-title-lg">
+                      {formatCOP(detailSale.total)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setDetailSale(null)}
+                    className="btn btn-ghost rounded-full font-label-md"
+                  >
+                    Cerrar
+                  </button>
+                </div>
               </>
             )}
-
-            <div className="modal-action">
-              <button
-                onClick={() => setDetailSale(null)}
-                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
-              >
-                Cerrar
-              </button>
-            </div>
           </div>
           <div className="modal-backdrop" onClick={() => setDetailSale(null)} />
         </dialog>
