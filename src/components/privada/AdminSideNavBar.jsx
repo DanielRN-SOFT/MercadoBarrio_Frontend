@@ -1,3 +1,4 @@
+import { icon } from "leaflet";
 import { useEffect, useMemo } from "react";
 import { IoStorefrontSharp } from "react-icons/io5";
 import {
@@ -6,6 +7,8 @@ import {
   MdOutlineStore,
   MdOutlineGroup,
   MdOutlineSettings,
+  MdCategory,
+  MdNewLabel,
 } from "react-icons/md";
 import { Link, useLocation } from "react-router-dom";
 
@@ -18,6 +21,7 @@ const navItems = [
     filled: true,
   },
   { to: "/panel/admin/usuarios", icon: <MdOutlineGroup />, label: "Usuarios" },
+  {to: "/panel/admin/categorias-tienda", icon: <MdNewLabel/>, label: 'Categorias de tiendas'},
   { to: "/settings", icon: <MdOutlineSettings />, label: "Ajustes" },
 ];
 
