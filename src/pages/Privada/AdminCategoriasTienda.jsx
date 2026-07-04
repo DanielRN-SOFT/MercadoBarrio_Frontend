@@ -66,9 +66,7 @@ const AdminCategoriasTienda = () => {
       const params = new URLSearchParams({ page: p });
       if (statusFilter) params.set("status", statusFilter);
       if (search) params.set("search", search);
-
-      const res = await fetchCliente(`/store-categories`);
-      console.log(res);
+      const res = await fetchCliente(`/store-categories?${params.toString()}`);
       setCategorias(res.data);
       setMeta(res.meta);
     } catch (error) {
@@ -81,6 +79,19 @@ const AdminCategoriasTienda = () => {
   useEffect(() => {
     fetchCategoriasTienda(page);
   }, [page]);
+
+  useEffect(() => {
+    if (page === 1) fetchCategoriasTienda(1);
+    else setPage(1);
+  }, [statusFilter, search]);
+
+  // Debounce: espera 400ms desde la última tecla antes de disparar la búsqueda
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setSearch(searchInput.trim());
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
 
   const hasFilters = statusFilter || search;
 
@@ -124,28 +135,29 @@ const AdminCategoriasTienda = () => {
               </span>
             </div>
 
-            <div className="relative">
-              <MdSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
-              <input
-                type="text"
-                value={searchInput}
-                readOnly
-                placeholder="Buscar por nombre, correo o teléfono..."
-                className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full pl-10 relative z-0 transition-colors"
-              />
-            </div>
+            <div className="sm:grid sm:grid-cols-3 sm:gap-5">
+              <div className="relative col-span-2 my-2">
+                <MdSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Buscar por nombre, correo o teléfono..."
+                  className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full pl-10 relative z-0 transition-colors"
+                />
+              </div>
 
-            <div className="grid grid-cols-2 sm:flex gap-3">
-              <select
-                onChange={(e) => setStatusFilter(e.target.value)}
-                value={statusFilter}
-                readOnly
-                className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full sm:w-40 transition-colors"
-              >
-                <option value="">Todos los estados</option>
-                <option value="Active">Activo</option>
-                <option value="Inactive">Inactivo</option>
-              </select>
+              <div className="">
+                <select
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  value={statusFilter}
+                  className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full sm:w-56 transition-colors my-2"
+                >
+                  <option value="">Todos los estados</option>
+                  <option value="Active">Activo</option>
+                  <option value="Inactive">Inactivo</option>
+                </select>
+              </div>
             </div>
 
             {hasFilters && (
