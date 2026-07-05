@@ -174,6 +174,29 @@ const AdminCategoriasTienda = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    setActionLoading(true);
+    try {
+      const res = await fetchCliente(`/store-categories/delete/${id}`, {
+        method: "PUT",
+      });
+      addToast({
+        message: "Categoria de tienda eliminada correctamente",
+        type: "success",
+      });
+
+      fetchCategoriasTienda(page);
+    } catch (err) {
+      addToast({
+        message: err.message ?? "Error al desactivar",
+        type: "error",
+      });
+    } finally {
+      setActionLoading(false);
+      setConfirmId(false);
+    }
+  };
+
   const hasFilters = statusFilter || search;
 
   return (
@@ -420,7 +443,7 @@ const AdminCategoriasTienda = () => {
                           <td className="text-right">
                             <div className="flex items-center justify-end gap-1">
                               <button
-                                onClick={openEditModal}
+                                onClick={() => openEditModal(cat)}
                                 className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
                                 data-tip="Editar"
                               >
@@ -428,6 +451,7 @@ const AdminCategoriasTienda = () => {
                               </button>
                               {cat.status === "Active" ? (
                                 <button
+                                  onClick={() => setConfirmId(cat.id)}
                                   className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-error-container/60"
                                   data-tip="Desactivar"
                                 >
@@ -540,17 +564,19 @@ const AdminCategoriasTienda = () => {
               <IoCloseCircle className="text-xl text-on-error-container" />
             </div>
             <h3 className="font-bold text-title-md text-on-surface">
-              ¿Desactivar usuario?
+              ¿Desactivar categoria de tienda?
             </h3>
             <p className="text-body-md text-secondary mt-2">
-              El usuario no podrá acceder al sistema. Puedes reactivarlo en
-              cualquier momento.
+              Esta categoria no se podrá utilizar en ninguna otra tienda hasta
+              que vuelevas restablecerla, recuerda que no puedes eliminar una
+              categoria asociada a una tienda.
             </p>
             <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
               <button className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto">
                 Cancelar
               </button>
               <button
+                onClick={() => handleDelete(confirmId)}
                 disabled={actionLoading}
                 className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto"
               >
