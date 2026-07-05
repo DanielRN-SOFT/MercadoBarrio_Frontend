@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
+import Paginacion from "../../components/ui/Paginacion";
 
 const users = [
   {
@@ -118,6 +119,12 @@ const AdminCategoriasTienda = () => {
     setEditingCategory(null);
     setForm(EMPTY_FORM);
     setFormError("");
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter("");
+    setSearch("");
+    setSearchInput("");
   };
 
   const handleSubmit = async (e) => {
@@ -291,7 +298,10 @@ const AdminCategoriasTienda = () => {
 
             {hasFilters && (
               <div className="flex items-center gap-2 pt-1">
-                <button className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full">
+                <button
+                  onClick={handleClearFilters}
+                  className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full"
+                >
                   <IoCloseSharp className="text-sm" />
                   Limpiar filtros
                 </button>
@@ -343,9 +353,9 @@ const AdminCategoriasTienda = () => {
           <>
             {/* Vista de TARJETAS — móvil y tablet */}
             <div className="lg:hidden space-y-3">
-              {categorias.map((u) => (
+              {categorias.map((cat) => (
                 <div
-                  key={u.id}
+                  key={cat.id}
                   className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm"
                 >
                   <div className="card-body p-4 gap-3">
@@ -353,19 +363,21 @@ const AdminCategoriasTienda = () => {
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="min-w-0">
                           <p className="font-semibold text-on-surface text-body-md truncate">
-                            {u.name}
+                            {cat.name}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <button
+                          onClick={() => openEditModal(cat)}
                           className="btn btn-ghost btn-sm btn-circle hover:bg-secondary-container/60"
                           aria-label="Editar"
                         >
                           <MdEdit className="text-lg text-secondary" />
                         </button>
-                        {u.status === "Active" ? (
+                        {cat.status === "Active" ? (
                           <button
+                            onClick={() => setConfirmId(cat.id)}
                             className="btn btn-ghost btn-sm btn-circle hover:bg-error-container/60"
                             aria-label="Desactivar"
                           >
@@ -373,6 +385,7 @@ const AdminCategoriasTienda = () => {
                           </button>
                         ) : (
                           <button
+                            onClick={() => handleRestore(cat.id)}
                             className="btn btn-ghost btn-sm btn-circle hover:bg-primary-container/20"
                             aria-label="Reactivar"
                           >
@@ -383,29 +396,21 @@ const AdminCategoriasTienda = () => {
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-outline-variant/50">
-                      <div className="flex items-center gap-3 text-body-sm text-on-surface-variant">
-                        <span className="inline-flex items-center gap-1">
-                          <MdPhone className="text-sm" />
-                          {u.phone}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <MdBadge className="text-sm" />
-                          Rol #{u.roleId}
-                        </span>
-                      </div>
                       <span
                         className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
-                          u.status === "Active"
+                          cat.status === "Active"
                             ? "bg-primary-fixed text-on-primary-fixed-variant"
                             : "bg-surface-container-high text-secondary"
                         }`}
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            u.status === "Active" ? "bg-primary" : "bg-outline"
+                            cat.status === "Active"
+                              ? "bg-primary"
+                              : "bg-outline"
                           }`}
                         />
-                        {u.status === "Active" ? "Activo" : "Inactivo"}
+                        {cat.status === "Active" ? "Activo" : "Inactivo"}
                       </span>
                     </div>
                   </div>
@@ -499,6 +504,13 @@ const AdminCategoriasTienda = () => {
             </div>
           </>
         )}
+
+        {/* Paginación */}
+        <Paginacion
+          meta={meta}
+          onPageChange={(nuevaPagina) => setPage(nuevaPagina)}
+          itemLabel="usuarios"
+        />
       </div>
 
       {/* Modal editar usuario */}
@@ -595,7 +607,10 @@ const AdminCategoriasTienda = () => {
               categoria asociada a una tienda.
             </p>
             <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
-              <button className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto">
+              <button
+                onClick={() => setConfirmId(null)}
+                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
+              >
                 Cancelar
               </button>
               <button
@@ -611,7 +626,7 @@ const AdminCategoriasTienda = () => {
               </button>
             </div>
           </div>
-          <div className="modal-backdrop" />
+          <div className="modal-backdrop" onClick={() => setConfirmId(null)} />
         </dialog>
       )}
       <ToastContainer toasts={toasts} removeToast={removeToast} />

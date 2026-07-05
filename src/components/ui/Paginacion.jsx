@@ -17,7 +17,7 @@ const Paginacion = ({
 }) => {
   if (!meta || meta.totalPages <= 1) return null;
 
-  const currentPage = Number(meta.page); // 👈 fuerza a number
+  const currentPage = Number(meta.page); // fuerza a number
   const totalPages = Number(meta.totalPages);
 
   const handlePageChange = (nuevaPagina) => {
