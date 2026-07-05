@@ -5,6 +5,7 @@ import {
   MdNewLabel,
   MdOutlineFilterAlt,
   MdSearch,
+  MdOutlineCategory,
 } from "react-icons/md";
 import { IoCloseCircle, IoCloseSharp } from "react-icons/io5";
 import { useEffect, useState } from "react";
@@ -207,7 +208,7 @@ const AdminCategoriasProducto = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-sm shadow-primary/20">
-              <MdNewLabel className="text-lg sm:text-xl text-on-primary" />
+              <MdOutlineCategory className="text-lg sm:text-xl text-on-primary" />
             </div>
             <div className="min-w-0">
               <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">
@@ -494,7 +495,7 @@ const AdminCategoriasProducto = () => {
           <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3 mb-1">
               <div className="w-11 h-11 rounded-2xl bg-primary-container flex items-center justify-center">
-                <MdNewLabel className="text-xl text-on-primary-container" />
+                <MdOutlineCategory className="text-xl text-on-primary-container" />
               </div>
               <button
                 onClick={closeFormModal}
