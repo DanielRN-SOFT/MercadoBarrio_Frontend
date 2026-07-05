@@ -9,6 +9,8 @@ import {
   MdOutlineSettings,
   MdCategory,
   MdNewLabel,
+  MdOutlineNewLabel,
+  MdOutlineCategory,
 } from "react-icons/md";
 import { Link, useLocation } from "react-router-dom";
 
@@ -21,8 +23,16 @@ const navItems = [
     filled: true,
   },
   { to: "/panel/admin/usuarios", icon: <MdOutlineGroup />, label: "Usuarios" },
-  {to: "/panel/admin/categorias-tienda", icon: <MdNewLabel/>, label: 'Categorias de tiendas'},
-  { to: "/settings", icon: <MdOutlineSettings />, label: "Ajustes" },
+  {
+    to: "/panel/admin/categorias-tienda",
+    icon: <MdOutlineNewLabel />,
+    label: "Categorias tiendas",
+  },
+  {
+    to: "/panel/admin/categorias-producto",
+    icon: <MdOutlineCategory />,
+    label: "Categorias productos",
+  },
 ];
 
 const AdminSideNavBar = ({ open, onClose }) => {

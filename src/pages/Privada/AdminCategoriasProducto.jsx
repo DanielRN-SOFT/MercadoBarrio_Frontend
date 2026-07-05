@@ -1,15 +1,10 @@
 import {
-  MdPeopleAlt,
-  MdAdd,
   MdEdit,
   MdRestoreFromTrash,
-  MdEmail,
-  MdPhone,
-  MdBadge,
-  MdLock,
+  MdAdd,
+  MdNewLabel,
   MdOutlineFilterAlt,
   MdSearch,
-  MdNewLabel,
 } from "react-icons/md";
 import { IoCloseCircle, IoCloseSharp } from "react-icons/io5";
 import { useEffect, useState } from "react";
@@ -18,30 +13,9 @@ import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Paginacion from "../../components/ui/Paginacion";
 
-const users = [
-  {
-    id: 1,
-    name: "Juan Pérez",
-    email: "juan.perez@correo.com",
-    phone: "3001234567",
-    roleId: 1,
-    role: { name: "Administrador" },
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "María Gómez",
-    email: "maria.gomez@correo.com",
-    phone: "3007654321",
-    roleId: 2,
-    role: { name: "Vendedor" },
-    status: "Inactive",
-  },
-];
-
 const EMPTY_FORM = { name: "" };
 
-const AdminCategoriasTienda = () => {
+const AdminCategoriasProducto = () => {
   const { toasts, addToast, removeToast } = useToast();
 
   const [categorias, setCategorias] = useState([]);
@@ -63,13 +37,15 @@ const AdminCategoriasTienda = () => {
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
-  const fetchCategoriasTienda = async (p = 1) => {
+  const fetchCategoriasProducto = async (p = 1) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: p });
       if (statusFilter) params.set("status", statusFilter);
       if (search) params.set("search", search);
-      const res = await fetchCliente(`/store-categories?${params.toString()}`);
+      const res = await fetchCliente(
+        `/product-categories?${params.toString()}`,
+      );
       setCategorias(res.data);
       setMeta(res.meta);
     } catch (error) {
@@ -80,11 +56,11 @@ const AdminCategoriasTienda = () => {
   };
 
   useEffect(() => {
-    fetchCategoriasTienda(page);
+    fetchCategoriasProducto(page);
   }, [page]);
 
   useEffect(() => {
-    if (page === 1) fetchCategoriasTienda(1);
+    if (page === 1) fetchCategoriasProducto(1);
     else setPage(1);
   }, [statusFilter, search]);
 
@@ -139,32 +115,27 @@ const AdminCategoriasTienda = () => {
     setFormLoading(true);
     try {
       if (editingCategory) {
-        const res = await fetchCliente(
-          `/store-categories/${editingCategory.id}`,
-          {
-            method: "PUT",
-            body: {
-              name: form.name,
-            },
+        await fetchCliente(`/product-categories/${editingCategory.id}`, {
+          method: "PUT",
+          body: {
+            name: form.name,
           },
-        );
+        });
 
         addToast({
-          message: "Categoria de tienda actualizada correctamente",
+          message: "Categoria de producto actualizada correctamente",
           type: "success",
         });
       } else {
-        const res = await fetchCliente("/store-categories", {
+        await fetchCliente("/product-categories", {
           method: "POST",
           body: {
             name: form.name,
           },
         });
 
-        console.log(res);
-
         addToast({
-          message: "Categoria de tienda creada correctamente",
+          message: "Categoria de producto creada correctamente",
           type: "success",
         });
       }
@@ -172,10 +143,10 @@ const AdminCategoriasTienda = () => {
       setShowFormModal(false);
       setEditingCategory(null);
       setForm(EMPTY_FORM);
-      fetchCategoriasTienda(page);
+      fetchCategoriasProducto(page);
     } catch (err) {
       // El backend puede devolver 409 si el nombre ya se encuentra registrado
-      setFormError(err.message ?? "Error al guardar el usuario");
+      setFormError(err.message ?? "Error al guardar la categoria");
     } finally {
       setFormLoading(false);
     }
@@ -184,7 +155,7 @@ const AdminCategoriasTienda = () => {
   const handleDelete = async (id) => {
     setActionLoading(true);
     try {
-      const res = await fetchCliente(`/store-categories/delete/${id}`, {
+      const res = await fetchCliente(`/product-categories/delete/${id}`, {
         method: "PUT",
       });
       addToast({
@@ -192,22 +163,23 @@ const AdminCategoriasTienda = () => {
         type: "success",
       });
 
-      fetchCategoriasTienda(page);
+      fetchCategoriasProducto(page);
     } catch (err) {
+      // El backend devuelve 400 si la categoria tiene productos activos asociados
       addToast({
         message: err.message ?? "Error al desactivar",
         type: "error",
       });
     } finally {
       setActionLoading(false);
-      setConfirmId(false);
+      setConfirmId(null);
     }
   };
 
   const handleRestore = async (id) => {
     setActionLoading(true);
     try {
-      const res = await fetchCliente(`/store-categories/restore/${id}`, {
+      const res = await fetchCliente(`/product-categories/restore/${id}`, {
         method: "PUT",
       });
       addToast({
@@ -215,10 +187,10 @@ const AdminCategoriasTienda = () => {
         type: "success",
       });
 
-      fetchCategoriasTienda(page);
+      fetchCategoriasProducto(page);
     } catch (err) {
       addToast({
-        message: err.message ?? "Error al desactivar",
+        message: err.message ?? "Error al restablecer",
         type: "error",
       });
     } finally {
@@ -239,10 +211,10 @@ const AdminCategoriasTienda = () => {
             </div>
             <div className="min-w-0">
               <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">
-                Categorias de tiendas
+                Categorias de productos
               </h1>
               <p className="text-body-sm sm:text-body-md text-secondary">
-                Administra todas las categorias de tienda del sistema
+                Administra todas las categorias de producto del sistema
                 {meta.total > 0 && (
                   <span className="text-on-surface-variant">
                     {" "}
@@ -257,7 +229,7 @@ const AdminCategoriasTienda = () => {
             className="btn bg-primary text-on-primary border-none hover:bg-primary-container gap-2 rounded-full font-label-md text-label-md shadow-sm shadow-primary/25 transition-colors w-full sm:w-auto"
           >
             <MdAdd className="text-xl" />
-            Nuevo usuario
+            Nueva categoria
           </button>
         </div>
 
@@ -278,7 +250,7 @@ const AdminCategoriasTienda = () => {
                   type="text"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Buscar por nombre, correo o teléfono..."
+                  placeholder="Buscar por nombre..."
                   className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full pl-10 relative z-0 transition-colors"
                 />
               </div>
@@ -335,15 +307,18 @@ const AdminCategoriasTienda = () => {
               <p className="font-semibold text-on-surface text-body-lg">
                 {hasFilters
                   ? "Sin resultados"
-                  : "Aún no tienes categorias de tiendas"}
+                  : "Aún no tienes categorias de productos"}
               </p>
               <p className="text-body-md mt-1">
                 {hasFilters
-                  ? "No encontramos categorias de tiendas con esos filtros. Intenta ajustarlos."
-                  : "Agrega tu primer categoria de tienda para comenzar."}
+                  ? "No encontramos categorias de producto con esos filtros. Intenta ajustarlos."
+                  : "Agrega tu primer categoria de producto para comenzar."}
               </p>
               {!hasFilters && (
-                <button className="btn bg-primary text-on-primary border-none rounded-full mt-6 font-label-md text-label-md hover:bg-primary-container">
+                <button
+                  onClick={openCreateModal}
+                  className="btn bg-primary text-on-primary border-none rounded-full mt-6 font-label-md text-label-md hover:bg-primary-container"
+                >
                   <MdAdd className="text-xl" /> Agregar categoria
                 </button>
               )}
@@ -440,11 +415,11 @@ const AdminCategoriasTienda = () => {
                       {categorias.map((cat) => (
                         <tr
                           key={cat.id}
-                          className="hover:bg-scatrface-container-low transition-colors"
+                          className="hover:bg-surface-container-low transition-colors"
                         >
                           <td>
                             <div className="flex items-center gap-3">
-                              <span className="font-semibold text-on-scatrface text-body-md">
+                              <span className="font-semibold text-on-surface text-body-md">
                                 {cat.name}
                               </span>
                             </div>
@@ -509,11 +484,11 @@ const AdminCategoriasTienda = () => {
         <Paginacion
           meta={meta}
           onPageChange={(nuevaPagina) => setPage(nuevaPagina)}
-          itemLabel="usuarios"
+          itemLabel="categorias"
         />
       </div>
 
-      {/* Modal editar usuario */}
+      {/* Modal crear/editar categoria */}
       {showFormModal && (
         <dialog open className="modal modal-bottom sm:modal-middle">
           <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
@@ -535,7 +510,7 @@ const AdminCategoriasTienda = () => {
             </h3>
             <p className="text-body-md text-secondary mt-1">
               {editingCategory
-                ? "Modifica el nombre de esta categoria de tienda."
+                ? "Modifica el nombre de esta categoria de producto."
                 : "Completa los datos para crear una nueva categoria."}
             </p>
             <form onSubmit={handleSubmit} className="mt-5 space-y-4">
@@ -549,7 +524,7 @@ const AdminCategoriasTienda = () => {
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Ej: Tienda de variedades"
+                  placeholder="Ej: Lácteos"
                   className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
                 />
               </div>
@@ -581,7 +556,7 @@ const AdminCategoriasTienda = () => {
                   ) : editingCategory ? (
                     "Guardar cambios"
                   ) : (
-                    "Crear usuario"
+                    "Crear categoria"
                   )}
                 </button>
               </div>
@@ -599,12 +574,12 @@ const AdminCategoriasTienda = () => {
               <IoCloseCircle className="text-xl text-on-error-container" />
             </div>
             <h3 className="font-bold text-title-md text-on-surface">
-              ¿Desactivar categoria de tienda?
+              ¿Desactivar categoria de producto?
             </h3>
             <p className="text-body-md text-secondary mt-2">
-              Esta categoria no se podrá utilizar en ninguna otra tienda hasta
-              que vuelevas restablecerla, recuerda que no puedes eliminar una
-              categoria asociada a una tienda.
+              Esta categoria quedará inactiva hasta que la restablezcas.
+              Recuerda que no se puede desactivar una categoria que tenga
+              productos activos asociados.
             </p>
             <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
               <button
@@ -634,4 +609,4 @@ const AdminCategoriasTienda = () => {
   );
 };
 
-export default AdminCategoriasTienda;
+export default AdminCategoriasProducto;
