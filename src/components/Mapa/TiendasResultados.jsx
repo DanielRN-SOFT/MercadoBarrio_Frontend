@@ -1,6 +1,6 @@
 // TiendasResultados.jsx
 import React from "react";
-import { MdLocationOn } from "react-icons/md";
+import { MdLocationOn, MdChevronRight, MdStorefront } from "react-icons/md";
 
 const TiendasResultados = ({
   tienda,
@@ -40,9 +40,7 @@ const TiendasResultados = ({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="material-symbols-outlined text-xl text-on-surface/20">
-                storefront
-              </span>
+              <MdStorefront className="text-xl text-on-surface/20" />
             </div>
           )}
         </div>
@@ -69,13 +67,13 @@ const TiendasResultados = ({
           >
             {tienda.name}
           </h4>
-          <span
-            className={`material-symbols-outlined text-[16px] shrink-0 transition-all ${
-              activa ? "text-primary translate-x-0.5" : "text-transparent"
+          <MdChevronRight
+            className={`text-lg shrink-0 transition-all ${
+              activa
+                ? "text-primary translate-x-0.5 opacity-100"
+                : "opacity-0 group-hover:opacity-40"
             }`}
-          >
-            chevron_right
-          </span>
+          />
         </div>
 
         <div className="flex items-center gap-1.5 mt-1 flex-wrap">

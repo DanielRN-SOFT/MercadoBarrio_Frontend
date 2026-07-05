@@ -104,3 +104,50 @@
   --spacing-margin-desktop: 24px;
   --spacing-gutter: 16px;
 }
+
+/* MAPA */
+/* Anula los estilos por defecto de Leaflet solo para el popup de tiendas,
+   para que nuestro diseño (imagen a sangre, sin padding) se vea limpio. */
+
+.tienda-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.tienda-popup .leaflet-popup-content {
+  margin: 0;
+  width: 224px !important;
+  line-height: normal;
+}
+
+/* Leaflet agrega margin:18px 0 a los <p> por defecto: lo neutralizamos */
+.tienda-popup .leaflet-popup-content p {
+  margin: 0;
+}
+
+.tienda-popup .leaflet-popup-tip {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tienda-popup .leaflet-popup-close-button {
+  top: 8px !important;
+  right: 8px !important;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white !important;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 999px;
+  font-size: 14px;
+  line-height: 1 !important;
+  z-index: 20;
+}
+
+.tienda-popup .leaflet-popup-close-button:hover {
+  background: rgba(0, 0, 0, 0.55);
+  color: white !important;
+}

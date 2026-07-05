@@ -3,6 +3,7 @@ import {
   IoSearchSharp,
   IoCloseSharp,
   IoStorefrontSharp,
+  IoChevronDownSharp,
 } from "react-icons/io5";
 import { FaLocationDot } from "react-icons/fa6";
 import { MdAccessTime } from "react-icons/md";
@@ -16,6 +17,9 @@ const FilterBar = ({ onFilter }) => {
     storeCategoryId: "",
     openNow: false,
   });
+  // En mobile los campos se colapsan por defecto para no competir por
+  // espacio con el mapa/lista; en desktop siempre están visibles.
+  const [expandido, setExpandido] = useState(false);
   const debounceRef = useRef(null);
 
   useEffect(() => {
@@ -59,7 +63,10 @@ const FilterBar = ({ onFilter }) => {
   };
 
   const limpiarCampo = (campo) => {
-    const nuevosFiltros = { ...filtros, [campo]: campo === "openNow" ? false : "" };
+    const nuevosFiltros = {
+      ...filtros,
+      [campo]: campo === "openNow" ? false : "",
+    };
     setFiltros(nuevosFiltros);
     emitir(nuevosFiltros);
   };
@@ -73,8 +80,13 @@ const FilterBar = ({ onFilter }) => {
 
   return (
     <div className="card bg-base-100 shadow-sm border border-base-200 w-full">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b border-base-200">
+      {/* Header — en mobile funciona como botón para expandir/colapsar */}
+      <button
+        type="button"
+        onClick={() => setExpandido((v) => !v)}
+        className="w-full flex items-center justify-between px-5 py-3 border-b border-base-200 md:cursor-default"
+        aria-expanded={expandido}
+      >
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-1.5 rounded-lg">
             <IoSearchSharp className="text-primary text-base" />
@@ -88,19 +100,32 @@ const FilterBar = ({ onFilter }) => {
             </div>
           )}
         </div>
-        {filtrosActivos > 0 && (
-          <button
-            onClick={handleLimpiar}
-            className="btn btn-ghost btn-xs text-error gap-1 hover:bg-error/10"
-          >
-            <IoCloseSharp className="text-sm" />
-            Limpiar
-          </button>
-        )}
-      </div>
+
+        <div className="flex items-center gap-1">
+          {filtrosActivos > 0 && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLimpiar();
+              }}
+              className="btn btn-ghost btn-xs text-error gap-1 hover:bg-error/10"
+            >
+              <IoCloseSharp className="text-sm" />
+              Limpiar
+            </span>
+          )}
+          <IoChevronDownSharp
+            className={`md:hidden text-base-content/40 transition-transform duration-200 ${
+              expandido ? "rotate-180" : ""
+            }`}
+          />
+        </div>
+      </button>
 
       {/* Campos */}
-      <div className="p-5">
+      <div className={`p-5 ${expandido ? "block" : "hidden"} md:block`}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Nombre */}
           <div className="flex flex-col gap-1.5">
@@ -232,7 +257,10 @@ const FilterBar = ({ onFilter }) => {
               <div className="badge badge-outline gap-1 badge-sm">
                 <FaLocationDot className="text-xs" />
                 {filtros.neighborhood}
-                <button onClick={() => limpiarCampo("neighborhood")} className="ml-0.5">
+                <button
+                  onClick={() => limpiarCampo("neighborhood")}
+                  className="ml-0.5"
+                >
                   <IoCloseSharp className="text-xs" />
                 </button>
               </div>
@@ -240,8 +268,15 @@ const FilterBar = ({ onFilter }) => {
             {filtros.storeCategoryId && (
               <div className="badge badge-outline gap-1 badge-sm">
                 <IoStorefrontSharp className="text-xs" />
-                {categorias.find((c) => String(c.id) === String(filtros.storeCategoryId))?.name}
-                <button onClick={() => limpiarCampo("storeCategoryId")} className="ml-0.5">
+                {
+                  categorias.find(
+                    (c) => String(c.id) === String(filtros.storeCategoryId),
+                  )?.name
+                }
+                <button
+                  onClick={() => limpiarCampo("storeCategoryId")}
+                  className="ml-0.5"
+                >
                   <IoCloseSharp className="text-xs" />
                 </button>
               </div>
@@ -250,7 +285,10 @@ const FilterBar = ({ onFilter }) => {
               <div className="badge badge-success badge-outline gap-1 badge-sm">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
                 Abierto ahora
-                <button onClick={() => limpiarCampo("openNow")} className="ml-0.5">
+                <button
+                  onClick={() => limpiarCampo("openNow")}
+                  className="ml-0.5"
+                >
                   <IoCloseSharp className="text-xs" />
                 </button>
               </div>
