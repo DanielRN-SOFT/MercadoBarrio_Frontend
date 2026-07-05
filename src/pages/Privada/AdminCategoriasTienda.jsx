@@ -181,7 +181,7 @@ const AdminCategoriasTienda = () => {
         method: "PUT",
       });
       addToast({
-        message: "Categoria de tienda eliminada correctamente",
+        message: res.message,
         type: "success",
       });
 
@@ -194,6 +194,28 @@ const AdminCategoriasTienda = () => {
     } finally {
       setActionLoading(false);
       setConfirmId(false);
+    }
+  };
+
+  const handleRestore = async (id) => {
+    setActionLoading(true);
+    try {
+      const res = await fetchCliente(`/store-categories/restore/${id}`, {
+        method: "PUT",
+      });
+      addToast({
+        message: res.message,
+        type: "success",
+      });
+
+      fetchCategoriasTienda(page);
+    } catch (error) {
+      addToast({
+        message: err.message ?? "Error al desactivar",
+        type: "error",
+      });
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -459,6 +481,7 @@ const AdminCategoriasTienda = () => {
                                 </button>
                               ) : (
                                 <button
+                                  onClick={() => handleRestore(cat.id)}
                                   className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-primary-container/20"
                                   data-tip="Reactivar"
                                 >
