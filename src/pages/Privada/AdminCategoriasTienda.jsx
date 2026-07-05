@@ -15,6 +15,7 @@ import { IoCloseCircle, IoCloseSharp } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
+import ToastContainer from "../../components/ui/ToastContainer";
 
 const users = [
   {
@@ -40,7 +41,8 @@ const users = [
 const EMPTY_FORM = { name: "" };
 
 const AdminCategoriasTienda = () => {
-  const { toast, addToast, removeToast } = useToast();
+  const { toasts, addToast, removeToast } = useToast();
+
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -55,7 +57,7 @@ const AdminCategoriasTienda = () => {
 
   // Modal de crear/editar
   const [showFormModal, setShowFormModal] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
@@ -93,6 +95,85 @@ const AdminCategoriasTienda = () => {
     return () => clearTimeout(timeout);
   }, [searchInput]);
 
+  // ─── Crear / Editar ─────────────────────────────────────────────────────
+  const openCreateModal = () => {
+    setEditingCategory(null);
+    setForm(EMPTY_FORM);
+    setFormError("");
+    setShowFormModal(true);
+  };
+
+  const openEditModal = (categoria) => {
+    setEditingCategory(categoria);
+    setForm({
+      name: categoria.name || "",
+    });
+    setFormError("");
+    setShowFormModal(true);
+  };
+
+  const closeFormModal = () => {
+    if (formLoading) return;
+    setShowFormModal(false);
+    setEditingCategory(null);
+    setForm(EMPTY_FORM);
+    setFormError("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!form.name.trim()) {
+      setFormError("Todos los campos son obligatorios");
+      return;
+    }
+
+    setFormLoading(true);
+    try {
+      if (editingCategory) {
+        const res = await fetchCliente(
+          `/store-categories/${editingCategory.id}`,
+          {
+            method: "PUT",
+            body: {
+              name: form.name,
+            },
+          },
+        );
+
+        addToast({
+          message: "Categoria de tienda actualizada correctamente",
+          type: "success",
+        });
+      } else {
+        const res = await fetchCliente("/store-categories", {
+          method: "POST",
+          body: {
+            name: form.name,
+          },
+        });
+
+        console.log(res);
+
+        addToast({
+          message: "Categoria de tienda creada correctamente",
+          type: "success",
+        });
+      }
+
+      setShowFormModal(false);
+      setEditingCategory(null);
+      setForm(EMPTY_FORM);
+      fetchCategoriasTienda(page);
+    } catch (err) {
+      // El backend puede devolver 409 si el nombre ya se encuentra registrado
+      setFormError(err.message ?? "Error al guardar el usuario");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   const hasFilters = statusFilter || search;
 
   return (
@@ -119,7 +200,10 @@ const AdminCategoriasTienda = () => {
               </p>
             </div>
           </div>
-          <button className="btn bg-primary text-on-primary border-none hover:bg-primary-container gap-2 rounded-full font-label-md text-label-md shadow-sm shadow-primary/25 transition-colors w-full sm:w-auto">
+          <button
+            onClick={openCreateModal}
+            className="btn bg-primary text-on-primary border-none hover:bg-primary-container gap-2 rounded-full font-label-md text-label-md shadow-sm shadow-primary/25 transition-colors w-full sm:w-auto"
+          >
             <MdAdd className="text-xl" />
             Nuevo usuario
           </button>
@@ -336,6 +420,7 @@ const AdminCategoriasTienda = () => {
                           <td className="text-right">
                             <div className="flex items-center justify-end gap-1">
                               <button
+                                onClick={openEditModal}
                                 className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
                                 data-tip="Editar"
                               >
@@ -375,9 +460,10 @@ const AdminCategoriasTienda = () => {
           <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3 mb-1">
               <div className="w-11 h-11 rounded-2xl bg-primary-container flex items-center justify-center">
-                <MdPeopleAlt className="text-xl text-on-primary-container" />
+                <MdNewLabel className="text-xl text-on-primary-container" />
               </div>
               <button
+                onClick={closeFormModal}
                 className="btn btn-ghost btn-sm btn-circle"
                 aria-label="Cerrar"
               >
@@ -386,14 +472,14 @@ const AdminCategoriasTienda = () => {
             </div>
 
             <h3 className="font-bold text-title-md text-on-surface">
-              {editingUser ? "Editar categoria" : "Nueva categoria"}
+              {editingCategory ? "Editar categoria" : "Nueva categoria"}
             </h3>
             <p className="text-body-md text-secondary mt-1">
-              {editingUser
+              {editingCategory
                 ? "Modifica el nombre de esta categoria de tienda."
                 : "Completa los datos para crear una nueva categoria."}
             </p>
-            <div className="mt-5 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               <div className="form-control">
                 <label className="label pb-1">
                   <span className="label-text text-label-md font-semibold text-on-surface-variant">
@@ -403,85 +489,11 @@ const AdminCategoriasTienda = () => {
                 <input
                   type="text"
                   value={form.name}
-                  readOnly
-                  placeholder="Ej: Juan Pérez"
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="Ej: Tienda de variedades"
                   className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
                 />
               </div>
-
-              <div className="form-control">
-                <label className="label pb-1">
-                  <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                    Correo electrónico
-                  </span>
-                </label>
-                <input
-                  type="email"
-                  value={form.email}
-                  readOnly
-                  placeholder="ejemplo@correo.com"
-                  className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
-                />
-              </div>
-
-              <div className="form-control">
-                <label className="label pb-1">
-                  <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                    Teléfono
-                  </span>
-                </label>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  readOnly
-                  placeholder="Ej: 3001234567"
-                  className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
-                />
-              </div>
-
-              {!editingUser && (
-                <>
-                  <div className="form-control">
-                    <label className="label pb-1">
-                      <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                        Contraseña
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <MdLock className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
-                      <input
-                        type="password"
-                        value={form.password}
-                        readOnly
-                        placeholder="Mínimo 8 caracteres"
-                        className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full pl-10 relative z-0"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label pb-1">
-                      <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                        Rol
-                      </span>
-                    </label>
-                    <select
-                      value={form.roleId}
-                      readOnly
-                      className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
-                    >
-                      <option value="" disabled>
-                        Selecciona un rol
-                      </option>
-                      {roles.map((role) => (
-                        <option key={role.id} value={role.id}>
-                          {role.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </>
-              )}
 
               {formError && (
                 <div className="alert bg-error-container border-none rounded-xl py-2.5">
@@ -494,6 +506,7 @@ const AdminCategoriasTienda = () => {
               <div className="modal-action gap-2 flex-col-reverse sm:flex-row pt-2">
                 <button
                   type="button"
+                  onClick={closeFormModal}
                   disabled={formLoading}
                   className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
                 >
@@ -506,14 +519,14 @@ const AdminCategoriasTienda = () => {
                 >
                   {formLoading ? (
                     <span className="loading loading-spinner loading-sm" />
-                  ) : editingUser ? (
+                  ) : editingCategory ? (
                     "Guardar cambios"
                   ) : (
                     "Crear usuario"
                   )}
                 </button>
               </div>
-            </div>
+            </form>
           </div>
           <div className="modal-backdrop" />
         </dialog>
@@ -552,6 +565,7 @@ const AdminCategoriasTienda = () => {
           <div className="modal-backdrop" />
         </dialog>
       )}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
   );
 };
