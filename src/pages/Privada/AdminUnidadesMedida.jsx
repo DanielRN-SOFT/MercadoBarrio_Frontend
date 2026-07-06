@@ -68,6 +68,25 @@ const AdminUnidadesMedida = () => {
     fetchUnidades(page);
   }, [page]);
 
+  useEffect(() => {
+    if (page === 1) fetchUnidades(1);
+    else setPage(1);
+  }, [statusFilter, search]);
+
+  // Debounce: espera 400ms desde la última tecla antes de disparar la búsqueda
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setSearch(searchInput.trim());
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  const handleClearFilters = () => {
+    setSearch("");
+    setSearchInput("");
+    setStatusFilter("");
+  };
+
   const hasFilters = statusFilter || search;
   return (
     <>
@@ -112,6 +131,8 @@ const AdminUnidadesMedida = () => {
               <div className="relative col-span-2 my-2">
                 <MdSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
                 <input
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   type="text"
                   placeholder="Buscar por nombre..."
                   className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full pl-10 relative z-0 transition-colors"
@@ -119,7 +140,11 @@ const AdminUnidadesMedida = () => {
               </div>
 
               <div>
-                <select className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full sm:w-56 transition-colors my-2">
+                <select
+                  className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full sm:w-56 transition-colors my-2"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
                   <option value="">Todos los estados</option>
                   <option value="Active">Activo</option>
                   <option value="Inactive">Inactivo</option>
@@ -130,7 +155,10 @@ const AdminUnidadesMedida = () => {
             {/* Se muestra solo cuando hay filtros activos */}
             {hasFilters && (
               <div className="flex items-center gap-2 pt-1">
-                <button className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full">
+                <button
+                  onClick={handleClearFilters}
+                  className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full"
+                >
                   <IoCloseSharp className="text-sm" />
                   Limpiar filtros
                 </button>
