@@ -13,15 +13,8 @@ import { useEffect, useState } from "react";
 import useToast from "../../hooks/useToast";
 import fetchCliente from "../../config/fetchCliente";
 import Paginacion from "../../components/ui/Paginacion";
+import ToastContainer from "../../components/ui/ToastContainer";
 
-// Datos de ejemplo solo para poder visualizar el componente.
-// En el original esto venía de fetchCliente() + useState().
-const categorias = [
-  { id: 1, name: "Lácteos", status: "Active" },
-  { id: 2, name: "Bebidas", status: "Inactive" },
-];
-
-const meta = { total: 12, totalPages: 3 };
 const EMPTY_FORM = { name: "" };
 
 const AdminUnidadesMedida = () => {
@@ -87,6 +80,68 @@ const AdminUnidadesMedida = () => {
     setStatusFilter("");
   };
 
+  const openCreateModal = () => {
+    setShowFormModal(true);
+    setEditingUnidades(null);
+    setFormError("");
+    setForm(EMPTY_FORM);
+  };
+
+  const openEditModal = (unidad) => {
+    setEditingUnidades(unidad);
+    setForm({
+      name: unidad.name,
+    });
+    setFormError("");
+    setShowFormModal(true);
+  };
+
+  const closeFormModal = () => {
+    if (formLoading) return;
+    setShowFormModal(false);
+    setEditingUnidades(null);
+    setFormError("");
+    setForm(EMPTY_FORM);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    try {
+      if (!form.name.trim()) {
+        setFormError("Todos los campos son obligatorios");
+        return;
+      }
+
+      if (editingUnidades) {
+        const res = await fetchCliente(`/unit-measures/${editingUnidades.id}`, {
+          method: "PUT",
+          body: {
+            name: form.name,
+          },
+        });
+        addToast({ message: res.message, type: "success" });
+      } else {
+        const res = await fetchCliente("/unit-measures", {
+          method: "POST",
+          body: {
+            name: form.name,
+          },
+        });
+        addToast({ message: res.message, type: "success" });
+      }
+
+      setShowFormModal(false);
+      setForm(EMPTY_FORM);
+      setEditingUnidades(null);
+      fetchUnidades(page);
+    } catch (err) {
+      setFormError(err.message ?? "Error al guardar el usuario");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   const hasFilters = statusFilter || search;
   return (
     <>
@@ -111,7 +166,10 @@ const AdminUnidadesMedida = () => {
               </p>
             </div>
           </div>
-          <button className="btn bg-primary text-on-primary border-none hover:bg-primary-container gap-2 rounded-full font-label-md text-label-md shadow-sm shadow-primary/25 transition-colors w-full sm:w-auto">
+          <button
+            onClick={openCreateModal}
+            className="btn bg-primary text-on-primary border-none hover:bg-primary-container gap-2 rounded-full font-label-md text-label-md shadow-sm shadow-primary/25 transition-colors w-full sm:w-auto"
+          >
             <MdAdd className="text-xl" />
             Nueva unidad de medida
           </button>
@@ -200,7 +258,10 @@ const AdminUnidadesMedida = () => {
                   : "Agrega tu primer categoria de producto para comenzar."}
               </p>
               {!hasFilters && (
-                <button className="btn bg-primary text-on-primary border-none rounded-full mt-6 font-label-md text-label-md hover:bg-primary-container">
+                <button
+                  onClick={openCreateModal}
+                  className="btn bg-primary text-on-primary border-none rounded-full mt-6 font-label-md text-label-md hover:bg-primary-container"
+                >
                   <MdAdd className="text-xl" /> Agregar unidad de medida
                 </button>
               )}
@@ -326,6 +387,7 @@ const AdminUnidadesMedida = () => {
                           <td className="text-right">
                             <div className="flex items-center justify-end gap-1">
                               <button
+                                onClick={() => openEditModal(unidad)}
                                 className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
                                 data-tip="Editar"
                               >
@@ -372,9 +434,10 @@ const AdminUnidadesMedida = () => {
           <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
             <div className="flex items-start justify-between gap-3 mb-1">
               <div className="w-11 h-11 rounded-2xl bg-primary-container flex items-center justify-center">
-                <MdOutlineCategory className="text-xl text-on-primary-container" />
+                <MdOutlineAdUnits className="text-xl text-on-primary-container" />
               </div>
               <button
+                onClick={closeFormModal}
                 className="btn btn-ghost btn-sm btn-circle"
                 aria-label="Cerrar"
               >
@@ -389,7 +452,7 @@ const AdminUnidadesMedida = () => {
               Completa los datos para crear una nueva categoria.
             </p>
 
-            <form className="mt-5 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               <div className="form-control">
                 <label className="label pb-1">
                   <span className="label-text text-label-md font-semibold text-on-surface-variant">
@@ -397,21 +460,26 @@ const AdminUnidadesMedida = () => {
                   </span>
                 </label>
                 <input
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
                   type="text"
-                  placeholder="Ej: Lácteos"
+                  value={form.name}
+                  placeholder="Ej: Kilogramo"
                   className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
                 />
               </div>
 
               {/* Ejemplo de mensaje de error de formulario */}
-              {/* <div className="alert bg-error-container border-none rounded-xl py-2.5">
-              <span className="text-body-sm text-on-error-container">
-                Todos los campos son obligatorios
-              </span>
-            </div> */}
+              {formError && (
+                <div className="alert bg-error-container border-none rounded-xl py-2.5">
+                  <span className="text-body-sm text-on-error-container">
+                    {formError}
+                  </span>
+                </div>
+              )}
 
               <div className="modal-action gap-2 flex-col-reverse sm:flex-row pt-2">
                 <button
+                  onClick={closeFormModal}
                   type="button"
                   className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
                 >
@@ -457,6 +525,7 @@ const AdminUnidadesMedida = () => {
           <div className="modal-backdrop" />
         </dialog>
       )}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
   );
 };
