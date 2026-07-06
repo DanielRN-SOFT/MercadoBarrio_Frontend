@@ -136,9 +136,47 @@ const AdminUnidadesMedida = () => {
       setEditingUnidades(null);
       fetchUnidades(page);
     } catch (err) {
-      setFormError(err.message ?? "Error al guardar el usuario");
+      setFormError(err.message ?? "Error al guardar el unidad de medida");
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    setFormLoading(true);
+    try {
+      const res = await fetchCliente(`/unit-measures/delete/${id}`, {
+        method: "PUT",
+      });
+      addToast({ message: res.message, type: "success" });
+      fetchUnidades(page);
+    } catch (err) {
+      addToast({
+        message: err.message ?? "Error al eliminar unidad de medida",
+        type: "error",
+      });
+    } finally {
+      setFormLoading(false);
+      setConfirmId(null);
+    }
+  };
+
+  const handleRestore = async (id) => {
+    setFormLoading(true);
+    try {
+      const res = await fetchCliente(`/unit-measures/restore/${id}`, {
+        method: "PUT",
+      });
+      addToast({ message: res.message, type: "success" });
+      fetchUnidades(page);
+    } catch (err) {
+      addToast({
+        message: err.message ?? "Error al restaurar unidad de medida",
+        type: "error",
+      });
+    } finally {
+      setFormLoading(false);
+      setConfirmId(null);
     }
   };
 
@@ -271,9 +309,9 @@ const AdminUnidadesMedida = () => {
           <>
             {/* Vista de TARJETAS — móvil y tablet */}
             <div className="lg:hidden space-y-3">
-              {unidades.map((cat) => (
+              {unidades.map((unidad) => (
                 <div
-                  key={cat.id}
+                  key={unidad.id}
                   className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm"
                 >
                   <div className="card-body p-4 gap-3">
@@ -281,19 +319,21 @@ const AdminUnidadesMedida = () => {
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="min-w-0">
                           <p className="font-semibold text-on-surface text-body-md truncate">
-                            {cat.name}
+                            {unidad.name}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <button
+                          onClick={() => openEditModal(unidad)}
                           className="btn btn-ghost btn-sm btn-circle hover:bg-secondary-container/60"
                           aria-label="Editar"
                         >
                           <MdEdit className="text-lg text-secondary" />
                         </button>
-                        {cat.status === "Active" ? (
+                        {unidad.status === "Active" ? (
                           <button
+                            onClick={() => setConfirmId(unidad.id)}
                             className="btn btn-ghost btn-sm btn-circle hover:bg-error-container/60"
                             aria-label="Desactivar"
                           >
@@ -301,6 +341,7 @@ const AdminUnidadesMedida = () => {
                           </button>
                         ) : (
                           <button
+                            onClick={() => handleRestore(unidad.id)}
                             className="btn btn-ghost btn-sm btn-circle hover:bg-primary-container/20"
                             aria-label="Reactivar"
                           >
@@ -313,19 +354,19 @@ const AdminUnidadesMedida = () => {
                     <div className="flex items-center justify-between pt-2 border-t border-outline-variant/50">
                       <span
                         className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
-                          cat.status === "Active"
+                          unidad.status === "Active"
                             ? "bg-primary-fixed text-on-primary-fixed-variant"
                             : "bg-surface-container-high text-secondary"
                         }`}
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            cat.status === "Active"
+                            unidad.status === "Active"
                               ? "bg-primary"
                               : "bg-outline"
                           }`}
                         />
-                        {cat.status === "Active" ? "Activo" : "Inactivo"}
+                        {unidad.status === "Active" ? "Activo" : "Inactivo"}
                       </span>
                     </div>
                   </div>
@@ -395,6 +436,7 @@ const AdminUnidadesMedida = () => {
                               </button>
                               {unidad.status === "Active" ? (
                                 <button
+                                  onClick={() => setConfirmId(unidad.id)}
                                   className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-error-container/60"
                                   data-tip="Desactivar"
                                 >
@@ -405,7 +447,10 @@ const AdminUnidadesMedida = () => {
                                   className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-primary-container/20"
                                   data-tip="Reactivar"
                                 >
-                                  <MdRestoreFromTrash className="text-lg text-primary" />
+                                  <MdRestoreFromTrash
+                                    onClick={() => handleRestore(unidad.id)}
+                                    className="text-lg text-primary"
+                                  />
                                 </button>
                               )}
                             </div>
@@ -446,10 +491,14 @@ const AdminUnidadesMedida = () => {
             </div>
 
             <h3 className="font-bold text-title-md text-on-surface">
-              Nueva categoria
+              {editingUnidades
+                ? "Editar unidad de medida"
+                : "Nueva unidad de medida"}
             </h3>
             <p className="text-body-md text-secondary mt-1">
-              Completa los datos para crear una nueva categoria.
+              {editingUnidades
+                ? "Modifica el nombre de esta unidad de medida de producto."
+                : "Completa los datos para crear una nueva unidad de medida."}
             </p>
 
             <form onSubmit={handleSubmit} className="mt-5 space-y-4">
@@ -514,15 +563,26 @@ const AdminUnidadesMedida = () => {
               productos activos asociados.
             </p>
             <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
-              <button className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto">
+              <button
+                onClick={() => setConfirmId(null)}
+                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
+              >
                 Cancelar
               </button>
-              <button className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto">
-                Desactivar
+              <button
+                onClick={() => handleDelete(confirmId)}
+                disabled={actionLoading}
+                className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto"
+              >
+                {actionLoading ? (
+                  <span className="loading loading-spinner loading-sm" />
+                ) : (
+                  "Desactivar"
+                )}
               </button>
             </div>
           </div>
-          <div className="modal-backdrop" />
+          <div className="modal-backdrop" onClick={() => setConfirmId(null)} />
         </dialog>
       )}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
