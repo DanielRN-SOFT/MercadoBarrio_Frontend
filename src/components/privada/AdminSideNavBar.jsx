@@ -11,6 +11,7 @@ import {
   MdNewLabel,
   MdOutlineNewLabel,
   MdOutlineCategory,
+  MdOutlineAdUnits,
 } from "react-icons/md";
 import { Link, useLocation } from "react-router-dom";
 
@@ -33,6 +34,11 @@ const navItems = [
     icon: <MdOutlineCategory />,
     label: "Categorias productos",
   },
+  {
+    to: "/panel/admin/unidades-medida",
+    icon: <MdOutlineAdUnits/>,
+    label: "Unidades de medida"
+  }
 ];
 
 const AdminSideNavBar = ({ open, onClose }) => {
