@@ -12,6 +12,7 @@ import {
   MdOutlineNewLabel,
   MdOutlineCategory,
   MdOutlineAdUnits,
+  MdOutlineShield,
 } from "react-icons/md";
 import { Link, useLocation } from "react-router-dom";
 
@@ -30,15 +31,20 @@ const navItems = [
     label: "Categorias tiendas",
   },
   {
+    to: "/panel/admin/roles",
+    icon: <MdOutlineShield />,
+    label: "Roles",
+  },
+  {
     to: "/panel/admin/categorias-producto",
     icon: <MdOutlineCategory />,
     label: "Categorias productos",
   },
   {
     to: "/panel/admin/unidades-medida",
-    icon: <MdOutlineAdUnits/>,
-    label: "Unidades de medida"
-  }
+    icon: <MdOutlineAdUnits />,
+    label: "Unidades de medida",
+  },
 ];
 
 const AdminSideNavBar = ({ open, onClose }) => {

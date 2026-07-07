@@ -29,6 +29,7 @@ import AdminUsuarios from "../pages/Privada/AdminUsuarios";
 import AdminCategoriasTienda from "../pages/Privada/AdminCategoriasTienda";
 import AdminCategoriasProducto from "../pages/Privada/AdminCategoriasProducto";
 import AdminUnidadesMedida from "../pages/Privada/AdminUnidadesMedida";
+import AdminRoles from "../pages/Privada/AdminRoles";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -60,6 +61,7 @@ export const router = createBrowserRouter(
         <Route path="admin/categorias-tienda" element={<AdminCategoriasTienda/>}></Route>
         <Route path="admin/categorias-producto" element={<AdminCategoriasProducto/>}></Route>
         <Route path="admin/unidades-medida" element={<AdminUnidadesMedida/>}></Route>
+        <Route path="admin/roles" element={<AdminRoles/>}></Route>
         <Route path="mi-tienda" element={<MiTienda />}></Route>
         <Route path="productos" element={<MisProductos />}></Route>
         <Route path="ventas" element={<MisVentas />}></Route>
