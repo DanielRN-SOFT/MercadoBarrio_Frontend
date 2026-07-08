@@ -13,6 +13,7 @@ import {
   MdOutlineCategory,
   MdOutlineAdUnits,
   MdOutlineShield,
+  MdOutlineApartment,
 } from "react-icons/md";
 import { Link, useLocation } from "react-router-dom";
 
@@ -44,6 +45,11 @@ const navItems = [
     to: "/panel/admin/unidades-medida",
     icon: <MdOutlineAdUnits />,
     label: "Unidades de medida",
+  },
+  {
+    to: "/panel/admin/proveedores",
+    icon: <MdOutlineApartment />,
+    label: "Proveedores",
   },
 ];
 
