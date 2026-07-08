@@ -18,13 +18,6 @@ import { useEffect, useState } from "react";
 import useToast from "../../hooks/useToast";
 import fetchCliente from "../../config/fetchCliente";
 
-const roles = [
-  { id: 1, name: "Administrador" },
-  { id: 2, name: "Vendedor" },
-  { id: 3, name: "Cliente" },
-];
-
-const meta = { total: 3, totalPages: 1 };
 const EMPTY_FORM = { name: "", email: "", address: "", phone: "", city: "" };
 
 const AdminProveedores = () => {
@@ -89,11 +82,57 @@ const AdminProveedores = () => {
     setShowFormModal(true);
   };
 
+  const openEditModal = (proveedor) => {
+    setEditingProveedor(proveedor);
+    setForm(proveedor);
+    setFormError("");
+    setShowFormModal(true);
+  };
+
   const closeFormModal = () => {
     setEditingProveedor(null);
     setForm(EMPTY_FORM);
     setFormError("");
     setShowFormModal(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setActionLoading(true);
+    try {
+      if (
+        (!form.name.trim(),
+        !form.email.trim(),
+        !form.phone.trim(),
+        !form.address.trim(),
+        !form.city.trim())
+      ) {
+        setFormError("Todos los campos son obligatorios");
+        return;
+      }
+
+      if (editingProveedor) {
+        const res = await fetchCliente(`/suppliers/${editingProveedor.id}`, {
+          method: "PUT",
+          body: form,
+        });
+        addToast({ message: res.message, type: "success" });
+      } else {
+        const res = await fetchCliente("/suppliers", {
+          method: "POST",
+          body: form,
+        });
+
+        addToast({ message: res.message, type: "success" });
+      }
+
+      fetchProveedores(page);
+      closeFormModal();
+    } catch (error) {
+      setFormError(error.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const hasActiveFilters = statusFilter || search;
@@ -306,6 +345,7 @@ const AdminProveedores = () => {
                       <td className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
+                            onClick={() => openEditModal(proveedor)}
                             className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
                             data-tip="Editar"
                           >
@@ -354,7 +394,7 @@ const AdminProveedores = () => {
             <p className="text-body-md text-secondary mt-1">
               Completa los datos para crear un nuevo proveedor
             </p>
-            <form className="mt-5 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               <div className="form-control">
                 <label className="label pb-1">
                   <span className="label-text text-label-md font-semibold text-on-surface-variant">
@@ -377,6 +417,8 @@ const AdminProveedores = () => {
                   </span>
                 </label>
                 <input
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  value={form.email}
                   type="text"
                   placeholder="empresa@gmail.com"
                   className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
@@ -390,6 +432,10 @@ const AdminProveedores = () => {
                   </span>
                 </label>
                 <input
+                  onChange={(e) =>
+                    setForm({ ...form, address: e.target.value })
+                  }
+                  value={form.address}
                   type="text"
                   placeholder="Calle 4 #78-45 El Diamante"
                   className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
@@ -404,6 +450,10 @@ const AdminProveedores = () => {
                     </span>
                   </label>
                   <input
+                    onChange={(e) =>
+                      setForm({ ...form, phone: e.target.value })
+                    }
+                    value={form.phone}
                     type="number"
                     placeholder="3158905738"
                     className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
@@ -416,6 +466,8 @@ const AdminProveedores = () => {
                     </span>
                   </label>
                   <input
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                    value={form.city}
                     type="text"
                     placeholder="Cartago"
                     className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
@@ -477,7 +529,7 @@ const AdminProveedores = () => {
         <div className="modal-backdrop" />
       </dialog>
 
-      <ToastContainer toasts={[]} removeToast={() => {}} />
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
   );
 };
