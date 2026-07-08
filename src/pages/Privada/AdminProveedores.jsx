@@ -10,8 +10,9 @@ import {
   MdDirections,
   MdLocationCity,
   MdOutlineApartment,
+  MdRestoreFromTrash,
 } from "react-icons/md";
-import { IoCloseSharp } from "react-icons/io5";
+import { IoCloseCircle, IoCloseSharp } from "react-icons/io5";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Paginacion from "../../components/ui/Paginacion";
 import { useEffect, useState } from "react";
@@ -134,6 +135,43 @@ const AdminProveedores = () => {
       setActionLoading(false);
     }
   };
+
+  const handleDelete = async (id) => {
+    setActionLoading(true);
+    console.log(id);
+    try {
+      const res = await fetchCliente(`/suppliers/delete/${id}`, {
+        method: "PUT",
+      });
+      addToast({ message: res.message, type: "success" });
+    } catch (error) {
+      console.log(error);
+      addToast({ message: error.message, type: "error" });
+    } finally {
+      setConfirmId(null);
+      fetchProveedores(page);
+      setActionLoading(false);
+    }
+  };
+
+
+    const handleRestore = async (id) => {
+      setActionLoading(true);
+      console.log(id);
+      try {
+        const res = await fetchCliente(`/suppliers/restore/${id}`, {
+          method: "PUT",
+        });
+        addToast({ message: res.message, type: "success" });
+      } catch (error) {
+        console.log(error);
+        addToast({ message: error.message, type: "error" });
+      } finally {
+        setConfirmId(null);
+        fetchProveedores(page);
+        setActionLoading(false);
+      }
+    };
 
   const hasActiveFilters = statusFilter || search;
   return (
@@ -351,12 +389,23 @@ const AdminProveedores = () => {
                           >
                             <MdEdit className="text-lg text-secondary" />
                           </button>
-                          <button
-                            className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-error-container/60"
-                            data-tip="Eliminar"
-                          >
-                            <MdDelete className="text-lg text-error" />
-                          </button>
+                          {proveedor.status === "Active" ? (
+                            <button
+                              onClick={() => setConfirmId(proveedor.id)}
+                              className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-error-container/60"
+                              data-tip="Desactivar"
+                            >
+                              <IoCloseCircle className="text-lg text-error" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleRestore(proveedor.id)}
+                              className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-primary-container/20"
+                              data-tip="Reactivar"
+                            >
+                              <MdRestoreFromTrash className="text-lg text-primary" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -505,29 +554,37 @@ const AdminProveedores = () => {
       )}
 
       {/* Modal confirmación eliminar */}
-      <dialog className="modal modal-bottom sm:modal-middle">
-        <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
-          <div className="w-11 h-11 rounded-2xl bg-error-container flex items-center justify-center mb-3">
-            <MdDelete className="text-xl text-on-error-container" />
+      {confirmId && (
+        <dialog open className="modal modal-bottom sm:modal-middle">
+          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
+            <div className="w-11 h-11 rounded-2xl bg-error-container flex items-center justify-center mb-3">
+              <MdDelete className="text-xl text-on-error-container" />
+            </div>
+            <h3 className="font-bold text-title-md text-on-surface">
+              ¿Eliminar este proveedor?
+            </h3>
+            <p className="text-body-md text-secondary mt-2">
+              Esta acción se puede revertir, pero no podras eliminar un
+              proveedor asociado a un movimiento activo
+            </p>
+            <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
+              <button
+                onClick={() => setConfirmId(null)}
+                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDelete(confirmId)}
+                className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto"
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
-          <h3 className="font-bold text-title-md text-on-surface">
-            ¿Eliminar este rol?
-          </h3>
-          <p className="text-body-md text-secondary mt-2">
-            Esta acción es permanente y no se puede deshacer. No podrás eliminar
-            un rol que tenga usuarios activos asociados.
-          </p>
-          <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
-            <button className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto">
-              Cancelar
-            </button>
-            <button className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto">
-              Eliminar
-            </button>
-          </div>
-        </div>
-        <div className="modal-backdrop" />
-      </dialog>
+          <div className="modal-backdrop" onClick={() => setConfirmId(null)} />
+        </dialog>
+      )}
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
