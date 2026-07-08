@@ -84,11 +84,11 @@ const HeroSection = () => {
   }, [activeIndex]);
 
   return (
-    <div className="relative w-full min-h-105 md:min-h-120 flex items-center justify-center">
+    <div className="relative w-full min-h-105 md:min-h-150 flex items-center justify-center">
       {/* Capa de fondo: imagen + overlay, recortada aparte */}
       <div className="absolute inset-0 overflow-hidden">
         <img
-          src="/images/hero-mercado.jpg"
+          src="/images/hero.jpg"
           alt="Tu mercado local"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -96,7 +96,7 @@ const HeroSection = () => {
       </div>
 
       {/* Capa de contenido: NO se recorta, puede desbordar hacia abajo */}
-      <div className="relative z-10 max-w-3xl mx-auto text-center px-margin-mobile md:px-margin-desktop">
+      <div className="relative z-10 max-w-5xl mx-auto text-center px-margin-mobile md:px-margin-desktop">
         <h2 className="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg mb-2 text-white">
           MercadoBarrio
         </h2>
@@ -112,7 +112,7 @@ const HeroSection = () => {
               onChange={handleChange}
               onKeyDown={handleKeyDown}
               onFocus={() => resultados.length > 0 && setOpen(true)}
-              className="rounded-full mx-2 w-lg text-on-surface px-4 py-2 font-body-md text-body-md"
+              className="rounded-full mx-2 sm:w-md text-on-surface px-4 py-2 font-body-md text-body-md"
               placeholder="¿Qué producto buscas hoy en tu barrio?"
               type="text"
               autoComplete="off"
