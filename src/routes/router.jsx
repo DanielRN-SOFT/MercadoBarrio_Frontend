@@ -12,6 +12,7 @@ import Inicio from "../pages/Publica/Inicio";
 import Index from "../pages/Privada/Index";
 import MiTienda from "../pages/Privada/MiTienda";
 import MisProductos from "../pages/Privada/MisProductos";
+import Inventario from "../pages/Privada/Inventario";
 import ProductoForm from "../pages/Privada/ProductoForm";
 import TiendaDetalle from "../pages/Publica/TiendaDetalle";
 import PrivateLayout from "../layouts/PrivateLayout";
@@ -66,6 +67,7 @@ export const router = createBrowserRouter(
         <Route path="admin/proveedores" element={<AdminProveedores/>}></Route>
         <Route path="mi-tienda" element={<MiTienda />}></Route>
         <Route path="productos" element={<MisProductos />}></Route>
+        <Route path="inventario" element={<Inventario />}></Route>
         <Route path="ventas" element={<MisVentas />}></Route>
         <Route path="ventas/nueva" element={<RegistrarVenta />}></Route>
         <Route path="productos/nuevo" element={<ProductoForm />}></Route>
