@@ -9,6 +9,7 @@ import {
   MdOutlineSchedule,
   MdOutlineSettings,
   MdOutlineStore,
+  MdSwapVert,
 } from "react-icons/md";
 import { Link, useLocation } from "react-router-dom";
 
@@ -31,6 +32,12 @@ const navItems = [
     to: "/panel/inventario",
     icon: <MdOutlineInventory2 />,
     label: "Inventario",
+    filled: true,
+  },
+  {
+    to: "/panel/movimientos",
+    icon: <MdSwapVert />,
+    label: "Movimientos",
     filled: true,
   },
   {
