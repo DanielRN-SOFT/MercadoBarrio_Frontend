@@ -1,12 +1,29 @@
+import { useState, useEffect } from "react";
 import { FaLocationDot, FaPhone } from "react-icons/fa6";
 import { IoStorefrontSharp } from "react-icons/io5";
 import { MdLocationCity } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { estaAbierto } from "../../../helpers/horarioTienda";
+
+// Construye la URL completa de la imagen a partir de la ruta relativa que
+// devuelve el backend (ej: "/uploads/stores/archivo.png")
+const getPhotoUrl = (photo) => {
+  if (!photo) return null;
+  if (photo.startsWith("http")) return photo; // ya es una URL absoluta
+  return `${import.meta.env.VITE_BACKEND_URL}${photo}`;
+};
+
 const CardProducto = ({ tienda }) => {
-  const imagen = tienda.photo || tienda.logo || null;
+  const [imgError, setImgError] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
+  const imagenUrl = getPhotoUrl(tienda.photo || tienda.logo);
+  const logoUrl = getPhotoUrl(tienda.logo);
   const abierto = estaAbierto(tienda.schedules);
-  console.log(abierto);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [tienda.photo, tienda.logo]);
 
   return (
     <Link
@@ -14,10 +31,11 @@ const CardProducto = ({ tienda }) => {
       className="card bg-base-100 border border-base-300 hover:shadow-md transition-shadow group cursor-pointer"
     >
       <div className="h-36 bg-base-200 relative overflow-hidden">
-        {imagen ? (
+        {imagenUrl && !imgError ? (
           <img
-            src={imagen}
+            src={imagenUrl}
             alt={tienda.name}
+            onError={() => setImgError(true)}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
@@ -36,12 +54,13 @@ const CardProducto = ({ tienda }) => {
             </span>
           </div>
         )}
-        {tienda.logo && tienda.photo && (
+        {tienda.logo && tienda.photo && logoUrl && !logoError && (
           <div className="absolute bottom-2 left-2">
             <div className="w-10 h-10 rounded-lg border-2 border-base-100 overflow-hidden bg-base-100">
               <img
-                src={tienda.logo}
+                src={logoUrl}
                 alt={`Logo ${tienda.name}`}
+                onError={() => setLogoError(true)}
                 className="w-full h-full object-cover"
               />
             </div>

@@ -1,16 +1,32 @@
+import { useState, useEffect } from "react";
 import { IoArrowBackSharp, IoStorefrontSharp } from "react-icons/io5";
 import { Link } from "react-router-dom";
 import { estaAbierto } from "../../../../helpers/horarioTienda";
 
+// Construye la URL completa de la imagen a partir de la ruta relativa que
+// devuelve el backend (ej: "/uploads/stores/archivo.png")
+const getPhotoUrl = (photo) => {
+  if (!photo) return null;
+  if (photo.startsWith("http")) return photo; // ya es una URL absoluta
+  return `${import.meta.env.VITE_BACKEND_URL}${photo}`;
+};
+
 const Hero = ({ tienda }) => {
+  const [imgError, setImgError] = useState(false);
   const abierto = estaAbierto(tienda.schedules);
+  const photoUrl = getPhotoUrl(tienda.photo);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [tienda.photo]);
 
   return (
-    <div className="relative h-64 md:h-80 bg-base-200 overflow-hidden">
-      {tienda.photo ? (
+    <div className="relative h-64 md:h-100 bg-base-200 overflow-hidden">
+      {photoUrl && !imgError ? (
         <img
-          src={tienda.photo}
+          src={photoUrl}
           alt={tienda.name}
+          onError={() => setImgError(true)}
           className="w-full h-full object-cover"
         />
       ) : (
@@ -18,10 +34,8 @@ const Hero = ({ tienda }) => {
           <IoStorefrontSharp className="text-7xl md:text-8xl text-base-content/20" />
         </div>
       )}
-
       {/* Gradiente: más oscuro arriba (controles) y abajo (texto), claro al centro */}
       <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/10 to-black/80" />
-
       {/* Volver */}
       <Link
         to="/tiendas"
@@ -31,7 +45,6 @@ const Hero = ({ tienda }) => {
         <IoArrowBackSharp className="text-base" />
         <span className="hidden sm:inline">Volver</span>
       </Link>
-
       {/* Estado abierto/cerrado */}
       {tienda.status === "Active" && (
         <div className="absolute top-2 right-2">
@@ -44,7 +57,6 @@ const Hero = ({ tienda }) => {
           </span>
         </div>
       )}
-
       {/* Nombre de la tienda */}
       <div className="absolute inset-x-0 bottom-0 p-4 md:p-6">
         <h1 className="text-white text-2xl md:text-4xl font-bold tracking-tight drop-shadow-md leading-tight">
