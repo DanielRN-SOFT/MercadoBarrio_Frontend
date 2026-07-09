@@ -7,7 +7,6 @@ import {
   MdCheckCircle,
   MdSave,
   MdBrokenImage,
-  MdOutlineImage,
   MdClose,
 } from "react-icons/md";
 import fetchCliente from "../../config/fetchCliente";
@@ -25,13 +24,12 @@ const INITIAL_FORM = {
   lowStockThreshold: "5",
   description: "",
   referenceCode: "",
-  photo: "",
 };
 
 const DESCRIPTION_MAX = 300;
 
 const ProductoForm = () => {
-  const { id } = useParams();
+  let { id } = useParams();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
@@ -41,6 +39,8 @@ const ProductoForm = () => {
   const [unidades, setUnidades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
   const [photoError, setPhotoError] = useState(false);
 
   useEffect(() => {
@@ -65,8 +65,10 @@ const ProductoForm = () => {
             lowStockThreshold: p.lowStockThreshold ?? "5",
             description: p.description ?? "",
             referenceCode: p.referenceCode ?? "",
-            photo: p.photo ?? "",
           });
+          if (p.photo) {
+            setPreviewUrl(`${import.meta.env.VITE_BACKEND_URL}${p.photo}`);
+          }
         }
       } catch {
         addToast({ message: "Error al cargar los datos", type: "error" });
@@ -79,40 +81,61 @@ const ProductoForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "photo") setPhotoError(false);
     if (name === "description" && value.length > DESCRIPTION_MAX) return;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoError(false);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPreviewUrl("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const body = {
-        ...form,
-        price: parseFloat(form.price),
-        currentStock: parseInt(form.currentStock),
-        lowStockThreshold: parseInt(form.lowStockThreshold) || 5,
-        productCategoryId: parseInt(form.productCategoryId),
-        unitOfMeasureId: parseInt(form.unitOfMeasureId),
-      };
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("price", parseFloat(form.price));
+      formData.append(
+        "lowStockThreshold",
+        parseInt(form.lowStockThreshold) || 5,
+      );
+      formData.append("productCategoryId", parseInt(form.productCategoryId));
+      formData.append("unitOfMeasureId", parseInt(form.unitOfMeasureId));
+      formData.append("description", form.description);
+      formData.append("referenceCode", form.referenceCode);
+      if (!isEditing) {
+        formData.append("currentStock", parseInt(form.currentStock));
+      }
+      if (photoFile) {
+        formData.append("photo", photoFile);
+      }
 
       if (isEditing) {
-        const { currentStock, ...bodyWithoutStock } = body;
         await fetchCliente(`/products/${id}`, {
           method: "PUT",
-          body: bodyWithoutStock,
+          body: formData,
         });
         addToast({
           message: "Producto actualizado correctamente",
           type: "success",
         });
       } else {
-        await fetchCliente("/products", { method: "POST", body });
+        await fetchCliente("/products", { method: "POST", body: formData });
         addToast({ message: "Producto creado correctamente", type: "success" });
         setTimeout(() => navigate("/panel/productos"), 1200);
       }
     } catch (err) {
+      console.log(err);
       addToast({
         message: err.message ?? "Error al guardar el producto",
         type: "error",
@@ -300,35 +323,35 @@ const ProductoForm = () => {
 
                 {/* Zona de imagen / vista previa */}
                 <div className="relative rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-center bg-surface-container-lowest min-h-40 overflow-hidden">
-                  {form.photo && !photoError ? (
+                  {previewUrl && !photoError ? (
                     <>
                       <img
-                        src={form.photo}
+                        src={previewUrl}
                         alt="Vista previa"
                         className="min-h-40 object-cover"
                         onError={() => setPhotoError(true)}
                       />
                       <button
                         type="button"
-                        onClick={() => setForm({ ...form, photo: "" })}
+                        onClick={handleRemovePhoto}
                         className="btn btn-circle btn-sm absolute top-2 right-2 bg-surface/90 hover:bg-error hover:text-on-error border-none shadow-sm"
                         aria-label="Quitar imagen"
                       >
                         <MdClose className="text-base" />
                       </button>
                     </>
-                  ) : form.photo && photoError ? (
+                  ) : previewUrl && photoError ? (
                     <div className="flex flex-col items-center gap-2 text-error p-8">
                       <MdBrokenImage className="text-3xl" />
                       <p className="font-label-md text-label-md">
                         No se pudo cargar la imagen
                       </p>
-                      <p className="font-label-sm text-label-sm opacity-80">
-                        Verifica que el enlace sea correcto
-                      </p>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center p-8">
+                    <label
+                      htmlFor="photo-upload"
+                      className="flex flex-col items-center p-8 cursor-pointer w-full h-full"
+                    >
                       <div className="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center mb-4">
                         <MdAddAPhoto className="text-primary text-3xl" />
                       </div>
@@ -336,23 +359,27 @@ const ProductoForm = () => {
                         Aún no hay imagen
                       </p>
                       <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        Pega el enlace de la imagen abajo
+                        Haz clic para subir una imagen
                       </p>
-                    </div>
+                    </label>
                   )}
-                </div>
-
-                {/* Input URL — mismo estilo de Input/Label del proyecto */}
-                <div className="form-control w-full">
-                  <Label label="URL de la imagen (opcional)" />
-                  <Input
-                    name="photo"
-                    value={form.photo}
-                    onChange={handleChange}
-                    placeholder="https://..."
-                    type="url"
+                  <input
+                    id="photo-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handlePhotoChange}
+                    className="hidden"
                   />
                 </div>
+
+                {previewUrl && (
+                  <label
+                    htmlFor="photo-upload"
+                    className="btn btn-sm btn-outline w-full rounded-full cursor-pointer"
+                  >
+                    Cambiar imagen
+                  </label>
+                )}
 
                 {/* Especificaciones recomendadas */}
                 <div className="space-y-3">
@@ -377,8 +404,7 @@ const ProductoForm = () => {
                     <li className="flex items-start gap-2.5">
                       <MdCheckCircle className="text-primary text-sm mt-0.5 shrink-0" />
                       <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        Usa un enlace directo (https) en formato JPG, PNG o
-                        WEBP.
+                        Formatos permitidos: JPG, PNG o WEBP (máx. 5MB).
                       </p>
                     </li>
                   </ul>

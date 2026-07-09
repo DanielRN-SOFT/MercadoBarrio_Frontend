@@ -22,6 +22,14 @@ const getInitials = (str = "") =>
     .map((w) => w[0]?.toUpperCase())
     .join("");
 
+// Construye la URL completa de la imagen a partir de la ruta relativa que
+// devuelve el backend (ej: "/uploads/products/archivo.png")
+const getPhotoUrl = (photo) => {
+  if (!photo) return null;
+  if (photo.startsWith("http")) return photo; // ya es una URL absoluta
+  return `${import.meta.env.VITE_BACKEND_URL}${photo}`;
+};
+
 // Avatar/foto del producto con fallback a iniciales si no hay foto o falla la carga
 const ProductAvatar = ({
   product,
@@ -29,11 +37,17 @@ const ProductAvatar = ({
   textSize = "text-label-sm",
 }) => {
   const [imgError, setImgError] = useState(false);
+  const photoUrl = getPhotoUrl(product.photo);
 
-  if (product.photo && !imgError) {
+  // Si cambia el producto/foto, reseteamos el estado de error
+  useEffect(() => {
+    setImgError(false);
+  }, [product.photo]);
+
+  if (photoUrl && !imgError) {
     return (
       <img
-        src={product.photo}
+        src={photoUrl}
         alt={product.name}
         onError={() => setImgError(true)}
         className={`${size} rounded-xl object-cover shrink-0 border border-outline-variant/50`}

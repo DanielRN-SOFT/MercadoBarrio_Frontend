@@ -22,9 +22,6 @@ const TopNavBar = ({ title = "Dashboard", onMenuClick }) => {
 
 const TopNavActions = () => (
   <div className="flex items-center gap-6">
-    <button className="text-on-surface-variant hover:text-primary transition-colors">
-      <span className="material-symbols-outlined">notifications</span>
-    </button>
     <TopNavUser />
   </div>
 );

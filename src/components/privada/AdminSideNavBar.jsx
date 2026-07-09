@@ -107,15 +107,7 @@ const AdminSideNavBar = ({ open, onClose }) => {
             />
           ))}
         </nav>
-        <div className="mt-auto pt-4 border-t border-outline-variant">
-          <Link
-            to="/help"
-            className="flex items-center gap-3 px-4 py-2 text-secondary hover:text-primary transition-colors text-label-sm"
-          >
-            <span className="material-symbols-outlined">contact_support</span>
-            Centro de Ayuda
-          </Link>
-        </div>
+       
       </aside>
     </>
   );
