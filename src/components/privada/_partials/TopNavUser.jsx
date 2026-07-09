@@ -64,7 +64,7 @@ const TopNavUser = () => {
         {/* Links */}
         <li>
           <Link
-            to="/perfil"
+            to="/panel/perfil"
             className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-on-surface hover:bg-base-200 transition-colors"
           >
             <MdOutlinePersonOutline className="text-lg text-secondary shrink-0" />

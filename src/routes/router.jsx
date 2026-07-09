@@ -31,6 +31,7 @@ import AdminCategoriasProducto from "../pages/Privada/AdminCategoriasProducto";
 import AdminUnidadesMedida from "../pages/Privada/AdminUnidadesMedida";
 import AdminRoles from "../pages/Privada/AdminRoles";
 import AdminProveedores from "../pages/Privada/AdminProveedores";
+import PerfilUsuario from "../pages/Privada/PerfilUsuario";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -70,6 +71,7 @@ export const router = createBrowserRouter(
         <Route path="ventas/nueva" element={<RegistrarVenta />}></Route>
         <Route path="productos/nuevo" element={<ProductoForm />}></Route>
         <Route path="horarios-atencion" element={<MisHorarios />}></Route>
+        <Route path="perfil" element={<PerfilUsuario/>}></Route>
         <Route path="productos/:id/editar" element={<ProductoForm />}></Route>
       </Route>
     </>,
