@@ -1,11 +1,22 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MdOutlineInventory2, MdAdd, MdRemove, MdDeleteOutline, MdArrowBack, MdSwapVert, MdOutlineLocalShipping } from "react-icons/md";
+import {
+  MdOutlineInventory2,
+  MdAdd,
+  MdRemove,
+  MdDeleteOutline,
+  MdArrowBack,
+  MdSwapVert,
+  MdOutlineLocalShipping,
+  MdOutlineFilterAlt,
+  MdOutlineFileDownload,
+} from "react-icons/md";
 import { IoSearchSharp, IoCloseSharp } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Paginacion from "../../components/ui/Paginacion";
+import { exportMovementsToExcel } from "../../helpers/exportMovementsToExcel";
 
 const getInitials = (str = "") =>
   str
@@ -77,6 +88,14 @@ const Movimientos = () => {
   const [movementsMeta, setMovementsMeta] = useState(null);
   const [movementsPage, setMovementsPage] = useState(1);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [allProducts, setAllProducts] = useState([]);
+
+  // --- Filtros del historial (RF-22) ---
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [filterProductId, setFilterProductId] = useState("");
 
   const isAdjust = movementType === "Ajuste";
   const finalType = isAdjust ? (adjustSign === "positivo" ? "AdjustEntry" : "AdjustExit") : movementType === "Entrada" ? "Entry" : "Exit";
@@ -109,9 +128,29 @@ const Movimientos = () => {
       .catch(() => {});
   }, [movementType]);
 
+  const buildFilterParams = (extra = {}) => {
+    const params = new URLSearchParams(extra);
+    if (filterStartDate) params.set("startDate", filterStartDate);
+    if (filterEndDate) params.set("endDate", filterEndDate);
+    if (filterType) params.set("type", filterType);
+    if (filterProductId) params.set("productId", filterProductId);
+    return params;
+  };
+
   const loadHistory = (targetPage = 1) => {
+    if (filterStartDate && filterEndDate && new Date(filterStartDate) > new Date(filterEndDate)) {
+      setLoadingHistory(false);
+
+      addToast({
+        message: "La fecha inicial no puede ser mayor que la fecha final.",
+        type: "error",
+      });
+
+      return;
+    }
     setLoadingHistory(true);
-    fetchCliente(`/movements?page=${targetPage}`)
+    const params = buildFilterParams({ page: targetPage });
+    fetchCliente(`/movements?${params.toString()}`)
       .then((res) => {
         setMovements(res?.data ?? []);
         setMovementsMeta(res?.meta ?? null);
@@ -124,6 +163,70 @@ const Movimientos = () => {
     loadHistory(movementsPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [movementsPage]);
+
+  // Al cambiar filtros, se reinicia a la página 1
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (movementsPage === 1) loadHistory(1);
+      else setMovementsPage(1);
+    }, 350);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStartDate, filterEndDate, filterType, filterProductId]);
+
+  useEffect(() => {
+    fetchCliente("/products")
+      .then((res) => setAllProducts(res?.data ?? []))
+      .catch(() => {});
+  }, []);
+
+  const clearFilters = () => {
+    setFilterStartDate("");
+    setFilterEndDate("");
+    setFilterType("");
+    setFilterProductId("");
+  };
+
+  const hasFilters = filterStartDate || filterEndDate || filterType || filterProductId;
+
+  const handleExport = async (scope = "page") => {
+    try {
+      if (filterStartDate && filterEndDate && new Date(filterStartDate) > new Date(filterEndDate)) {
+        addToast({
+          message: "La fecha inicial no puede ser mayor que la fecha final.",
+          type: "error",
+        });
+        return;
+      }
+      let dataToExport = movements;
+
+      if (scope === "all") {
+        setExportLoading(true);
+        const params = buildFilterParams({ all: "true" });
+        const res = await fetchCliente(`/movements?${params.toString()}`);
+        dataToExport = res?.data ?? [];
+      }
+
+      if (dataToExport.length === 0) {
+        addToast({ message: "No hay movimientos para exportar", type: "info" });
+        return;
+      }
+
+      const filtersSummary = [
+        filterStartDate && `Desde: ${filterStartDate}`,
+        filterEndDate && `Hasta: ${filterEndDate}`,
+        filterType && `Tipo: ${TYPE_LABELS[filterType] ?? filterType}`,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      exportMovementsToExcel(dataToExport, { scope, filtersSummary });
+    } catch {
+      addToast({ message: "Error al exportar el reporte", type: "error" });
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -434,9 +537,108 @@ const Movimientos = () => {
         {/* Historial reciente */}
         <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
           <div className="card-body p-4 sm:p-5 gap-3">
-            <h2 className="font-semibold text-on-surface text-body-lg flex items-center gap-2">
-              <MdOutlineLocalShipping /> Historial de movimientos
-            </h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="font-semibold text-on-surface text-body-lg flex items-center gap-2">
+                <MdOutlineLocalShipping /> Historial de movimientos
+              </h2>
+
+              <div className="dropdown dropdown-end">
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className={`btn btn-outline btn-sm border-outline-variant text-secondary hover:bg-surface-container-high gap-2 rounded-full font-label-md text-label-sm ${
+                    movements.length === 0 ? "btn-disabled" : ""
+                  }`}
+                >
+                  {exportLoading ? <span className="loading loading-spinner loading-xs" /> : <MdOutlineFileDownload className="text-lg" />}
+                  Exportar
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-lg z-10 w-56 p-2 mt-1"
+                >
+                  <li>
+                    <button onClick={() => handleExport("page")} className="rounded-xl text-body-sm text-on-surface">
+                      Página actual
+                      <span className="text-on-surface-variant">({movements.length})</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => handleExport("all")}
+                      disabled={exportLoading}
+                      className="rounded-xl text-body-sm text-on-surface"
+                    >
+                      Todos los resultados
+                      {movementsMeta?.total > 0 && <span className="text-on-surface-variant">({movementsMeta.total})</span>}
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Filtros */}
+            <div className="flex items-center gap-2 text-secondary">
+              <MdOutlineFilterAlt className="text-base" />
+              <span className="text-label-sm uppercase tracking-wide font-semibold">Filtros</span>
+              {hasFilters && (
+                <button onClick={clearFilters} className="ml-auto text-label-sm text-primary hover:underline">
+                  Limpiar
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <label className="form-control col-span-1">
+                <span className="text-label-sm text-on-surface-variant mb-1">Desde</span>
+                <input
+                  type="date"
+                  value={filterStartDate}
+                  max={filterEndDate || undefined}
+                  onChange={(e) => setFilterStartDate(e.target.value)}
+                  className="input input-bordered input-sm bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+                />
+              </label>
+              <label className="form-control col-span-1">
+                <span className="text-label-sm text-on-surface-variant mb-1">Hasta</span>
+                <input
+                  type="date"
+                  value={filterEndDate}
+                  min={filterStartDate || undefined}
+                  onChange={(e) => setFilterEndDate(e.target.value)}
+                  className="input input-bordered input-sm bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+                />
+              </label>
+              <label className="form-control col-span-1">
+                <span className="text-label-sm text-on-surface-variant mb-1">Tipo</span>
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="select select-bordered select-sm bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+                >
+                  <option value="">Todos</option>
+                  {Object.entries(TYPE_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="form-control col-span-1">
+                <span className="text-label-sm text-on-surface-variant mb-1">Producto</span>
+                <select
+                  value={filterProductId}
+                  onChange={(e) => setFilterProductId(e.target.value)}
+                  className="select select-bordered select-sm bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+                >
+                  <option value="">Todos</option>
+                  {allProducts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
             {loadingHistory ? (
               <div className="space-y-2">
