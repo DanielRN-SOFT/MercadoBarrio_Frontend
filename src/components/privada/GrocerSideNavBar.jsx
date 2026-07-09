@@ -28,6 +28,12 @@ const navItems = [
     filled: true,
   },
   {
+    to: "/panel/inventario",
+    icon: <MdOutlineInventory2 />,
+    label: "Inventario",
+    filled: true,
+  },
+  {
     to: "/panel/horarios-atencion",
     icon: <MdOutlineSchedule />,
     label: "Horarios",
