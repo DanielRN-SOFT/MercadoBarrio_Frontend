@@ -18,6 +18,12 @@ import {
   MdLocationOn,
   MdLocationCity,
   MdMyLocation,
+  MdAddAPhoto,
+  MdBrokenImage,
+  MdClose,
+  MdCategory,
+  MdPhone,
+  MdOutlineDescription,
 } from "react-icons/md";
 import { IoCloseSharp, IoCloseCircle } from "react-icons/io5";
 import { FaLocationDot } from "react-icons/fa6";
@@ -62,6 +68,14 @@ const RecenterMap = ({ lat, lng }) => {
   return null;
 };
 
+// Construye la URL completa de la imagen a partir de la ruta relativa que
+// devuelve el backend (ej: "/uploads/stores/archivo.png")
+const getPhotoUrl = (photo) => {
+  if (!photo) return null;
+  if (photo.startsWith("http") || photo.startsWith("blob:")) return photo;
+  return `${import.meta.env.VITE_BACKEND_URL}${photo}`;
+};
+
 const getInitials = (str = "") =>
   str
     .trim()
@@ -77,11 +91,16 @@ const StoreAvatar = ({
 }) => {
   const [imgError, setImgError] = useState(false);
   const name = store?.name ?? "";
+  const photoUrl = getPhotoUrl(store?.photo);
 
-  if (store?.logo && !imgError) {
+  useEffect(() => {
+    setImgError(false);
+  }, [store?.photo]);
+
+  if (photoUrl && !imgError) {
     return (
       <img
-        src={store.logo}
+        src={photoUrl}
         alt={name}
         onError={() => setImgError(true)}
         className={`${size} rounded-xl object-cover shrink-0 border border-outline-variant/50`}
@@ -141,7 +160,6 @@ const emptyForm = {
   neighborhood: "",
   phone: "",
   description: "",
-  photo: "",
   longitude: "",
   latitude: "",
   storeCategoryId: "",
@@ -174,6 +192,11 @@ const AdminTiendas = () => {
   const [locatingForm, setLocatingForm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [restoreTarget, setRestoreTarget] = useState(null);
+
+  // Archivo de foto seleccionado en el formulario y su vista previa local
+  const [photoFile, setPhotoFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [photoError, setPhotoError] = useState(false);
 
   useEffect(() => {
     fetchCliente("/store-categories")
@@ -255,16 +278,23 @@ const AdminTiendas = () => {
     !isNaN(detailLat) &&
     !isNaN(detailLng) &&
     (detailLat !== 0 || detailLng !== 0);
+  const detailPhotoUrl = getPhotoUrl(detailStore?.photo);
 
   // --- Crear / Editar --------------------------------------------------------
 
   const closeFormModal = () => {
     setFormStore(null);
     setFormError("");
+    setPhotoFile(null);
+    setPreviewUrl("");
+    setPhotoError(false);
   };
 
   const openCreate = () => {
     setFormError("");
+    setPhotoFile(null);
+    setPreviewUrl("");
+    setPhotoError(false);
     setFormStore({ ...emptyForm });
   };
   const fillForm = (store) => ({
@@ -274,7 +304,6 @@ const AdminTiendas = () => {
     neighborhood: store.neighborhood ?? "",
     phone: store.phone ?? "",
     description: store.description ?? "",
-    photo: store.photo ?? "",
     longitude: store.longitude ?? "",
     latitude: store.latitude ?? "",
     storeCategoryId: store.storeCategoryId ?? "",
@@ -286,10 +315,14 @@ const AdminTiendas = () => {
   const openEdit = async (store) => {
     setFormError("");
     setFormLoading(true);
+    setPhotoFile(null);
+    setPhotoError(false);
     setFormStore(fillForm(store));
+    setPreviewUrl(getPhotoUrl(store.photo) ?? "");
     try {
       const res = await fetchCliente(`/stores/${store.id}`);
       setFormStore(fillForm(res.data));
+      setPreviewUrl(getPhotoUrl(res.data.photo) ?? "");
     } catch {
       addToast({
         message: "No se pudo cargar la información completa de la tienda",
@@ -302,6 +335,19 @@ const AdminTiendas = () => {
 
   const handleFormChange = (field, value) =>
     setFormStore((prev) => ({ ...prev, [field]: value }));
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoError(false);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPreviewUrl("");
+  };
 
   const handleUseMyLocationForm = () => {
     if (!navigator.geolocation) {
@@ -359,30 +405,33 @@ const AdminTiendas = () => {
 
     setActionLoading(true);
     try {
-      const payload = {
-        name: formStore.name,
-        address: formStore.address,
-        neighborhood: formStore.neighborhood,
-        phone: formStore.phone,
-        description: formStore.description,
-        photo: formStore.photo,
-        longitude: formStore.longitude
-          ? parseFloat(formStore.longitude)
-          : undefined,
-        latitude: formStore.latitude
-          ? parseFloat(formStore.latitude)
-          : undefined,
-        storeCategoryId: parseInt(formStore.storeCategoryId),
-        ...(isCreateForm && { userId: parseInt(formStore.userId) }),
-      };
+      const formData = new FormData();
+      formData.append("name", formStore.name);
+      formData.append("address", formStore.address);
+      formData.append("neighborhood", formStore.neighborhood ?? "");
+      formData.append("phone", formStore.phone ?? "");
+      formData.append("description", formStore.description ?? "");
+      if (formStore.longitude !== "") {
+        formData.append("longitude", parseFloat(formStore.longitude));
+      }
+      if (formStore.latitude !== "") {
+        formData.append("latitude", parseFloat(formStore.latitude));
+      }
+      formData.append("storeCategoryId", parseInt(formStore.storeCategoryId));
+      if (isCreateForm) {
+        formData.append("userId", parseInt(formStore.userId));
+      }
+      if (photoFile) {
+        formData.append("photo", photoFile);
+      }
 
       if (isCreateForm) {
-        await fetchCliente("/stores", { method: "POST", body: payload });
+        await fetchCliente("/stores", { method: "POST", body: formData });
         addToast({ message: "Tienda creada correctamente", type: "success" });
       } else {
         await fetchCliente(`/stores/${formStore.id}`, {
           method: "PUT",
-          body: payload,
+          body: formData,
         });
         addToast({ message: "Tienda editada exitosamente", type: "success" });
       }
@@ -758,145 +807,204 @@ const AdminTiendas = () => {
       {/* Modal detalle de tienda */}
       {detailStore && (
         <dialog open className="modal modal-bottom sm:modal-middle">
-          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl max-w-2xl">
-            <div className="flex items-start justify-between gap-3 mb-1">
-              <div className="w-11 h-11 rounded-2xl bg-primary-container flex items-center justify-center">
-                <MdStorefront className="text-xl text-on-primary-container" />
-              </div>
+          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl max-w-2xl p-0 overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[85vh]">
+            {/* Hero: foto de portada con overlay, o header de color si no hay foto (fijo, no scrollea) */}
+            <div className="relative w-full h-40 sm:h-56 bg-gradient-to-br from-primary to-primary-container shrink-0">
+              {!detailLoading && detailPhotoUrl && (
+                <>
+                  <img
+                    src={detailPhotoUrl}
+                    alt={detailStore.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                </>
+              )}
+
+              {!detailLoading && !detailPhotoUrl && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <MdStorefront className="text-6xl text-on-primary/25" />
+                </div>
+              )}
+
               <button
                 onClick={() => setDetailStore(null)}
-                className="btn btn-ghost btn-sm btn-circle"
+                className="btn btn-ghost btn-sm btn-circle absolute top-3 right-3 bg-black/25 hover:bg-black/40 text-white border-none backdrop-blur-sm"
                 aria-label="Cerrar"
               >
                 <IoCloseSharp className="text-lg" />
               </button>
-            </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-bold text-title-md text-on-surface">
-                {detailLoading ? "Cargando..." : detailStore.name}
-              </h3>
-              {!detailLoading && <StatusBadge status={detailStore.status} />}
-            </div>
-            {!detailLoading && (
-              <p className="text-body-md text-secondary mt-1">
-                {detailStore.address}
-              </p>
-            )}
-
-            {detailLoading ? (
-              <div className="mt-5 space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="skeleton h-4 w-2/3 rounded-full" />
-                ))}
-              </div>
-            ) : (
-              <div className="mt-5 space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/40">
-                    <p className="text-label-sm text-on-surface-variant uppercase tracking-wide">
-                      Categoría
-                    </p>
-                    <p className="text-body-sm text-on-surface mt-1">
-                      {detailStore.storeCategory?.name ??
-                        categoryName(detailStore.storeCategoryId)}
-                    </p>
+              {!detailLoading && (
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+                  <div className="mb-1.5">
+                    <StatusBadge status={detailStore.status} />
                   </div>
-                  <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/40">
-                    <p className="text-label-sm text-on-surface-variant uppercase tracking-wide">
-                      Propietario
-                    </p>
-                    <p className="text-body-sm text-on-surface mt-1">
-                      {ownerLabel(detailStore.userId)}
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/40 col-span-2 sm:col-span-1">
-                    <p className="text-label-sm text-on-surface-variant uppercase tracking-wide">
-                      Teléfono
-                    </p>
-                    <p className="text-body-sm text-on-surface mt-1">
-                      {detailStore.phone || "—"}
-                    </p>
-                  </div>
-                </div>
-
-                {detailStore.description && (
-                  <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/40">
-                    <p className="text-label-sm text-on-surface-variant uppercase tracking-wide mb-1">
-                      Descripción
-                    </p>
-                    <p className="text-body-sm text-on-surface">
-                      {detailStore.description}
-                    </p>
-                  </div>
-                )}
-
-                {/* Ubicación con vista previa en el mapa, igual que en Mi Tienda */}
-                <div>
-                  <p className="text-label-sm text-on-surface-variant uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                    <MdLocationOn className="text-base text-secondary" />
-                    Ubicación
+                  <h3
+                    className={`font-bold text-title-lg leading-tight truncate ${
+                      detailPhotoUrl ? "text-white" : "text-on-primary"
+                    }`}
+                  >
+                    {detailStore.name}
+                  </h3>
+                  <p
+                    className={`text-body-sm mt-0.5 truncate ${
+                      detailPhotoUrl ? "text-white/85" : "text-on-primary/80"
+                    }`}
+                  >
+                    {detailStore.address}
                   </p>
-                  {detailHasCoords ? (
-                    <div className="rounded-2xl overflow-hidden border border-outline-variant h-48 sm:h-64 w-full z-0">
-                      <MapContainer
-                        center={[detailLat, detailLng]}
-                        zoom={16}
-                        scrollWheelZoom={false}
-                        className="h-full w-full"
-                      >
-                        <TileLayer
-                          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                        />
-                        <RecenterMap lat={detailLat} lng={detailLng} />
-                        <Marker
-                          position={[detailLat, detailLng]}
-                          icon={defaultIcon}
-                        >
-                          <Popup minWidth={200} maxWidth={240}>
-                            <div className="flex flex-col gap-1 p-1">
-                              {detailStore.photo && (
-                                <img
-                                  src={detailStore.photo}
-                                  alt={detailStore.name}
-                                  className="w-full h-20 object-cover rounded-lg"
-                                />
-                              )}
-                              <span className="font-semibold leading-tight text-sm">
-                                {detailStore.name}
-                              </span>
-                              <div className="text-xs m-0 text-on-surface/60 leading-snug">
-                                {detailStore.neighborhood && (
-                                  <p>
-                                    <MdLocationCity className="text-primary inline" />{" "}
-                                    {detailStore.neighborhood}
-                                  </p>
-                                )}
-                                {detailStore.address && (
-                                  <p>
-                                    <FaLocationDot className="text-primary inline m-0" />{" "}
-                                    {detailStore.address}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </Popup>
-                        </Marker>
-                      </MapContainer>
+                </div>
+              )}
+
+              {detailLoading && (
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
+                  <div className="skeleton h-3 w-20 rounded-full bg-white/20 mb-2" />
+                  <div className="skeleton h-5 w-40 rounded-full bg-white/20" />
+                </div>
+              )}
+            </div>
+
+            {/* Contenido: scrollea de forma independiente del hero y del footer */}
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0">
+              {detailLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="skeleton h-4 w-2/3 rounded-full" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-start gap-2.5 p-3 rounded-xl bg-surface-container-low border border-outline-variant/40">
+                      <MdCategory className="text-lg text-primary shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-label-sm text-on-surface-variant">
+                          Categoría
+                        </p>
+                        <p className="text-body-sm font-medium text-on-surface mt-0.5 truncate">
+                          {detailStore.storeCategory?.name ??
+                            categoryName(detailStore.storeCategoryId)}
+                        </p>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="rounded-2xl border-2 border-dashed border-outline-variant h-40 w-full flex items-center justify-center text-center px-6 bg-surface-container-lowest">
-                      <p className="text-label-sm text-on-surface-variant">
-                        Esta tienda aún no tiene coordenadas registradas.
+                    <div className="flex items-start gap-2.5 p-3 rounded-xl bg-surface-container-low border border-outline-variant/40">
+                      <MdOutlineStorefront className="text-lg text-primary shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-label-sm text-on-surface-variant">
+                          Propietario
+                        </p>
+                        <p className="text-body-sm font-medium text-on-surface mt-0.5 truncate">
+                          {ownerLabel(detailStore.userId)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5 p-3 rounded-xl bg-surface-container-low border border-outline-variant/40 col-span-2 sm:col-span-1">
+                      <MdPhone className="text-lg text-primary shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-label-sm text-on-surface-variant">
+                          Teléfono
+                        </p>
+                        <p className="text-body-sm font-medium text-on-surface mt-0.5 truncate">
+                          {detailStore.phone || "—"}
+                        </p>
+                      </div>
+                    </div>
+                    {detailStore.neighborhood && (
+                      <div className="flex items-start gap-2.5 p-3 rounded-xl bg-surface-container-low border border-outline-variant/40 col-span-2 sm:col-span-1">
+                        <MdLocationCity className="text-lg text-primary shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <p className="text-label-sm text-on-surface-variant">
+                            Barrio
+                          </p>
+                          <p className="text-body-sm font-medium text-on-surface mt-0.5 truncate">
+                            {detailStore.neighborhood}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {detailStore.description && (
+                    <div className="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/40">
+                      <p className="text-label-sm text-on-surface-variant uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                        <MdOutlineDescription className="text-base" />
+                        Descripción
+                      </p>
+                      <p className="text-body-sm text-on-surface leading-relaxed">
+                        {detailStore.description}
                       </p>
                     </div>
                   )}
-                </div>
-              </div>
-            )}
 
-            <div className="modal-action gap-2 flex-col-reverse sm:flex-row pt-4">
+                  {/* Ubicación con vista previa en el mapa, igual que en Mi Tienda */}
+                  <div>
+                    <p className="text-label-sm text-on-surface-variant uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                      <MdLocationOn className="text-base text-secondary" />
+                      Ubicación
+                    </p>
+                    {detailHasCoords ? (
+                      <div className="rounded-2xl overflow-hidden border border-outline-variant h-48 sm:h-64 w-full z-0">
+                        <MapContainer
+                          center={[detailLat, detailLng]}
+                          zoom={16}
+                          scrollWheelZoom={false}
+                          className="h-full w-full"
+                        >
+                          <TileLayer
+                            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                            attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                          />
+                          <RecenterMap lat={detailLat} lng={detailLng} />
+                          <Marker
+                            position={[detailLat, detailLng]}
+                            icon={defaultIcon}
+                          >
+                            <Popup minWidth={200} maxWidth={240}>
+                              <div className="flex flex-col gap-1 p-1">
+                                {detailPhotoUrl && (
+                                  <img
+                                    src={detailPhotoUrl}
+                                    alt={detailStore.name}
+                                    className="w-full h-20 object-cover rounded-lg"
+                                  />
+                                )}
+                                <span className="font-semibold leading-tight text-sm">
+                                  {detailStore.name}
+                                </span>
+                                <div className="text-xs m-0 text-on-surface/60 leading-snug">
+                                  {detailStore.neighborhood && (
+                                    <p>
+                                      <MdLocationCity className="text-primary inline" />{" "}
+                                      {detailStore.neighborhood}
+                                    </p>
+                                  )}
+                                  {detailStore.address && (
+                                    <p>
+                                      <FaLocationDot className="text-primary inline m-0" />{" "}
+                                      {detailStore.address}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </Popup>
+                          </Marker>
+                        </MapContainer>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border-2 border-dashed border-outline-variant h-40 w-full flex items-center justify-center text-center px-6 bg-surface-container-lowest">
+                        <p className="text-label-sm text-on-surface-variant">
+                          Esta tienda aún no tiene coordenadas registradas.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer de acciones: fijo, siempre visible */}
+            <div className="modal-action gap-2 flex-col-reverse sm:flex-row m-0 px-4 sm:px-6 py-3.5 border-t border-outline-variant/60 bg-surface-container-lowest shrink-0">
               <button
                 onClick={() => setDetailStore(null)}
                 className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
@@ -1106,7 +1214,7 @@ const AdminTiendas = () => {
                   </select>
                 </Field>
 
-                {isCreateForm ? (
+                {isCreateForm && (
                   <Field label="Propietario" required>
                     <select
                       value={formStore.userId}
@@ -1125,32 +1233,66 @@ const AdminTiendas = () => {
                       ))}
                     </select>
                   </Field>
-                ) : (
-                  <Field label="Foto (URL)">
-                    <input
-                      type="text"
-                      value={formStore.photo}
-                      onChange={(e) =>
-                        handleFormChange("photo", e.target.value)
-                      }
-                      placeholder="https://..."
-                      className={inputClass}
-                    />
-                  </Field>
                 )}
               </div>
 
-              {isCreateForm && (
-                <Field label="Foto (URL)">
+              {/* Foto del establecimiento: subida de archivo */}
+              <Field label="Foto del establecimiento">
+                <div className="relative rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-center bg-surface-container-lowest min-h-32 overflow-hidden">
+                  {previewUrl && !photoError ? (
+                    <>
+                      <img
+                        src={previewUrl}
+                        alt="Vista previa"
+                        className="min-h-32 w-full object-cover"
+                        onError={() => setPhotoError(true)}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemovePhoto}
+                        className="btn btn-circle btn-sm absolute top-2 right-2 bg-surface/90 hover:bg-error hover:text-on-error border-none shadow-sm"
+                        aria-label="Quitar imagen"
+                      >
+                        <MdClose className="text-base" />
+                      </button>
+                    </>
+                  ) : previewUrl && photoError ? (
+                    <div className="flex flex-col items-center gap-2 text-error p-6">
+                      <MdBrokenImage className="text-2xl" />
+                      <p className="font-label-sm text-label-sm">
+                        No se pudo cargar la imagen
+                      </p>
+                    </div>
+                  ) : (
+                    <label
+                      htmlFor="admin-store-photo-upload"
+                      className="flex flex-col items-center p-6 cursor-pointer w-full h-full"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center mb-2">
+                        <MdAddAPhoto className="text-primary text-2xl" />
+                      </div>
+                      <p className="font-label-sm text-label-sm text-on-surface-variant">
+                        Haz clic para subir una imagen
+                      </p>
+                    </label>
+                  )}
                   <input
-                    type="text"
-                    value={formStore.photo}
-                    onChange={(e) => handleFormChange("photo", e.target.value)}
-                    placeholder="https://..."
-                    className={inputClass}
+                    id="admin-store-photo-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handlePhotoChange}
+                    className="hidden"
                   />
-                </Field>
-              )}
+                </div>
+                {previewUrl && (
+                  <label
+                    htmlFor="admin-store-photo-upload"
+                    className="btn btn-sm btn-outline w-full rounded-full cursor-pointer mt-2"
+                  >
+                    Cambiar imagen
+                  </label>
+                )}
+              </Field>
 
               <Field label="Descripción">
                 <textarea

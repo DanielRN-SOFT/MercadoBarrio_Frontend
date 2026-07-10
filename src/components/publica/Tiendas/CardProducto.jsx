@@ -15,15 +15,12 @@ const getPhotoUrl = (photo) => {
 
 const CardProducto = ({ tienda }) => {
   const [imgError, setImgError] = useState(false);
-  const [logoError, setLogoError] = useState(false);
-
-  const imagenUrl = getPhotoUrl(tienda.photo || tienda.logo);
-  const logoUrl = getPhotoUrl(tienda.logo);
+  const imagenUrl = getPhotoUrl(tienda.photo);
   const abierto = estaAbierto(tienda.schedules);
 
   useEffect(() => {
     setImgError(false);
-  }, [tienda.photo, tienda.logo]);
+  }, [tienda.photo]);
 
   return (
     <Link
@@ -52,18 +49,6 @@ const CardProducto = ({ tienda }) => {
             >
               {abierto ? "Abierto" : "Cerrado"}
             </span>
-          </div>
-        )}
-        {tienda.logo && tienda.photo && logoUrl && !logoError && (
-          <div className="absolute bottom-2 left-2">
-            <div className="w-10 h-10 rounded-lg border-2 border-base-100 overflow-hidden bg-base-100">
-              <img
-                src={logoUrl}
-                alt={`Logo ${tienda.name}`}
-                onError={() => setLogoError(true)}
-                className="w-full h-full object-cover"
-              />
-            </div>
           </div>
         )}
       </div>

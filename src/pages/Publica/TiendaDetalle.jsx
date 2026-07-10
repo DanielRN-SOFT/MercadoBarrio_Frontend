@@ -97,9 +97,6 @@ const TiendaDetalle = () => {
       <Hero tienda={tienda} />
 
       <div className="px-margin-mobile md:px-margin-desktop mt-6 space-y-8">
-        {/* Info principal */}
-        <InfoPrincipal tienda={tienda} />
-
         {/* Horarios */}
         {horarios.length > 0 && <Horarios horarios={horarios} />}
 
