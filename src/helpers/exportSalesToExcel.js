@@ -25,10 +25,7 @@ const thinBorder = {
 
 const currencyFmt = '"$"#,##0';
 
-export const exportSalesToExcel = (
-  sales,
-  { scope = "page", filtersSummary = "" } = {},
-) => {
+export const exportSalesToExcel = (sales, { scope = "page", filtersSummary = "" } = {}) => {
   const headers = ["# Venta", "Fecha", "Total", "Estado"];
   const now = new Date();
   const exportedAt = now.toLocaleString("es-CO", {
@@ -40,16 +37,9 @@ export const exportSalesToExcel = (
   });
 
   // ── Construir filas de datos ─────────────────────────────
-  const dataRows = sales.map((s) => [
-    s.id,
-    new Date(s.date),
-    Number(s.total),
-    s.status === "Completed" ? "Completada" : "Cancelada",
-  ]);
+  const dataRows = sales.map((s) => [s.id, new Date(s.date), Number(s.total), s.status === "Completed" ? "Completada" : "Cancelada"]);
 
-  const totalGeneral = sales
-    .filter((s) => s.status === "Completed")
-    .reduce((acc, s) => acc + Number(s.total), 0);
+  const totalGeneral = sales.filter((s) => s.status === "Completed").reduce((acc, s) => acc + Number(s.total), 0);
 
   // Layout de filas:
   // 1: título
@@ -59,16 +49,14 @@ export const exportSalesToExcel = (
   // 5: encabezados
   // 6..N: datos
   // N+1: total
-  const HEADER_ROW = 5;
+  const HEADER_ROW = 4;
   const DATA_START_ROW = HEADER_ROW + 1;
   const totalRowIndex = DATA_START_ROW + dataRows.length;
 
   const aoa = [
     ["Reporte de Ventas"],
     [scope === "all" ? "Todos los resultados filtrados" : `Página actual`],
-    [
-      `Generado el ${exportedAt}${filtersSummary ? " · " + filtersSummary : ""}`,
-    ],
+    [`Generado el ${exportedAt}${filtersSummary ? " · " + filtersSummary : ""}`],
     [],
     headers,
     ...dataRows,
@@ -136,9 +124,7 @@ export const exportSalesToExcel = (
   dataRows.forEach((row, i) => {
     const r = DATA_START_ROW + i;
     const isEven = i % 2 === 0;
-    const bgColor = isEven
-      ? COLORS.surfaceContainerLowest
-      : COLORS.surfaceContainerLow;
+    const bgColor = isEven ? COLORS.surfaceContainerLowest : COLORS.surfaceContainerLow;
 
     // # Venta
     setCell(r, 0, {
@@ -173,9 +159,7 @@ export const exportSalesToExcel = (
     setCell(r, 3, {
       font: {
         color: {
-          rgb: isCompleted
-            ? COLORS.onPrimaryFixedVariant
-            : COLORS.onErrorContainer,
+          rgb: isCompleted ? COLORS.onPrimaryFixedVariant : COLORS.onErrorContainer,
         },
         bold: true,
         sz: 10,
@@ -196,8 +180,7 @@ export const exportSalesToExcel = (
     fill: { fgColor: { rgb: COLORS.secondary } },
     alignment: { horizontal: "right", vertical: "center" },
   });
-  ws[XLSX.utils.encode_cell({ r: totalRowIndex, c: 0 })].v =
-    "TOTAL VENTAS COMPLETADAS";
+  ws[XLSX.utils.encode_cell({ r: totalRowIndex, c: 0 })].v = "TOTAL VENTAS COMPLETADAS";
   ws[XLSX.utils.encode_cell({ r: totalRowIndex, c: 0 })].s.font.color = {
     rgb: COLORS.onPrimary,
   };
@@ -217,18 +200,11 @@ export const exportSalesToExcel = (
   ws["!autofilter"] = {
     ref: `A${HEADER_ROW + 1}:D${DATA_START_ROW + dataRows.length - 1}`,
   };
-  ws["!rows"] = [
-    { hpt: 26 },
-    { hpt: 18 },
-    { hpt: 16 },
-    { hpt: 6 },
-    { hpt: 22 },
-  ];
+  ws["!rows"] = [{ hpt: 26 }, { hpt: 18 }, { hpt: 16 }, { hpt: 6 }, { hpt: 22 }];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Ventas");
 
-  const filename =
-    scope === "all" ? "ventas_todas_las_paginas.xlsx" : `ventas_pagina.xlsx`;
+  const filename = scope === "all" ? "ventas_todas_las_paginas.xlsx" : `ventas_pagina.xlsx`;
   XLSX.writeFile(wb, filename);
 };

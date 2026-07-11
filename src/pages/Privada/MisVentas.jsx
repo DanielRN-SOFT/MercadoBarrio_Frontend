@@ -7,6 +7,7 @@ import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Paginacion from "../../components/ui/Paginacion";
 import { exportSalesToExcel } from "../../helpers/exportSalesToExcel";
+import { exportSalesDetailedToExcel } from "../../helpers/exportSalesDetailedToExcel";
 
 const MAX_CANCEL_HOURS = 24;
 
@@ -214,22 +215,35 @@ const MisVentas = () => {
 
   // Exporta la página actual de resultados filtrados a Excel (para reportes completos por período,
   // considerar un endpoint de exportación server-side que no dependa de la paginación visible).
-  const handleExport = async (scope = "page") => {
+  // mode: "summary" (una fila por venta, endpoint /sales) o "detailed" (una fila por
+  // producto vendido, endpoint /sales/detailed) — RF-47.
+  const handleExport = async (scope = "page", mode = "summary") => {
     try {
-      let dataToExport = sales;
+      setExportLoading(true);
 
-      if (scope === "all") {
-        setExportLoading(true);
-        const params = new URLSearchParams({ all: "true" });
-        if (startDate) params.set("startDate", startDate);
-        if (endDate) params.set("endDate", endDate);
-        if (minTotal) params.set("minTotal", minTotal);
-        if (maxTotal) params.set("maxTotal", maxTotal);
-        if (productId) params.set("productId", productId);
-        if (status) params.set("status", status);
+      const params = new URLSearchParams();
+      if (scope === "all") params.set("all", "true");
+      else params.set("page", String(page));
+      if (startDate) params.set("startDate", startDate);
+      if (endDate) params.set("endDate", endDate);
+      if (minTotal) params.set("minTotal", minTotal);
+      if (maxTotal) params.set("maxTotal", maxTotal);
+      if (productId) params.set("productId", productId);
+      if (status) params.set("status", status);
 
+      let dataToExport;
+
+      if (mode === "detailed") {
+        // El endpoint /sales/detailed siempre trae `details` con producto,
+        // categoría y unidad; se usa tanto para "página actual" como para
+        // "todos los resultados" (la lista en pantalla no trae ese detalle).
+        const res = await fetchCliente(`/sales/detailed?${params.toString()}`);
+        dataToExport = res.data;
+      } else if (scope === "all") {
         const res = await fetchCliente(`/sales?${params.toString()}`);
         dataToExport = res.data;
+      } else {
+        dataToExport = sales;
       }
 
       if (dataToExport.length === 0) {
@@ -247,7 +261,11 @@ const MisVentas = () => {
         .filter(Boolean)
         .join(" · ");
 
-      exportSalesToExcel(dataToExport, { scope, filtersSummary });
+      if (mode === "detailed") {
+        exportSalesDetailedToExcel(dataToExport, { scope, filtersSummary });
+      } else {
+        exportSalesToExcel(dataToExport, { scope, filtersSummary });
+      }
     } catch {
       addToast({ message: "Error al exportar el reporte", type: "error" });
     } finally {
@@ -286,16 +304,47 @@ const MisVentas = () => {
               </div>
               <ul
                 tabIndex={0}
-                className="dropdown-content menu bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-lg z-10 w-60 p-2 mt-1"
+                className="dropdown-content menu bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-lg z-10 w-64 p-2 mt-1"
               >
+                <li className="menu-title px-3 pt-1 pb-0.5">
+                  <span className="text-label-sm text-on-surface-variant">Resumen por venta</span>
+                </li>
                 <li>
-                  <button onClick={() => handleExport("page")} className="rounded-xl text-body-sm text-on-surface">
+                  <button onClick={() => handleExport("page", "summary")} className="rounded-xl text-body-sm text-on-surface">
                     Página actual
                     <span className="text-on-surface-variant">({sales.length})</span>
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => handleExport("all")} disabled={exportLoading} className="rounded-xl text-body-sm text-on-surface">
+                  <button
+                    onClick={() => handleExport("all", "summary")}
+                    disabled={exportLoading}
+                    className="rounded-xl text-body-sm text-on-surface"
+                  >
+                    Todos los resultados
+                    {meta.total > 0 && <span className="text-on-surface-variant">({meta.total})</span>}
+                  </button>
+                </li>
+                <div className="divider my-1" />
+                <li className="menu-title px-3 pt-0.5 pb-0.5">
+                  <span className="text-label-sm text-on-surface-variant">Detalle por producto</span>
+                </li>
+                <li>
+                  <button
+                    onClick={() => handleExport("page", "detailed")}
+                    disabled={exportLoading}
+                    className="rounded-xl text-body-sm text-on-surface"
+                  >
+                    Página actual
+                    <span className="text-on-surface-variant">({sales.length})</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => handleExport("all", "detailed")}
+                    disabled={exportLoading}
+                    className="rounded-xl text-body-sm text-on-surface"
+                  >
                     Todos los resultados
                     {meta.total > 0 && <span className="text-on-surface-variant">({meta.total})</span>}
                   </button>
