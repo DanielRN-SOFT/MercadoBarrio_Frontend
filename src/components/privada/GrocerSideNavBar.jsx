@@ -11,6 +11,7 @@ import {
   MdOutlineSettings,
   MdOutlineStore,
   MdSwapVert,
+  MdAssessment,
 } from "react-icons/md";
 import { Link, useLocation } from "react-router-dom";
 
@@ -39,6 +40,12 @@ const navItems = [
     to: "/panel/movimientos",
     icon: <MdSwapVert />,
     label: "Movimientos",
+    filled: true,
+  },
+  {
+    to: "/panel/reportes/movimientos",
+    icon: <MdAssessment />,
+    label: "Reportes",
     filled: true,
   },
   {

@@ -38,13 +38,9 @@ const ProductAvatar = ({ product, size = "w-10 h-10" }) => {
   }
 
   return (
-    <div
-      className={`${size} rounded-xl bg-primary flex items-center justify-center shrink-0`}
-    >
+    <div className={`${size} rounded-xl bg-primary flex items-center justify-center shrink-0`}>
       <span className="text-label-sm font-bold text-on-primary">
-        {getInitials(product.name) || (
-          <MdOutlineInventory2 className="text-on-primary text-lg" />
-        )}
+        {getInitials(product.name) || <MdOutlineInventory2 className="text-on-primary text-lg" />}
       </span>
     </div>
   );
@@ -72,9 +68,7 @@ const STOCK_STATUS_CONFIG = {
 const StockStatusBadge = ({ status }) => {
   const cfg = STOCK_STATUS_CONFIG[status] ?? STOCK_STATUS_CONFIG.Normal;
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${cfg.badge}`}
-    >
+    <span className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${cfg.badge}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {cfg.label}
     </span>
@@ -88,7 +82,11 @@ const Inventario = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
-  const [summary, setSummary] = useState({ total: 0, criticos: 0, agotados: 0 });
+  const [summary, setSummary] = useState({
+    total: 0,
+    criticos: 0,
+    agotados: 0,
+  });
 
   // Filtros
   const [name, setName] = useState("");
@@ -118,7 +116,12 @@ const Inventario = () => {
       const res = await fetchCliente(`/products/inventory?${params.toString()}`);
       setProducts(res.data);
       setMeta(res.meta);
-      setSummary(res.summary);
+
+      setSummary({
+        total: res.summary?.total || 0,
+        criticos: res.summary?.criticos || 0,
+        agotados: res.summary?.agotados || 0,
+      });
     } catch {
       addToast({ message: "Error al cargar el inventario", type: "error" });
     } finally {
@@ -189,12 +192,8 @@ const Inventario = () => {
               <MdOutlineInventory className="text-lg sm:text-xl text-on-primary" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">
-                Inventario
-              </h1>
-              <p className="text-body-sm sm:text-body-md text-secondary">
-                Stock en tiempo real y umbrales de alerta
-              </p>
+              <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">Inventario</h1>
+              <p className="text-body-sm sm:text-body-md text-secondary">Stock en tiempo real y umbrales de alerta</p>
             </div>
           </div>
           <button
@@ -248,9 +247,7 @@ const Inventario = () => {
           <div className="card-body p-4 sm:p-5 gap-3">
             <div className="flex items-center gap-2 text-secondary">
               <MdOutlineFilterAlt className="text-base" />
-              <span className="text-label-sm uppercase tracking-wide font-semibold">
-                Filtros
-              </span>
+              <span className="text-label-sm uppercase tracking-wide font-semibold">Filtros</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <input
@@ -284,10 +281,7 @@ const Inventario = () => {
               </select>
             </div>
             {hasFilters && (
-              <button
-                onClick={handleClearFilters}
-                className="self-start btn btn-ghost btn-sm rounded-full text-secondary gap-1"
-              >
+              <button onClick={handleClearFilters} className="self-start btn btn-ghost btn-sm rounded-full text-secondary gap-1">
                 <IoCloseSharp className="text-base" />
                 Limpiar filtros
               </button>
@@ -304,9 +298,7 @@ const Inventario = () => {
           <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl">
             <div className="card-body items-center text-center py-12">
               <MdOutlineInventory2 className="text-4xl text-outline mb-2" />
-              <p className="text-body-md text-secondary">
-                No se encontraron productos con los filtros aplicados
-              </p>
+              <p className="text-body-md text-secondary">No se encontraron productos con los filtros aplicados</p>
             </div>
           </div>
         ) : (
@@ -314,24 +306,16 @@ const Inventario = () => {
             {/* Vista de TARJETAS — móvil */}
             <div className="lg:hidden space-y-3">
               {products.map((p) => (
-                <div
-                  key={p.id}
-                  className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm"
-                >
+                <div key={p.id} className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
                   <div className="card-body p-4 flex-row items-center gap-3">
                     <ProductAvatar product={p} />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-on-surface text-body-md truncate">
-                        {p.name}
-                      </p>
+                      <p className="font-semibold text-on-surface text-body-md truncate">{p.name}</p>
                       <p className="text-body-sm text-secondary truncate">
-                        {p.productCategory?.name ?? "Sin categoría"} · umbral{" "}
-                        {p.lowStockThreshold}
+                        {p.productCategory?.name ?? "Sin categoría"} · umbral {p.lowStockThreshold}
                       </p>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-label-sm font-semibold text-on-surface">
-                          {p.currentStock} uds
-                        </span>
+                        <span className="text-label-sm font-semibold text-on-surface">{p.currentStock} uds</span>
                         <StockStatusBadge status={p.stockStatus} />
                       </div>
                     </div>
@@ -350,15 +334,11 @@ const Inventario = () => {
                         <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 first:rounded-tl-2xl">
                           Producto
                         </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Categoría
-                        </th>
+                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Categoría</th>
                         <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
                           Stock actual
                         </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Umbral
-                        </th>
+                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Umbral</th>
                         <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 last:rounded-tr-2xl">
                           Estado
                         </th>
@@ -366,16 +346,11 @@ const Inventario = () => {
                     </thead>
                     <tbody className="divide-y divide-outline-variant/60">
                       {products.map((p) => (
-                        <tr
-                          key={p.id}
-                          className="hover:bg-surface-container-low transition-colors"
-                        >
+                        <tr key={p.id} className="hover:bg-surface-container-low transition-colors">
                           <td>
                             <div className="flex items-center gap-3">
                               <ProductAvatar product={p} size="w-10 h-10" />
-                              <span className="font-semibold text-on-surface text-body-md">
-                                {p.name}
-                              </span>
+                              <span className="font-semibold text-on-surface text-body-md">{p.name}</span>
                             </div>
                           </td>
                           <td>
@@ -383,12 +358,8 @@ const Inventario = () => {
                               {p.productCategory?.name ?? "—"}
                             </span>
                           </td>
-                          <td className="font-bold text-body-md text-on-surface">
-                            {p.currentStock} uds
-                          </td>
-                          <td className="text-secondary text-body-md">
-                            {p.lowStockThreshold} uds
-                          </td>
+                          <td className="font-bold text-body-md text-on-surface">{p.currentStock} uds</td>
+                          <td className="text-secondary text-body-md">{p.lowStockThreshold} uds</td>
                           <td>
                             <StockStatusBadge status={p.stockStatus} />
                           </td>
@@ -403,11 +374,7 @@ const Inventario = () => {
         )}
 
         {/* Paginación */}
-        <Paginacion
-          meta={meta}
-          onPageChange={(nuevaPagina) => setPage(nuevaPagina)}
-          itemLabel="productos"
-        />
+        <Paginacion meta={meta} onPageChange={(nuevaPagina) => setPage(nuevaPagina)} itemLabel="productos" />
       </div>
 
       {/* Modal umbral por categoría (RF-19) */}
@@ -417,12 +384,9 @@ const Inventario = () => {
             <div className="w-11 h-11 rounded-2xl bg-primary-container flex items-center justify-center mb-3">
               <MdTune className="text-xl text-on-primary-container" />
             </div>
-            <h3 className="font-bold text-title-md text-on-surface">
-              Configurar umbral por categoría
-            </h3>
+            <h3 className="font-bold text-title-md text-on-surface">Configurar umbral por categoría</h3>
             <p className="text-body-md text-secondary mt-2">
-              El umbral se aplicará a todos los productos activos de la
-              categoría seleccionada.
+              El umbral se aplicará a todos los productos activos de la categoría seleccionada.
             </p>
             <form onSubmit={handleSaveThreshold} className="space-y-3 mt-4">
               <select
@@ -462,19 +426,12 @@ const Inventario = () => {
                   disabled={savingThreshold}
                   className="btn bg-primary text-on-primary border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto"
                 >
-                  {savingThreshold ? (
-                    <span className="loading loading-spinner loading-sm" />
-                  ) : (
-                    "Guardar"
-                  )}
+                  {savingThreshold ? <span className="loading loading-spinner loading-sm" /> : "Guardar"}
                 </button>
               </div>
             </form>
           </div>
-          <div
-            className="modal-backdrop"
-            onClick={() => setShowThresholdModal(false)}
-          />
+          <div className="modal-backdrop" onClick={() => setShowThresholdModal(false)} />
         </dialog>
       )}
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import CardProducto from "../../components/publica/Tiendas/CardProducto";
 import HeroSection from "../../components/publica/Inicio/HeroSection";
 import ComoFunciona from "../../components/publica/Inicio/ComoFunciona";
-import PorQueMercadoBarrio from "../../components/publica/Inicio/PorQueMercadoBarrio";
+import PorqueMercadoBarrio from "../../components/publica/Inicio/PorqueMercadoBarrio";
 import CTATenderos from "../../components/publica/Inicio/CTATenderos";
 import fetchCliente from "../../config/fetchCliente";
 
@@ -32,7 +32,7 @@ const Inicio = () => {
 
       <ComoFunciona />
 
-      <PorQueMercadoBarrio />
+      <PorqueMercadoBarrio />
 
       <section className="mt-8 px-margin-mobile md:px-margin-desktop mb-8">
         <div className="flex justify-between items-end mb-6">
