@@ -1,13 +1,6 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import {
-  MdReceiptLong,
-  MdAdd,
-  MdOutlineFilterAlt,
-  MdVisibility,
-  MdOutlineFileDownload,
-  MdOutlineInventory2,
-} from "react-icons/md";
+import { useState, useEffect, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { MdReceiptLong, MdAdd, MdOutlineFilterAlt, MdVisibility, MdOutlineFileDownload, MdOutlineInventory2 } from "react-icons/md";
 import { IoCloseCircle, IoCloseSharp, IoTimeOutline, IoWarning } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
@@ -29,11 +22,9 @@ const formatDateTime = (d) =>
   });
 
 // Horas transcurridas desde la fecha de la venta
-const hoursSince = (date) =>
-  (Date.now() - new Date(date).getTime()) / (1000 * 60 * 60);
+const hoursSince = (date) => (Date.now() - new Date(date).getTime()) / (1000 * 60 * 60);
 
-const canCancel = (sale) =>
-  sale.status === "Completed" && hoursSince(sale.date) <= MAX_CANCEL_HOURS;
+const canCancel = (sale) => sale.status === "Completed" && hoursSince(sale.date) <= MAX_CANCEL_HOURS;
 
 // Iniciales para el avatar del producto cuando no hay imagen
 const getInitials = (str = "") =>
@@ -45,11 +36,7 @@ const getInitials = (str = "") =>
     .join("");
 
 // Avatar/foto del producto con fallback a iniciales si no hay foto o falla la carga
-const ProductAvatar = ({
-  product,
-  size = "w-12 h-12",
-  textSize = "text-label-sm",
-}) => {
+const ProductAvatar = ({ product, size = "w-12 h-12", textSize = "text-label-sm" }) => {
   const [imgError, setImgError] = useState(false);
   const name = product?.name ?? "";
 
@@ -65,13 +52,9 @@ const ProductAvatar = ({
   }
 
   return (
-    <div
-      className={`${size} rounded-xl bg-primary flex items-center justify-center shrink-0`}
-    >
+    <div className={`${size} rounded-xl bg-primary flex items-center justify-center shrink-0`}>
       <span className={`${textSize} font-bold text-on-primary`}>
-        {getInitials(name) || (
-          <MdOutlineInventory2 className="text-on-primary text-lg" />
-        )}
+        {getInitials(name) || <MdOutlineInventory2 className="text-on-primary text-lg" />}
       </span>
     </div>
   );
@@ -79,6 +62,11 @@ const ProductAvatar = ({
 
 const MisVentas = () => {
   const { toasts, addToast, removeToast } = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Evita procesar el mismo location.state dos veces cuando React StrictMode
+  // (modo desarrollo) invoca el efecto dos veces antes de que navigate lo limpie.
+  const processedStateRef = useRef(null);
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -108,6 +96,32 @@ const MisVentas = () => {
       .then((res) => setProducts(res?.data ?? []))
       .catch(() => {});
   }, []);
+
+  // Al llegar desde "Registrar venta" con datos en el estado de navegación:
+  // muestra el toast de éxito y, si aplica, la alerta de stock bajo (RF-23).
+  // Se limpia el estado inmediatamente para que no se repita si el usuario
+  // recarga la página o vuelve con el botón "atrás".
+  useEffect(() => {
+    const state = location.state;
+    if (!state || processedStateRef.current === state) return;
+    processedStateRef.current = state;
+
+    if (state.saleSuccessMessage) {
+      addToast({ message: state.saleSuccessMessage, type: "success" });
+    }
+
+    const productosEnAlerta = state.productosEnAlerta ?? [];
+    if (productosEnAlerta.length > 0) {
+      const nombres = productosEnAlerta.map((p) => `${p.name} (${p.currentStock})`).join(", ");
+      addToast({
+        message: `Stock bajo tras la venta: ${nombres}`,
+        type: "warning",
+      });
+    }
+
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   const fetchSales = async (p = 1) => {
     setLoading(true);
@@ -151,8 +165,7 @@ const MisVentas = () => {
     setStatus("");
   };
 
-  const hasFilters =
-    startDate || endDate || minTotal || maxTotal || productId || status;
+  const hasFilters = startDate || endDate || minTotal || maxTotal || productId || status;
 
   const openDetail = async (id) => {
     setDetailLoading(true);
@@ -229,8 +242,7 @@ const MisVentas = () => {
         endDate && `Hasta: ${endDate}`,
         minTotal && `Monto mín: ${formatCOP(minTotal)}`,
         maxTotal && `Monto máx: ${formatCOP(maxTotal)}`,
-        status &&
-          `Estado: ${status === "Completed" ? "Completada" : "Cancelada"}`,
+        status && `Estado: ${status === "Completed" ? "Completada" : "Cancelada"}`,
       ]
         .filter(Boolean)
         .join(" · ");
@@ -253,17 +265,10 @@ const MisVentas = () => {
               <MdReceiptLong className="text-lg sm:text-xl text-on-primary" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">
-                Mis Ventas
-              </h1>
+              <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">Mis Ventas</h1>
               <p className="text-body-sm sm:text-body-md text-secondary">
                 Historial de transacciones de tu establecimiento
-                {meta.total > 0 && (
-                  <span className="text-on-surface-variant">
-                    {" "}
-                    · {meta.total} en total
-                  </span>
-                )}
+                {meta.total > 0 && <span className="text-on-surface-variant"> · {meta.total} en total</span>}
               </p>
             </div>
           </div>
@@ -276,11 +281,7 @@ const MisVentas = () => {
                   sales.length === 0 ? "btn-disabled" : ""
                 }`}
               >
-                {exportLoading ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : (
-                  <MdOutlineFileDownload className="text-xl" />
-                )}
+                {exportLoading ? <span className="loading loading-spinner loading-sm" /> : <MdOutlineFileDownload className="text-xl" />}
                 Exportar
               </div>
               <ul
@@ -288,28 +289,15 @@ const MisVentas = () => {
                 className="dropdown-content menu bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-lg z-10 w-60 p-2 mt-1"
               >
                 <li>
-                  <button
-                    onClick={() => handleExport("page")}
-                    className="rounded-xl text-body-sm text-on-surface"
-                  >
+                  <button onClick={() => handleExport("page")} className="rounded-xl text-body-sm text-on-surface">
                     Página actual
-                    <span className="text-on-surface-variant">
-                      ({sales.length})
-                    </span>
+                    <span className="text-on-surface-variant">({sales.length})</span>
                   </button>
                 </li>
                 <li>
-                  <button
-                    onClick={() => handleExport("all")}
-                    disabled={exportLoading}
-                    className="rounded-xl text-body-sm text-on-surface"
-                  >
+                  <button onClick={() => handleExport("all")} disabled={exportLoading} className="rounded-xl text-body-sm text-on-surface">
                     Todos los resultados
-                    {meta.total > 0 && (
-                      <span className="text-on-surface-variant">
-                        ({meta.total})
-                      </span>
-                    )}
+                    {meta.total > 0 && <span className="text-on-surface-variant">({meta.total})</span>}
                   </button>
                 </li>
               </ul>
@@ -329,16 +317,12 @@ const MisVentas = () => {
           <div className="card-body p-4 sm:p-5 gap-3">
             <div className="flex items-center gap-2 text-secondary">
               <MdOutlineFilterAlt className="text-base" />
-              <span className="text-label-sm uppercase tracking-wide font-semibold">
-                Filtros
-              </span>
+              <span className="text-label-sm uppercase tracking-wide font-semibold">Filtros</span>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
               <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">
-                  Desde
-                </span>
+                <span className="text-label-sm text-on-surface-variant mb-1">Desde</span>
                 <input
                   type="date"
                   value={startDate}
@@ -348,9 +332,7 @@ const MisVentas = () => {
               </label>
 
               <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">
-                  Hasta
-                </span>
+                <span className="text-label-sm text-on-surface-variant mb-1">Hasta</span>
                 <input
                   type="date"
                   value={endDate}
@@ -360,9 +342,7 @@ const MisVentas = () => {
               </label>
 
               <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">
-                  Monto mín.
-                </span>
+                <span className="text-label-sm text-on-surface-variant mb-1">Monto mín.</span>
                 <input
                   type="number"
                   min="0"
@@ -374,9 +354,7 @@ const MisVentas = () => {
               </label>
 
               <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">
-                  Monto máx.
-                </span>
+                <span className="text-label-sm text-on-surface-variant mb-1">Monto máx.</span>
                 <input
                   type="number"
                   min="0"
@@ -388,9 +366,7 @@ const MisVentas = () => {
               </label>
 
               <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">
-                  Producto
-                </span>
+                <span className="text-label-sm text-on-surface-variant mb-1">Producto</span>
                 <select
                   value={productId}
                   onChange={(e) => setProductId(e.target.value)}
@@ -406,9 +382,7 @@ const MisVentas = () => {
               </label>
 
               <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">
-                  Estado
-                </span>
+                <span className="text-label-sm text-on-surface-variant mb-1">Estado</span>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
@@ -459,21 +433,13 @@ const MisVentas = () => {
               </div>
               {hasFilters ? (
                 <>
-                  <p className="font-semibold text-on-surface text-body-lg">
-                    Sin resultados
-                  </p>
-                  <p className="text-body-md mt-1">
-                    No encontramos ventas con esos filtros. Intenta ajustarlos.
-                  </p>
+                  <p className="font-semibold text-on-surface text-body-lg">Sin resultados</p>
+                  <p className="text-body-md mt-1">No encontramos ventas con esos filtros. Intenta ajustarlos.</p>
                 </>
               ) : (
                 <>
-                  <p className="font-semibold text-on-surface text-body-lg">
-                    Aún no tienes ventas
-                  </p>
-                  <p className="text-body-md mt-1">
-                    Registra tu primera venta para comenzar.
-                  </p>
+                  <p className="font-semibold text-on-surface text-body-lg">Aún no tienes ventas</p>
+                  <p className="text-body-md mt-1">Registra tu primera venta para comenzar.</p>
                   <Link
                     to="/panel/ventas/nueva"
                     className="btn bg-primary text-on-primary border-none rounded-full mt-6 font-label-md text-label-md hover:bg-primary-container"
@@ -489,19 +455,12 @@ const MisVentas = () => {
             {/* Vista de TARJETAS — móvil y tablet */}
             <div className="lg:hidden space-y-3">
               {sales.map((s) => (
-                <div
-                  key={s.id}
-                  className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm"
-                >
+                <div key={s.id} className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
                   <div className="card-body p-4 gap-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-semibold text-on-surface text-body-md">
-                          Venta #{s.id}
-                        </p>
-                        <p className="text-body-sm text-secondary">
-                          {formatDateTime(s.date)}
-                        </p>
+                        <p className="font-semibold text-on-surface text-body-md">Venta #{s.id}</p>
+                        <p className="text-body-sm text-secondary">{formatDateTime(s.date)}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <button
@@ -524,9 +483,7 @@ const MisVentas = () => {
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-outline-variant/50">
-                      <span className="text-primary font-bold text-body-md">
-                        {formatCOP(s.total)}
-                      </span>
+                      <span className="text-primary font-bold text-body-md">{formatCOP(s.total)}</span>
                       <span
                         className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
                           s.status === "Completed"
@@ -534,11 +491,7 @@ const MisVentas = () => {
                             : "bg-error-container text-on-error-container"
                         }`}
                       >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            s.status === "Completed" ? "bg-primary" : "bg-error"
-                          }`}
-                        />
+                        <span className={`w-1.5 h-1.5 rounded-full ${s.status === "Completed" ? "bg-primary" : "bg-error"}`} />
                         {s.status === "Completed" ? "Completada" : "Cancelada"}
                       </span>
                     </div>
@@ -557,15 +510,9 @@ const MisVentas = () => {
                         <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 first:rounded-tl-2xl">
                           # Venta
                         </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Fecha
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Total
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Estado
-                        </th>
+                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Fecha</th>
+                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Total</th>
+                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Estado</th>
                         <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 text-right last:rounded-tr-2xl">
                           Acciones
                         </th>
@@ -573,19 +520,10 @@ const MisVentas = () => {
                     </thead>
                     <tbody className="divide-y divide-outline-variant/60">
                       {sales.map((s) => (
-                        <tr
-                          key={s.id}
-                          className="hover:bg-surface-container-low transition-colors"
-                        >
-                          <td className="font-semibold text-on-surface text-body-md">
-                            #{s.id}
-                          </td>
-                          <td className="text-body-sm text-secondary">
-                            {formatDateTime(s.date)}
-                          </td>
-                          <td className="text-primary font-bold text-body-md">
-                            {formatCOP(s.total)}
-                          </td>
+                        <tr key={s.id} className="hover:bg-surface-container-low transition-colors">
+                          <td className="font-semibold text-on-surface text-body-md">#{s.id}</td>
+                          <td className="text-body-sm text-secondary">{formatDateTime(s.date)}</td>
+                          <td className="text-primary font-bold text-body-md">{formatCOP(s.total)}</td>
                           <td>
                             <span
                               className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
@@ -594,16 +532,8 @@ const MisVentas = () => {
                                   : "bg-error-container text-on-error-container"
                               }`}
                             >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  s.status === "Completed"
-                                    ? "bg-primary"
-                                    : "bg-error"
-                                }`}
-                              />
-                              {s.status === "Completed"
-                                ? "Completada"
-                                : "Cancelada"}
+                              <span className={`w-1.5 h-1.5 rounded-full ${s.status === "Completed" ? "bg-primary" : "bg-error"}`} />
+                              {s.status === "Completed" ? "Completada" : "Cancelada"}
                             </span>
                           </td>
                           <td className="text-right">
@@ -637,11 +567,7 @@ const MisVentas = () => {
         )}
 
         {/* Paginación */}
-        <Paginacion
-          meta={meta}
-          onPageChange={(nuevaPagina) => setPage(nuevaPagina)}
-          itemLabel="ventas"
-        />
+        <Paginacion meta={meta} onPageChange={(nuevaPagina) => setPage(nuevaPagina)} itemLabel="ventas" />
       </div>
 
       {/* Modal detalle de venta */}
@@ -655,14 +581,8 @@ const MisVentas = () => {
                   <MdReceiptLong className="text-xl text-on-primary" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-bold text-title-md text-on-surface leading-tight">
-                    Venta #{detailSale.id}
-                  </h3>
-                  {!detailLoading && (
-                    <p className="text-body-sm text-secondary truncate">
-                      {formatDateTime(detailSale.date)}
-                    </p>
-                  )}
+                  <h3 className="font-bold text-title-md text-on-surface leading-tight">Venta #{detailSale.id}</h3>
+                  {!detailLoading && <p className="text-body-sm text-secondary truncate">{formatDateTime(detailSale.date)}</p>}
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -674,22 +594,11 @@ const MisVentas = () => {
                         : "bg-error-container text-on-error-container"
                     }`}
                   >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        detailSale.status === "Completed"
-                          ? "bg-primary"
-                          : "bg-error"
-                      }`}
-                    />
-                    {detailSale.status === "Completed"
-                      ? "Completada"
-                      : "Cancelada"}
+                    <span className={`w-1.5 h-1.5 rounded-full ${detailSale.status === "Completed" ? "bg-primary" : "bg-error"}`} />
+                    {detailSale.status === "Completed" ? "Completada" : "Cancelada"}
                   </span>
                 )}
-                <button
-                  onClick={() => setDetailSale(null)}
-                  className="btn btn-ghost btn-sm btn-circle"
-                >
+                <button onClick={() => setDetailSale(null)} className="btn btn-ghost btn-sm btn-circle">
                   <IoCloseSharp className="text-lg" />
                 </button>
               </div>
@@ -718,16 +627,8 @@ const MisVentas = () => {
                         : "bg-error-container text-on-error-container"
                     }`}
                   >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        detailSale.status === "Completed"
-                          ? "bg-primary"
-                          : "bg-error"
-                      }`}
-                    />
-                    {detailSale.status === "Completed"
-                      ? "Completada"
-                      : "Cancelada"}
+                    <span className={`w-1.5 h-1.5 rounded-full ${detailSale.status === "Completed" ? "bg-primary" : "bg-error"}`} />
+                    {detailSale.status === "Completed" ? "Completada" : "Cancelada"}
                   </span>
                 </div>
 
@@ -752,9 +653,7 @@ const MisVentas = () => {
                             {d.quantity} uds × {formatCOP(d.unitPrice)}
                           </p>
                         </div>
-                        <span className="font-semibold text-on-surface text-body-md shrink-0">
-                          {formatCOP(d.subtotal)}
-                        </span>
+                        <span className="font-semibold text-on-surface text-body-md shrink-0">{formatCOP(d.subtotal)}</span>
                       </div>
                     ))}
                   </div>
@@ -763,16 +662,10 @@ const MisVentas = () => {
                 {/* Motivo de cancelación */}
                 {detailSale.status === "Cancelled" && (
                   <div className="mx-4 sm:mx-5 mt-3 p-3 rounded-2xl bg-error-container/40 text-on-error-container">
-                    <p className="text-label-sm font-semibold uppercase tracking-wide">
-                      Venta cancelada
-                    </p>
-                    <p className="text-body-sm mt-1">
-                      {detailSale.cancellationReason}
-                    </p>
+                    <p className="text-label-sm font-semibold uppercase tracking-wide">Venta cancelada</p>
+                    <p className="text-body-sm mt-1">{detailSale.cancellationReason}</p>
                     {detailSale.cancellationDate && (
-                      <p className="text-label-sm text-on-error-container/70 mt-1">
-                        {formatDateTime(detailSale.cancellationDate)}
-                      </p>
+                      <p className="text-label-sm text-on-error-container/70 mt-1">{formatDateTime(detailSale.cancellationDate)}</p>
                     )}
                   </div>
                 )}
@@ -780,17 +673,10 @@ const MisVentas = () => {
                 {/* Resumen y total */}
                 <div className="mt-4 p-4 sm:p-5 bg-surface-container-high/60 border-t border-outline-variant/60 flex items-center justify-between">
                   <div>
-                    <p className="text-label-sm text-on-surface-variant uppercase tracking-wide">
-                      Total de la venta
-                    </p>
-                    <p className="font-bold text-primary text-title-lg">
-                      {formatCOP(detailSale.total)}
-                    </p>
+                    <p className="text-label-sm text-on-surface-variant uppercase tracking-wide">Total de la venta</p>
+                    <p className="font-bold text-primary text-title-lg">{formatCOP(detailSale.total)}</p>
                   </div>
-                  <button
-                    onClick={() => setDetailSale(null)}
-                    className="btn btn-ghost rounded-full font-label-md"
-                  >
+                  <button onClick={() => setDetailSale(null)} className="btn btn-ghost rounded-full font-label-md">
                     Cerrar
                   </button>
                 </div>
@@ -810,13 +696,10 @@ const MisVentas = () => {
               <IoWarning className="text-2xl text-on-error-container" />
             </div>
 
-            <h3 className="font-bold text-title-md text-on-surface">
-              ¿Cancelar venta #{cancelSale.id}?
-            </h3>
+            <h3 className="font-bold text-title-md text-on-surface">¿Cancelar venta #{cancelSale.id}?</h3>
 
             <p className="text-body-md text-on-surface-variant mt-1.5">
-              El stock de los productos involucrados será restituido. Esta
-              acción no se puede deshacer.
+              El stock de los productos involucrados será restituido. Esta acción no se puede deshacer.
             </p>
 
             <label className="form-control mt-4">

@@ -160,12 +160,21 @@ const RegistrarVenta = () => {
           quantity: i.quantity,
         })),
       };
-      await fetchCliente("/sales", {
+      const response = await fetchCliente("/sales", {
         method: "POST",
         body: payload,
       });
-      addToast({ message: "Venta registrada correctamente", type: "success" });
-      navigate("/panel/ventas");
+
+      // No mostramos el toast aquí: como navegamos inmediatamente después,
+      // esta página se desmonta antes de que el toast llegue a pintarse.
+      // Se pasa la info a MisVentas.jsx vía navigate state, que sí permanece
+      // montado el tiempo suficiente para mostrarlo.
+      navigate("/panel/ventas", {
+        state: {
+          saleSuccessMessage: "Venta registrada correctamente",
+          productosEnAlerta: response?.productosEnAlerta ?? [],
+        },
+      });
     } catch (err) {
       addToast({
         message: err.message ?? "Error al registrar la venta",
