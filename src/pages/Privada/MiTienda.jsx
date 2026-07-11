@@ -19,6 +19,9 @@ import {
   MdCheckCircle,
   MdOutlineDescription,
   MdMyLocation,
+  MdVisibility,
+  MdVisibilityOff,
+  MdOutlinePauseCircle,
 } from "react-icons/md";
 import { FaLocationDot } from "react-icons/fa6";
 import fetchCliente from "../../config/fetchCliente";
@@ -52,6 +55,10 @@ const MiTienda = () => {
   const [hasStore, setHasStore] = useState(false);
   const [categorias, setCategorias] = useState([]);
   const [locating, setLocating] = useState(false);
+  const [storeStatus, setStoreStatus] = useState("");
+  const [isVisible, setIsVisible] = useState(true);
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
+  const [pendingVisibilityChange, setPendingVisibilityChange] = useState(null); // true | false | null
 
   // Foto: mismo patrón que ProductoForm (archivo + preview + error de carga)
   const [photoFile, setPhotoFile] = useState(null);
@@ -72,16 +79,15 @@ const MiTienda = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [storeRes, catRes] = await Promise.all([
-          fetchCliente("/stores/me").catch(() => null),
-          fetchCliente("/store-categories"),
-        ]);
+        const [storeRes, catRes] = await Promise.all([fetchCliente("/stores/me").catch(() => null), fetchCliente("/store-categories")]);
 
         setCategorias(catRes?.data ?? []);
 
         if (storeRes?.data) {
           setHasStore(true);
           const s = storeRes.data;
+          setStoreStatus(s.status ?? "");
+          setIsVisible(s.isVisible ?? true);
           setForm({
             name: s.name ?? "",
             address: s.address ?? "",
@@ -151,13 +157,30 @@ const MiTienda = () => {
     );
   };
 
+  const handleConfirmVisibilityChange = async () => {
+    if (pendingVisibilityChange === null) return;
+    setTogglingVisibility(true);
+    try {
+      const res = await fetchCliente("/stores/me/visibility", {
+        method: "PATCH",
+        body: { isVisible: pendingVisibilityChange },
+      });
+      setIsVisible(res.data.isVisible);
+      addToast({ message: res.message, type: "success" });
+    } catch (error) {
+      addToast({
+        message: error.message ?? "No se pudo actualizar la visibilidad",
+        type: "error",
+      });
+    } finally {
+      setTogglingVisibility(false);
+      setPendingVisibilityChange(null);
+    }
+  };
+
   const latNum = parseFloat(form.latitude);
   const lngNum = parseFloat(form.longitude);
-  const hasValidCoords =
-    form.latitude !== "" &&
-    form.longitude !== "" &&
-    !isNaN(latNum) &&
-    !isNaN(lngNum);
+  const hasValidCoords = form.latitude !== "" && form.longitude !== "" && !isNaN(latNum) && !isNaN(lngNum);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -235,21 +258,76 @@ const MiTienda = () => {
           )}
         </div>
 
-        {/* Alerta pendiente de aprobación */}
-        {!hasStore && (
-          <div className="alert bg-primary-container text-on-primary-container border-none rounded-2xl mb-6 items-start sm:items-center">
-            <MdInfoOutline className="text-xl shrink-0" />
+        {/* Visibilidad en el directorio público (RF-43) */}
+        {hasStore && storeStatus === "Active" && (
+          <div className="card bg-surface-container-low border border-outline-variant rounded-2xl shadow-sm mb-6 sm:mb-8">
+            <div className="card-body p-4 sm:p-5 flex-row items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                    isVisible ? "bg-primary-container" : "bg-surface-container-highest"
+                  }`}
+                >
+                  {isVisible ? (
+                    <MdVisibility className="text-xl text-on-primary-container" />
+                  ) : (
+                    <MdVisibilityOff className="text-xl text-on-surface-variant" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-label-md text-label-md text-on-surface">
+                    {isVisible ? "Visible en el directorio público" : "Pausada del directorio público"}
+                  </p>
+                  <p className="text-body-sm text-on-surface-variant">
+                    {isVisible
+                      ? "Los clientes pueden encontrarte en el mapa y el catálogo."
+                      : "Tu tienda y tus datos siguen intactos, solo dejaste de ser visible."}
+                  </p>
+                </div>
+              </div>
+
+              <label className="inline-flex items-center gap-3 cursor-pointer shrink-0">
+                <span className="font-label-sm text-label-sm text-on-surface-variant">{isVisible ? "Activada" : "Pausada"}</span>
+                <input
+                  type="checkbox"
+                  className="toggle toggle-primary"
+                  checked={isVisible}
+                  disabled={togglingVisibility}
+                  onChange={(e) => setPendingVisibilityChange(e.target.checked)}
+                />
+              </label>
+            </div>
+          </div>
+        )}
+
+        {hasStore && storeStatus === "Pending" && (
+          <div className="alert bg-surface-container-low border border-outline-variant rounded-2xl mb-6 items-start sm:items-center">
+            <MdOutlinePauseCircle className="text-xl shrink-0 text-on-surface-variant" />
             <span className="text-label-md">
-              Una vez registrada, tu tienda quedará pendiente de aprobación por
-              el administrador.
+              Tu tienda está pendiente de aprobación. Podrás pausar o reactivar su visibilidad una vez sea aprobada.
             </span>
           </div>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6"
-        >
+        {hasStore && storeStatus === "Inactive" && (
+          <div className="alert bg-error-container text-on-error-container border-none rounded-2xl mb-6 items-start sm:items-center">
+            <MdOutlinePauseCircle className="text-xl shrink-0" />
+            <span className="text-label-md">
+              Tu tienda fue desactivada por un administrador y no es visible en el directorio público. Contacta a soporte para más
+              información.
+            </span>
+          </div>
+        )}
+
+        {/* Alerta pendiente de aprobación */}
+        {!hasStore && (
+          <div className="alert bg-primary-container text-on-primary-container border-none rounded-2xl mb-6 items-start sm:items-center">
+            <MdInfoOutline className="text-xl shrink-0" />
+            <span className="text-label-md">Una vez registrada, tu tienda quedará pendiente de aprobación por el administrador.</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
           {/* Columna izquierda: campos del formulario */}
           <div className="lg:col-span-7 space-y-5 sm:space-y-6">
             {/* Información principal */}
@@ -262,13 +340,7 @@ const MiTienda = () => {
 
                 <div className="form-control w-full">
                   <Label label="Nombre del establecimiento *" />
-                  <Input
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    placeholder="Ej: Tienda Don Carlos"
-                    type="text"
-                  />
+                  <Input name="name" value={form.name} onChange={handleChange} placeholder="Ej: Tienda Don Carlos" type="text" />
                 </div>
 
                 <div className="form-control w-full">
@@ -304,11 +376,7 @@ const MiTienda = () => {
                     disabled={locating}
                     className="btn btn-ghost btn-xs gap-1.5 text-primary font-label-sm rounded-full disabled:text-primary/60"
                   >
-                    {locating ? (
-                      <span className="loading loading-spinner loading-xs" />
-                    ) : (
-                      <MdMyLocation className="text-sm" />
-                    )}
+                    {locating ? <span className="loading loading-spinner loading-xs" /> : <MdMyLocation className="text-sm" />}
                     {locating ? "Ubicando..." : "Usar mi ubicación"}
                   </button>
                 </div>
@@ -316,46 +384,22 @@ const MiTienda = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="form-control w-full">
                     <Label label="Dirección *" />
-                    <Input
-                      name="address"
-                      value={form.address}
-                      onChange={handleChange}
-                      placeholder="Ej: Calle 10 # 5-23"
-                      type="text"
-                    />
+                    <Input name="address" value={form.address} onChange={handleChange} placeholder="Ej: Calle 10 # 5-23" type="text" />
                   </div>
                   <div className="form-control w-full">
                     <Label label="Barrio *" />
-                    <Input
-                      name="neighborhood"
-                      value={form.neighborhood}
-                      onChange={handleChange}
-                      placeholder="Ej: Centro"
-                      type="text"
-                    />
+                    <Input name="neighborhood" value={form.neighborhood} onChange={handleChange} placeholder="Ej: Centro" type="text" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="form-control w-full">
                     <Label label="Latitud" />
-                    <Input
-                      name="latitude"
-                      value={form.latitude}
-                      onChange={handleChange}
-                      placeholder="Ej: 4.7459"
-                      type="number"
-                    />
+                    <Input name="latitude" value={form.latitude} onChange={handleChange} placeholder="Ej: 4.7459" type="number" />
                   </div>
                   <div className="form-control w-full">
                     <Label label="Longitud" />
-                    <Input
-                      name="longitude"
-                      value={form.longitude}
-                      onChange={handleChange}
-                      placeholder="Ej: -75.9124"
-                      type="number"
-                    />
+                    <Input name="longitude" value={form.longitude} onChange={handleChange} placeholder="Ej: -75.9124" type="number" />
                   </div>
                 </div>
 
@@ -364,12 +408,7 @@ const MiTienda = () => {
                   <Label label="Vista previa en el mapa" />
                   {hasValidCoords ? (
                     <div className="rounded-2xl overflow-hidden border border-outline-variant h-48 sm:h-72 w-full z-0">
-                      <MapContainer
-                        center={[latNum, lngNum]}
-                        zoom={16}
-                        scrollWheelZoom={false}
-                        className="h-full w-full"
-                      >
+                      <MapContainer center={[latNum, lngNum]} zoom={16} scrollWheelZoom={false} className="h-full w-full">
                         <TileLayer
                           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
@@ -379,27 +418,19 @@ const MiTienda = () => {
                           <Popup minWidth={200} maxWidth={240}>
                             <div className="flex flex-col gap-1 p-1">
                               {previewUrl && !photoError && (
-                                <img
-                                  src={previewUrl}
-                                  alt={form.name || "Tienda"}
-                                  className="w-full h-20 object-cover rounded-lg"
-                                />
+                                <img src={previewUrl} alt={form.name || "Tienda"} className="w-full h-20 object-cover rounded-lg" />
                               )}
-                              <span className="font-semibold leading-tight text-sm">
-                                {form.name || "Tu tienda"}
-                              </span>
+                              <span className="font-semibold leading-tight text-sm">{form.name || "Tu tienda"}</span>
                               {(form.address || form.neighborhood) && (
                                 <div className="text-xs m-0 text-on-surface/60 leading-snug">
                                   {form.neighborhood && (
                                     <p>
-                                      <MdLocationCity className="text-primary inline" />{" "}
-                                      {form.neighborhood}
+                                      <MdLocationCity className="text-primary inline" /> {form.neighborhood}
                                     </p>
                                   )}
                                   {form.address && (
                                     <p>
-                                      <FaLocationDot className="text-primary inline m-0" />{" "}
-                                      {form.address}
+                                      <FaLocationDot className="text-primary inline m-0" /> {form.address}
                                     </p>
                                   )}
                                 </div>
@@ -412,8 +443,7 @@ const MiTienda = () => {
                   ) : (
                     <div className="rounded-2xl border-2 border-dashed border-outline-variant h-48 sm:h-56 w-full flex items-center justify-center text-center px-6 bg-surface-container-lowest">
                       <p className="text-label-sm text-on-surface-variant">
-                        Ingresa latitud y longitud (o usa tu ubicación) para ver
-                        el mapa.
+                        Ingresa latitud y longitud (o usa tu ubicación) para ver el mapa.
                       </p>
                     </div>
                   )}
@@ -431,13 +461,7 @@ const MiTienda = () => {
 
                 <div className="form-control w-full sm:w-1/2">
                   <Label label="Teléfono de contacto" />
-                  <Input
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="Ej: 3101234567"
-                    type="tel"
-                  />
+                  <Input name="phone" value={form.phone} onChange={handleChange} placeholder="Ej: 3101234567" type="tel" />
                 </div>
 
                 <div className="form-control w-full">
@@ -488,24 +512,15 @@ const MiTienda = () => {
                   ) : previewUrl && photoError ? (
                     <div className="flex flex-col items-center gap-2 text-error p-8">
                       <MdBrokenImage className="text-3xl" />
-                      <p className="font-label-md text-label-md">
-                        No se pudo cargar la imagen
-                      </p>
+                      <p className="font-label-md text-label-md">No se pudo cargar la imagen</p>
                     </div>
                   ) : (
-                    <label
-                      htmlFor="store-photo-upload"
-                      className="flex flex-col items-center p-8 cursor-pointer w-full h-full"
-                    >
+                    <label htmlFor="store-photo-upload" className="flex flex-col items-center p-8 cursor-pointer w-full h-full">
                       <div className="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center mb-4">
                         <MdAddAPhoto className="text-primary text-3xl" />
                       </div>
-                      <p className="font-label-md text-label-md text-on-surface mb-1">
-                        Aún no hay imagen
-                      </p>
-                      <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        Haz clic para subir una imagen
-                      </p>
+                      <p className="font-label-md text-label-md text-on-surface mb-1">Aún no hay imagen</p>
+                      <p className="font-label-sm text-label-sm text-on-surface-variant">Haz clic para subir una imagen</p>
                     </label>
                   )}
                   <input
@@ -518,10 +533,7 @@ const MiTienda = () => {
                 </div>
 
                 {previewUrl && (
-                  <label
-                    htmlFor="store-photo-upload"
-                    className="btn btn-sm btn-outline w-full rounded-full cursor-pointer"
-                  >
+                  <label htmlFor="store-photo-upload" className="btn btn-sm btn-outline w-full rounded-full cursor-pointer">
                     Cambiar imagen
                   </label>
                 )}
@@ -536,15 +548,13 @@ const MiTienda = () => {
                     <li className="flex items-start gap-2.5">
                       <MdCheckCircle className="text-primary text-sm mt-0.5 shrink-0" />
                       <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        Usa una foto clara de la fachada o el mostrador de tu
-                        tienda.
+                        Usa una foto clara de la fachada o el mostrador de tu tienda.
                       </p>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <MdCheckCircle className="text-primary text-sm mt-0.5 shrink-0" />
                       <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        Verifica que la dirección y el barrio sean correctos
-                        para el directorio.
+                        Verifica que la dirección y el barrio sean correctos para el directorio.
                       </p>
                     </li>
                     <li className="flex items-start gap-2.5">
@@ -578,6 +588,60 @@ const MiTienda = () => {
           </div>
         </form>
       </main>
+
+      {/* Modal de confirmación: pausar/reactivar visibilidad */}
+      {pendingVisibilityChange !== null && (
+        <dialog open className="modal modal-bottom sm:modal-middle">
+          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
+            <div
+              className={`w-11 h-11 rounded-2xl flex items-center justify-center mb-3 ${
+                pendingVisibilityChange ? "bg-primary-container" : "bg-surface-container-highest"
+              }`}
+            >
+              {pendingVisibilityChange ? (
+                <MdVisibility className="text-xl text-on-primary-container" />
+              ) : (
+                <MdVisibilityOff className="text-xl text-on-surface-variant" />
+              )}
+            </div>
+            <h3 className="font-bold text-title-md text-on-surface">
+              {pendingVisibilityChange ? "¿Reactivar la visibilidad de tu tienda?" : "¿Pausar la visibilidad de tu tienda?"}
+            </h3>
+            <p className="text-body-md text-secondary mt-2">
+              {pendingVisibilityChange
+                ? "Tu tienda volverá a aparecer de inmediato en el directorio público y el mapa."
+                : "Tu tienda dejará de aparecer en el directorio público y el mapa. Ningún dato se elimina y puedes reactivarla cuando quieras."}
+            </p>
+            <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
+              <button
+                onClick={() => setPendingVisibilityChange(null)}
+                disabled={togglingVisibility}
+                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmVisibilityChange}
+                disabled={togglingVisibility}
+                className={`btn border-none rounded-full font-label-md w-full sm:w-auto ${
+                  pendingVisibilityChange
+                    ? "bg-primary text-on-primary hover:bg-primary-container"
+                    : "bg-error text-on-error hover:brightness-95"
+                }`}
+              >
+                {togglingVisibility ? (
+                  <span className="loading loading-spinner loading-sm" />
+                ) : pendingVisibilityChange ? (
+                  "Reactivar"
+                ) : (
+                  "Pausar"
+                )}
+              </button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setPendingVisibilityChange(null)} />
+        </dialog>
+      )}
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
