@@ -47,7 +47,6 @@ const navItems = [
     filled: true,
   },
 
-  { to: "/settings", icon: <MdOutlineSettings />, label: "Ajustes" },
 ];
 
 const GrocerSideNavBar = ({ open, onClose }) => {
