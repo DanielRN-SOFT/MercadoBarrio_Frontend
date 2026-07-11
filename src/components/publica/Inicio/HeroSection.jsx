@@ -9,6 +9,7 @@ const HeroSection = () => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   const navigate = useNavigate();
   const debounceRef = useRef(null);
@@ -87,10 +88,20 @@ const HeroSection = () => {
     <div className="relative w-full min-h-105 md:min-h-150 flex items-center justify-center">
       {/* Capa de fondo: imagen + overlay, recortada aparte */}
       <div className="absolute inset-0 overflow-hidden">
+        {/* Spinner mientras la imagen no ha cargado */}
+        {!imgLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-base-200">
+            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+
         <img
           src="/images/hero.jpg"
           alt="Tu mercado local"
-          className="absolute inset-0 w-full h-full object-cover"
+          onLoad={() => setImgLoaded(true)}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+            imgLoaded ? "opacity-100" : "opacity-0"
+          }`}
         />
         <div className="absolute inset-0 bg-black/60" />
       </div>
