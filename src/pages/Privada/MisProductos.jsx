@@ -1,17 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  MdOutlineInventory2,
-  MdAdd,
-  MdEdit,
-  MdRestoreFromTrash,
-  MdOutlineFilterAlt,
-} from "react-icons/md";
+import { MdOutlineInventory2, MdAdd, MdEdit, MdRestoreFromTrash, MdOutlineFilterAlt, MdHistory } from "react-icons/md";
 import { IoCloseCircle, IoSearchSharp, IoCloseSharp } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Paginacion from "../../components/ui/Paginacion";
+import ProductoTimelineModal from "../../components/ui/ProductoTimelineModal";
 
 // Iniciales para el avatar del producto cuando no hay imagen
 const getInitials = (str = "") =>
@@ -31,11 +26,7 @@ const getPhotoUrl = (photo) => {
 };
 
 // Avatar/foto del producto con fallback a iniciales si no hay foto o falla la carga
-const ProductAvatar = ({
-  product,
-  size = "w-10 h-10",
-  textSize = "text-label-sm",
-}) => {
+const ProductAvatar = ({ product, size = "w-10 h-10", textSize = "text-label-sm" }) => {
   const [imgError, setImgError] = useState(false);
   const photoUrl = getPhotoUrl(product.photo);
 
@@ -56,13 +47,9 @@ const ProductAvatar = ({
   }
 
   return (
-    <div
-      className={`${size} rounded-xl bg-primary flex items-center justify-center shrink-0`}
-    >
+    <div className={`${size} rounded-xl bg-primary flex items-center justify-center shrink-0`}>
       <span className={`${textSize} font-bold text-on-primary`}>
-        {getInitials(product.name) || (
-          <MdOutlineInventory2 className="text-on-primary text-lg" />
-        )}
+        {getInitials(product.name) || <MdOutlineInventory2 className="text-on-primary text-lg" />}
       </span>
     </div>
   );
@@ -77,6 +64,7 @@ const MisProductos = () => {
   const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
   const [confirmId, setConfirmId] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [timelineProduct, setTimelineProduct] = useState(null); // RF-46
 
   // Filtros
   const [name, setName] = useState("");
@@ -178,12 +166,7 @@ const MisProductos = () => {
               </h1>
               <p className="text-body-sm sm:text-body-md text-secondary">
                 Gestiona el catálogo de tu establecimiento
-                {meta.total > 0 && (
-                  <span className="text-on-surface-variant">
-                    {" "}
-                    · {meta.total} en total
-                  </span>
-                )}
+                {meta.total > 0 && <span className="text-on-surface-variant"> · {meta.total} en total</span>}
               </p>
             </div>
           </div>
@@ -201,9 +184,7 @@ const MisProductos = () => {
           <div className="card-body p-4 sm:p-5 gap-3">
             <div className="flex items-center gap-2 text-secondary">
               <MdOutlineFilterAlt className="text-base" />
-              <span className="text-label-sm uppercase tracking-wide font-semibold">
-                Filtros
-              </span>
+              <span className="text-label-sm uppercase tracking-wide font-semibold">Filtros</span>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -218,10 +199,7 @@ const MisProductos = () => {
                   className="grow bg-transparent min-w-0"
                 />
                 {name && (
-                  <button
-                    onClick={() => setName("")}
-                    className="btn btn-ghost btn-xs btn-circle shrink-0"
-                  >
+                  <button onClick={() => setName("")} className="btn btn-ghost btn-xs btn-circle shrink-0">
                     <IoCloseSharp />
                   </button>
                 )}
@@ -292,22 +270,13 @@ const MisProductos = () => {
               </div>
               {hasFilters ? (
                 <>
-                  <p className="font-semibold text-on-surface text-body-lg">
-                    Sin resultados
-                  </p>
-                  <p className="text-body-md mt-1">
-                    No encontramos productos con esos filtros. Intenta
-                    ajustarlos.
-                  </p>
+                  <p className="font-semibold text-on-surface text-body-lg">Sin resultados</p>
+                  <p className="text-body-md mt-1">No encontramos productos con esos filtros. Intenta ajustarlos.</p>
                 </>
               ) : (
                 <>
-                  <p className="font-semibold text-on-surface text-body-lg">
-                    Aún no tienes productos
-                  </p>
-                  <p className="text-body-md mt-1">
-                    Agrega tu primer producto para comenzar.
-                  </p>
+                  <p className="font-semibold text-on-surface text-body-lg">Aún no tienes productos</p>
+                  <p className="text-body-md mt-1">Agrega tu primer producto para comenzar.</p>
                   <Link
                     to="/panel/productos/nuevo"
                     className="btn bg-primary text-on-primary border-none rounded-full mt-6 font-label-md text-label-md hover:bg-primary-container"
@@ -323,24 +292,26 @@ const MisProductos = () => {
             {/* Vista de TARJETAS — móvil y tablet */}
             <div className="lg:hidden space-y-3">
               {products.map((p) => (
-                <div
-                  key={p.id}
-                  className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm"
-                >
+                <div key={p.id} className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
                   <div className="card-body p-4 gap-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <ProductAvatar product={p} size="w-11 h-11" />
                         <div className="min-w-0">
-                          <p className="font-semibold text-on-surface text-body-md truncate">
-                            {p.name}
-                          </p>
+                          <p className="font-semibold text-on-surface text-body-md truncate">{p.name}</p>
                           <span className="badge badge-ghost bg-surface-container-high border-none text-on-surface-variant badge-sm mt-1">
                             {p.productCategory?.name ?? "—"}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => setTimelineProduct(p)}
+                          className="btn btn-ghost btn-sm btn-circle hover:bg-primary-container/40"
+                          aria-label="Ver historial"
+                        >
+                          <MdHistory className="text-lg text-primary" />
+                        </button>
                         <Link
                           to={`/panel/productos/${p.id}/editar`}
                           className="btn btn-ghost btn-sm btn-circle hover:bg-secondary-container/60"
@@ -370,9 +341,7 @@ const MisProductos = () => {
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-outline-variant/50">
-                      <span className="text-primary font-bold text-body-md">
-                        ${Number(p.price).toLocaleString("es-CO")}
-                      </span>
+                      <span className="text-primary font-bold text-body-md">${Number(p.price).toLocaleString("es-CO")}</span>
 
                       <span
                         className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
@@ -383,9 +352,7 @@ const MisProductos = () => {
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${
-                            p.currentStock <= p.lowStockThreshold
-                              ? "bg-tertiary-container"
-                              : "bg-primary"
+                            p.currentStock <= p.lowStockThreshold ? "bg-tertiary-container" : "bg-primary"
                           }`}
                         />
                         {p.currentStock} uds
@@ -398,11 +365,7 @@ const MisProductos = () => {
                             : "bg-surface-container-high text-secondary"
                         }`}
                       >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            p.status === "Active" ? "bg-primary" : "bg-outline"
-                          }`}
-                        />
+                        <span className={`w-1.5 h-1.5 rounded-full ${p.status === "Active" ? "bg-primary" : "bg-outline"}`} />
                         {p.status === "Active" ? "Activo" : "Inactivo"}
                       </span>
                     </div>
@@ -421,18 +384,10 @@ const MisProductos = () => {
                         <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 first:rounded-tl-2xl">
                           Producto
                         </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Categoría
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Precio
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Stock
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Estado
-                        </th>
+                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Categoría</th>
+                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Precio</th>
+                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Stock</th>
+                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Estado</th>
                         <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 text-right last:rounded-tr-2xl">
                           Acciones
                         </th>
@@ -440,16 +395,11 @@ const MisProductos = () => {
                     </thead>
                     <tbody className="divide-y divide-outline-variant/60">
                       {products.map((p) => (
-                        <tr
-                          key={p.id}
-                          className="hover:bg-surface-container-low transition-colors"
-                        >
+                        <tr key={p.id} className="hover:bg-surface-container-low transition-colors">
                           <td>
                             <div className="flex items-center gap-3">
                               <ProductAvatar product={p} size="w-10 h-10" />
-                              <span className="font-semibold text-on-surface text-body-md">
-                                {p.name}
-                              </span>
+                              <span className="font-semibold text-on-surface text-body-md">{p.name}</span>
                             </div>
                           </td>
                           <td>
@@ -457,9 +407,7 @@ const MisProductos = () => {
                               {p.productCategory?.name ?? "—"}
                             </span>
                           </td>
-                          <td className="text-primary font-bold text-body-md">
-                            ${Number(p.price).toLocaleString("es-CO")}
-                          </td>
+                          <td className="text-primary font-bold text-body-md">${Number(p.price).toLocaleString("es-CO")}</td>
                           <td>
                             <span
                               className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
@@ -470,9 +418,7 @@ const MisProductos = () => {
                             >
                               <span
                                 className={`w-1.5 h-1.5 rounded-full ${
-                                  p.currentStock <= p.lowStockThreshold
-                                    ? "bg-tertiary-container"
-                                    : "bg-primary"
+                                  p.currentStock <= p.lowStockThreshold ? "bg-tertiary-container" : "bg-primary"
                                 }`}
                               />
                               {p.currentStock} uds
@@ -486,18 +432,19 @@ const MisProductos = () => {
                                   : "bg-surface-container-high text-secondary"
                               }`}
                             >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  p.status === "Active"
-                                    ? "bg-primary"
-                                    : "bg-outline"
-                                }`}
-                              />
+                              <span className={`w-1.5 h-1.5 rounded-full ${p.status === "Active" ? "bg-primary" : "bg-outline"}`} />
                               {p.status === "Active" ? "Activo" : "Inactivo"}
                             </span>
                           </td>
                           <td className="text-right">
                             <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => setTimelineProduct(p)}
+                                className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-primary-container/40"
+                                data-tip="Ver historial"
+                              >
+                                <MdHistory className="text-lg text-primary" />
+                              </button>
                               <Link
                                 to={`/panel/productos/${p.id}/editar`}
                                 className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
@@ -536,11 +483,7 @@ const MisProductos = () => {
         )}
 
         {/* Paginación */}
-        <Paginacion
-          meta={meta}
-          onPageChange={(nuevaPagina) => setPage(nuevaPagina)}
-          itemLabel="productos"
-        />
+        <Paginacion meta={meta} onPageChange={(nuevaPagina) => setPage(nuevaPagina)} itemLabel="productos" />
       </div>
 
       {/* Modal confirmación desactivar */}
@@ -550,18 +493,12 @@ const MisProductos = () => {
             <div className="w-11 h-11 rounded-2xl bg-error-container flex items-center justify-center mb-3">
               <IoCloseCircle className="text-xl text-on-error-container" />
             </div>
-            <h3 className="font-bold text-title-md text-on-surface">
-              ¿Desactivar producto?
-            </h3>
+            <h3 className="font-bold text-title-md text-on-surface">¿Desactivar producto?</h3>
             <p className="text-body-md text-secondary mt-2">
-              El producto dejará de ser visible en el catálogo público. Puedes
-              reactivarlo en cualquier momento.
+              El producto dejará de ser visible en el catálogo público. Puedes reactivarlo en cualquier momento.
             </p>
             <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
-              <button
-                onClick={() => setConfirmId(null)}
-                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
-              >
+              <button onClick={() => setConfirmId(null)} className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto">
                 Cancelar
               </button>
               <button
@@ -569,17 +506,15 @@ const MisProductos = () => {
                 disabled={actionLoading}
                 className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto"
               >
-                {actionLoading ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : (
-                  "Desactivar"
-                )}
+                {actionLoading ? <span className="loading loading-spinner loading-sm" /> : "Desactivar"}
               </button>
             </div>
           </div>
           <div className="modal-backdrop" onClick={() => setConfirmId(null)} />
         </dialog>
       )}
+
+      <ProductoTimelineModal product={timelineProduct} onClose={() => setTimelineProduct(null)} />
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>

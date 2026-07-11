@@ -687,7 +687,7 @@ const MisVentas = () => {
                     {(detailSale.details ?? []).length} producto
                     {(detailSale.details ?? []).length === 1 ? "" : "s"}
                   </p>
-                  <div className="space-y-2 max-h-[22rem] overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-88 overflow-y-auto pr-1">
                     {(detailSale.details ?? []).map((d) => (
                       <div
                         key={d.id}
