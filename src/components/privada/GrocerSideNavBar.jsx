@@ -4,6 +4,7 @@ import { IoStorefrontSharp } from "react-icons/io5";
 import {
   MdClose,
   MdOutlineDashboard,
+  MdOutlineInventory,
   MdOutlineInventory2,
   MdOutlinePayments,
   MdOutlineSchedule,
@@ -30,7 +31,7 @@ const navItems = [
   },
   {
     to: "/panel/inventario",
-    icon: <MdOutlineInventory2 />,
+    icon: <MdOutlineInventory />,
     label: "Inventario",
     filled: true,
   },

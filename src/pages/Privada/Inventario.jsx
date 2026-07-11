@@ -6,6 +6,7 @@ import {
   MdOutlineRemoveShoppingCart,
   MdCheckCircleOutline,
   MdTune,
+  MdOutlineInventory,
 } from "react-icons/md";
 import { IoCloseSharp } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
@@ -185,7 +186,7 @@ const Inventario = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-sm shadow-primary/20">
-              <MdOutlineInventory2 className="text-lg sm:text-xl text-on-primary" />
+              <MdOutlineInventory className="text-lg sm:text-xl text-on-primary" />
             </div>
             <div className="min-w-0">
               <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">
