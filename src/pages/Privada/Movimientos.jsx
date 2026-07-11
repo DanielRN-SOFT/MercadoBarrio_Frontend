@@ -249,7 +249,8 @@ const Movimientos = () => {
   };
 
   const changeQuantity = (productId, value) => {
-    const qty = Math.max(1, parseInt(value) || 1);
+    // Permite que el input quede vacío temporalmente para que el usuario pueda borrar sin que le auto-escriba un '1'
+    const qty = value === "" ? "" : Math.max(1, parseInt(value, 10) || 1);
     setCart((prev) => prev.map((i) => (i.productId === productId ? { ...i, quantity: qty } : i)));
   };
 
@@ -271,6 +272,15 @@ const Movimientos = () => {
     if (cart.length === 0) {
       addToast({
         message: "Agrega al menos un producto al movimiento",
+        type: "error",
+      });
+      return;
+    }
+
+    const hasInvalidQuantity = cart.some((item) => item.quantity === "" || item.quantity <= 0);
+    if (hasInvalidQuantity) {
+      addToast({
+        message: "Por favor, ingresa una cantidad válida para todos los productos.",
         type: "error",
       });
       return;
