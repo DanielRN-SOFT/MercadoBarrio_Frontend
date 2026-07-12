@@ -82,7 +82,7 @@ const AuthLayout = () => {
 
             <div className="card-body gap-6 p-8 pt-11">
               <div className="flex flex-col items-center gap-3 text-center">
-                <h1 className="font-headline-lg text-headline-lg text-primary bg-clip-text tracking-tight">
+                <h1 className="font-headline-lg text-headline-lg text-primary bg-clip-text text-transparent tracking-tight">
                   MercadoBarrio
                 </h1>
                 <p className="font-body-md text-body-md text-on-surface-variant max-w-70">
