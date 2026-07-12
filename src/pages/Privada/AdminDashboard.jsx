@@ -26,6 +26,8 @@ import {
   FiArrowUpRight,
 } from "react-icons/fi";
 import { IoStorefrontSharp } from "react-icons/io5";
+import Card from "../../components/ui/Card";
+import StatusBadge from "../../components/ui/StatusBadge";
 
 const COLORS = [
   "#2a78d6",
@@ -65,16 +67,16 @@ const StatCard = ({
   sub,
   color = "text-primary",
 }) => (
-  <div className="bg-base-100 rounded-2xl border border-base-200 p-5 flex gap-4 items-start">
-    <div className={`p-3 rounded-xl bg-base-200 ${color}`}>
+  <Card bodyClassName="p-5 flex gap-4 items-start">
+    <div className={`p-3 rounded-xl bg-surface-container-low ${color}`}>
       <Icon size={20} />
     </div>
     <div>
-      <p className="text-on-surface/50 text-sm">{label}</p>
+      <p className="text-secondary text-sm">{label}</p>
       <p className="text-2xl font-bold text-on-surface">{value}</p>
-      {sub && <p className="text-xs text-on-surface/40 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-on-surface-variant mt-0.5">{sub}</p>}
     </div>
-  </div>
+  </Card>
 );
 
 const SectionTitle = ({ children }) => (
@@ -181,7 +183,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Ventas diarias */}
-      <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+      <Card bodyClassName="p-5">
         <SectionTitle>Ventas últimos 30 días</SectionTitle>
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={charts.dailySales}>
@@ -226,11 +228,11 @@ const AdminDashboard = () => {
             />
           </LineChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
       {/* Fila: Top tiendas + Movimientos por tipo */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Top tiendas por ingreso (este mes)</SectionTitle>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={charts.topStoresByRevenue} layout="vertical">
@@ -254,9 +256,9 @@ const AdminDashboard = () => {
               <Bar dataKey="revenue" fill="#2a78d6" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
 
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Movimientos por tipo (este mes)</SectionTitle>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -284,12 +286,12 @@ const AdminDashboard = () => {
               />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       </div>
 
       {/* Fila: Usuarios por rol + Tiendas por estado */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Usuarios por rol</SectionTitle>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={charts.usersByRole}>
@@ -300,9 +302,9 @@ const AdminDashboard = () => {
               <Bar dataKey="value" fill="#4a3aa7" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
 
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Tiendas por estado</SectionTitle>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -329,12 +331,12 @@ const AdminDashboard = () => {
               />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       </div>
 
       {/* Actividad reciente */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Ventas recientes</SectionTitle>
           <div className="space-y-3">
             {data.recentActivity.sales.map((s) => (
@@ -344,7 +346,7 @@ const AdminDashboard = () => {
               >
                 <div>
                   <p className="font-medium text-on-surface">{s.store?.name}</p>
-                  <p className="text-on-surface/40 text-xs">
+                  <p className="text-on-surface-variant text-xs">
                     {s.user?.name} ·{" "}
                     {new Date(s.date).toLocaleDateString("es-CO")}
                   </p>
@@ -355,9 +357,9 @@ const AdminDashboard = () => {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Movimientos recientes</SectionTitle>
           <div className="space-y-3">
             {data.recentActivity.movements.map((m) => (
@@ -367,20 +369,19 @@ const AdminDashboard = () => {
               >
                 <div>
                   <p className="font-medium text-on-surface">{m.store?.name}</p>
-                  <p className="text-on-surface/40 text-xs">
+                  <p className="text-on-surface-variant text-xs">
                     {m.user?.name} · {MOVEMENT_TYPE_LABEL[m.type] ?? m.type} ·{" "}
                     {new Date(m.date).toLocaleDateString("es-CO")}
                   </p>
                 </div>
-                <span
-                  className={`badge badge-sm ${m.type === "Entry" ? "badge-success" : "badge-warning"}`}
-                >
-                  {MOVEMENT_TYPE_LABEL[m.type] ?? m.type}
-                </span>
+                <StatusBadge
+                  label={MOVEMENT_TYPE_LABEL[m.type] ?? m.type}
+                  tone={m.type === "Entry" ? "primary" : "error"}
+                />
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

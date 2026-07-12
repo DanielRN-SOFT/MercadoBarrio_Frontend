@@ -8,42 +8,13 @@ import {
   MdArrowBack,
   MdPointOfSale,
 } from "react-icons/md";
-import { IoSearchSharp, IoCloseSharp } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
-import Paginacion from "../../components/ui/Paginacion"; // 👈 ajusta la ruta si es distinta
-
-const getInitials = (str = "") =>
-  str
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("");
-
-const ProductAvatar = ({ product }) => {
-  const [imgError, setImgError] = useState(false);
-  if (product.photo && !imgError) {
-    return (
-      <img
-        src={product.photo}
-        alt={product.name}
-        onError={() => setImgError(true)}
-        className="w-10 h-10 rounded-xl object-cover shrink-0 border border-outline-variant/50"
-      />
-    );
-  }
-  return (
-    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0">
-      <span className="text-label-sm font-bold text-on-primary">
-        {getInitials(product.name) || (
-          <MdOutlineInventory2 className="text-on-primary text-lg" />
-        )}
-      </span>
-    </div>
-  );
-};
+import Paginacion from "../../components/ui/Paginacion";
+import Avatar from "../../components/ui/Avatar";
+import SearchInput from "../../components/ui/SearchInput";
+import Card from "../../components/ui/Card";
 
 const formatCOP = (n) => `$${Number(n ?? 0).toLocaleString("es-CO")}`;
 
@@ -213,24 +184,11 @@ const RegistrarVenta = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
           {/* Buscador y catálogo */}
           <div className="lg:col-span-3 space-y-3">
-            <label className="input input-bordered flex items-center gap-2 rounded-full bg-surface-container-low border-outline-variant focus-within:border-primary transition-colors">
-              <IoSearchSharp className="text-on-surface-variant text-lg shrink-0" />
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Buscar producto por nombre..."
-                className="grow bg-transparent min-w-0"
-              />
-              {name && (
-                <button
-                  onClick={() => setName("")}
-                  className="btn btn-ghost btn-xs btn-circle shrink-0"
-                >
-                  <IoCloseSharp />
-                </button>
-              )}
-            </label>
+            <SearchInput
+              value={name}
+              onChange={setName}
+              placeholder="Buscar producto por nombre..."
+            />
 
             <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
               <div className="card-body p-2 sm:p-3 gap-1 max-h-112 overflow-y-auto">
@@ -256,7 +214,12 @@ const RegistrarVenta = () => {
                       disabled={p.currentStock <= 0}
                       className="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors text-left disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      <ProductAvatar product={p} />
+                      <Avatar
+                        text={p.name}
+                        photo={p.photo}
+                        icon={MdOutlineInventory2}
+                        size="w-10 h-10"
+                      />
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-on-surface text-body-sm truncate">
                           {p.name}
@@ -288,85 +251,83 @@ const RegistrarVenta = () => {
 
           {/* Carrito */}
           <div className="lg:col-span-2">
-            <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm sticky top-4">
-              <div className="card-body p-4 sm:p-5 gap-3">
-                <h2 className="font-semibold text-on-surface text-body-lg">
-                  Detalle de la venta
-                </h2>
+            <Card className="sticky top-4" bodyClassName="p-4 sm:p-5 gap-3">
+              <h2 className="font-semibold text-on-surface text-body-lg">
+                Detalle de la venta
+              </h2>
 
-                {cart.length === 0 ? (
-                  <p className="text-body-sm text-secondary py-6 text-center">
-                    Aún no has agregado productos
-                  </p>
-                ) : (
-                  <div className="divide-y divide-outline-variant/50 max-h-96 overflow-y-auto pr-1">
-                    {cart.map((i) => (
-                      <div
-                        key={i.productId}
-                        className="py-3 flex items-center gap-3"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-on-surface text-body-sm truncate">
-                            {i.name}
-                          </p>
-                          <p className="text-label-sm text-on-surface-variant">
-                            {formatCOP(i.price)} c/u
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            onClick={() => changeQuantity(i.productId, -1)}
-                            className="btn btn-ghost btn-xs btn-circle bg-surface-container-high"
-                          >
-                            <MdRemove className="text-sm" />
-                          </button>
-                          <span className="w-6 text-center font-medium text-body-sm">
-                            {i.quantity}
-                          </span>
-                          <button
-                            onClick={() => changeQuantity(i.productId, 1)}
-                            className="btn btn-ghost btn-xs btn-circle bg-surface-container-high"
-                          >
-                            <MdAdd className="text-sm" />
-                          </button>
-                        </div>
-                        <span className="font-semibold text-on-surface text-body-sm w-20 text-right shrink-0">
-                          {formatCOP(i.price * i.quantity)}
+              {cart.length === 0 ? (
+                <p className="text-body-sm text-secondary py-6 text-center">
+                  Aún no has agregado productos
+                </p>
+              ) : (
+                <div className="divide-y divide-outline-variant/50 max-h-96 overflow-y-auto pr-1">
+                  {cart.map((i) => (
+                    <div
+                      key={i.productId}
+                      className="py-3 flex items-center gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-on-surface text-body-sm truncate">
+                          {i.name}
+                        </p>
+                        <p className="text-label-sm text-on-surface-variant">
+                          {formatCOP(i.price)} c/u
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => changeQuantity(i.productId, -1)}
+                          className="btn btn-ghost btn-xs btn-circle bg-surface-container-high"
+                        >
+                          <MdRemove className="text-sm" />
+                        </button>
+                        <span className="w-6 text-center font-medium text-body-sm">
+                          {i.quantity}
                         </span>
                         <button
-                          onClick={() => removeFromCart(i.productId)}
-                          className="btn btn-ghost btn-xs btn-circle text-error shrink-0"
-                          aria-label="Quitar"
+                          onClick={() => changeQuantity(i.productId, 1)}
+                          className="btn btn-ghost btn-xs btn-circle bg-surface-container-high"
                         >
-                          <MdDeleteOutline className="text-base" />
+                          <MdAdd className="text-sm" />
                         </button>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-3 border-t border-outline-variant/50">
-                  <span className="font-semibold text-on-surface text-body-lg">
-                    Total
-                  </span>
-                  <span className="font-bold text-primary text-title-lg">
-                    {formatCOP(total)}
-                  </span>
+                      <span className="font-semibold text-on-surface text-body-sm w-20 text-right shrink-0">
+                        {formatCOP(i.price * i.quantity)}
+                      </span>
+                      <button
+                        onClick={() => removeFromCart(i.productId)}
+                        className="btn btn-ghost btn-xs btn-circle text-error shrink-0"
+                        aria-label="Quitar"
+                      >
+                        <MdDeleteOutline className="text-base" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
+              )}
 
-                <button
-                  onClick={handleSubmit}
-                  disabled={submitting || cart.length === 0}
-                  className="btn bg-primary text-on-primary border-none hover:bg-primary-container rounded-full font-label-md text-label-md w-full mt-2 disabled:opacity-40"
-                >
-                  {submitting ? (
-                    <span className="loading loading-spinner loading-sm" />
-                  ) : (
-                    "Confirmar venta"
-                  )}
-                </button>
+              <div className="flex items-center justify-between pt-3 border-t border-outline-variant/50">
+                <span className="font-semibold text-on-surface text-body-lg">
+                  Total
+                </span>
+                <span className="font-bold text-primary text-title-lg">
+                  {formatCOP(total)}
+                </span>
               </div>
-            </div>
+
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || cart.length === 0}
+                className="btn bg-primary text-on-primary border-none hover:bg-primary-container rounded-full font-label-md text-label-md w-full mt-2 disabled:opacity-40"
+              >
+                {submitting ? (
+                  <span className="loading loading-spinner loading-sm" />
+                ) : (
+                  "Confirmar venta"
+                )}
+              </button>
+            </Card>
           </div>
         </div>
       </div>

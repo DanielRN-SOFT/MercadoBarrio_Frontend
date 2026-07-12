@@ -2,18 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   MdArrowBack,
-  MdAddAPhoto,
   MdOutlineInfo,
   MdCheckCircle,
   MdSave,
-  MdBrokenImage,
-  MdClose,
 } from "react-icons/md";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Input from "../../components/ui/Input";
 import Label from "../../components/ui/Label";
+import Card from "../../components/ui/Card";
+import PhotoUpload from "../../components/ui/PhotoUpload";
 
 const INITIAL_FORM = {
   name: "",
@@ -184,258 +183,209 @@ const ProductoForm = () => {
         >
           {/* Columna izquierda: campos del formulario */}
           <div className="lg:col-span-7 space-y-5 sm:space-y-6">
-            <div className="card bg-surface-container-low border border-outline-variant rounded-2xl shadow-sm">
-              <div className="card-body gap-5 p-4 sm:p-6">
-                {/* Nombre */}
+            <Card
+              className="bg-surface-container-low"
+              bodyClassName="gap-5 p-4 sm:p-6"
+            >
+              {/* Nombre */}
+              <div className="form-control w-full">
+                <Label label="Nombre del producto *" />
+                <Input
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="Ej: Arroz Diana x 500g"
+                  type="text"
+                />
+              </div>
+
+              {/* Categoría + Código de referencia */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="form-control w-full">
-                  <Label label="Nombre del producto *" />
-                  <Input
-                    name="name"
-                    value={form.name}
+                  <Label label="Categoría *" />
+                  <select
+                    name="productCategoryId"
+                    value={form.productCategoryId}
                     onChange={handleChange}
-                    placeholder="Ej: Arroz Diana x 500g"
+                    className="select select-bordered border-outline-variant bg-surface focus:border-primary w-full font-body-md text-body-md rounded-full"
+                    required
+                  >
+                    <option value="">Selecciona una categoría</option>
+                    {categorias.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-control w-full">
+                  <Label label="Código de referencia (opcional)" />
+                  <Input
+                    name="referenceCode"
+                    value={form.referenceCode}
+                    onChange={handleChange}
+                    placeholder="Ej: ARR-001"
                     type="text"
                   />
                 </div>
+              </div>
 
-                {/* Categoría + Código de referencia */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="form-control w-full">
-                    <Label label="Categoría *" />
-                    <select
-                      name="productCategoryId"
-                      value={form.productCategoryId}
-                      onChange={handleChange}
-                      className="select select-bordered border-outline-variant bg-surface focus:border-primary w-full font-body-md text-body-md rounded-full"
-                      required
-                    >
-                      <option value="">Selecciona una categoría</option>
-                      {categorias.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-control w-full">
-                    <Label label="Código de referencia (opcional)" />
-                    <Input
-                      name="referenceCode"
-                      value={form.referenceCode}
-                      onChange={handleChange}
-                      placeholder="Ej: ARR-001"
-                      type="text"
-                    />
-                  </div>
-                </div>
-
-                {/* Precio, Unidad y Stock */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="form-control w-full">
-                    <Label label="Precio *" />
-                    <Input
-                      name="price"
-                      value={form.price}
-                      onChange={handleChange}
-                      placeholder="Ej: 2500"
-                      type="number"
-                    />
-                  </div>
-                  <div className="form-control w-full">
-                    <Label label="Unidad de medida *" />
-                    <select
-                      name="unitOfMeasureId"
-                      value={form.unitOfMeasureId}
-                      onChange={handleChange}
-                      className="select select-bordered border-outline-variant bg-surface focus:border-primary w-full font-body-md text-body-md rounded-full"
-                      required
-                    >
-                      <option value="">Selecciona unidad</option>
-                      {unidades.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-control w-full">
-                    <Label
-                      label={isEditing ? "Stock actual" : "Stock inicial *"}
-                    />
-                    <Input
-                      name="currentStock"
-                      value={form.currentStock}
-                      onChange={handleChange}
-                      placeholder="Ej: 20"
-                      type="number"
-                      disabled={isEditing}
-                    />
-                  </div>
-                </div>
-                {isEditing && (
-                  <p className="text-label-sm text-secondary -mt-3 px-1">
-                    El stock se actualiza con tus ventas y movimientos de
-                    inventario, no desde aquí.
-                  </p>
-                )}
-
-                {/* Alerta de stock bajo */}
-                <div className="form-control w-full sm:w-1/2">
-                  <Label label="Alerta de stock bajo" />
+              {/* Precio, Unidad y Stock */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="form-control w-full">
+                  <Label label="Precio *" />
                   <Input
-                    name="lowStockThreshold"
-                    value={form.lowStockThreshold}
+                    name="price"
+                    value={form.price}
                     onChange={handleChange}
-                    placeholder="Ej: 5"
+                    placeholder="Ej: 2500"
                     type="number"
                   />
-                  <p className="text-label-sm text-secondary mt-1 px-1">
-                    Se mostrará alerta cuando el stock baje de este valor.
-                  </p>
                 </div>
-
-                {/* Descripción */}
                 <div className="form-control w-full">
-                  <div className="flex justify-between items-end mb-1">
-                    <Label label="Descripción (opcional)" className="mb-0" />
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">
-                      {form.description.length}/{DESCRIPTION_MAX}
-                    </span>
-                  </div>
-                  <textarea
-                    name="description"
-                    value={form.description}
+                  <Label label="Unidad de medida *" />
+                  <select
+                    name="unitOfMeasureId"
+                    value={form.unitOfMeasureId}
                     onChange={handleChange}
-                    maxLength={DESCRIPTION_MAX}
-                    placeholder="Describe brevemente el producto..."
-                    className="textarea textarea-bordered border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary w-full font-body-md text-body-md rounded-2xl resize-none h-28"
+                    className="select select-bordered border-outline-variant bg-surface focus:border-primary w-full font-body-md text-body-md rounded-full"
+                    required
+                  >
+                    <option value="">Selecciona unidad</option>
+                    {unidades.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-control w-full">
+                  <Label
+                    label={isEditing ? "Stock actual" : "Stock inicial *"}
+                  />
+                  <Input
+                    name="currentStock"
+                    value={form.currentStock}
+                    onChange={handleChange}
+                    placeholder="Ej: 20"
+                    type="number"
+                    disabled={isEditing}
                   />
                 </div>
               </div>
-            </div>
+              {isEditing && (
+                <p className="text-label-sm text-secondary -mt-3 px-1">
+                  El stock se actualiza con tus ventas y movimientos de
+                  inventario, no desde aquí.
+                </p>
+              )}
+
+              {/* Alerta de stock bajo */}
+              <div className="form-control w-full sm:w-1/2">
+                <Label label="Alerta de stock bajo" />
+                <Input
+                  name="lowStockThreshold"
+                  value={form.lowStockThreshold}
+                  onChange={handleChange}
+                  placeholder="Ej: 5"
+                  type="number"
+                />
+                <p className="text-label-sm text-secondary mt-1 px-1">
+                  Se mostrará alerta cuando el stock baje de este valor.
+                </p>
+              </div>
+
+              {/* Descripción */}
+              <div className="form-control w-full">
+                <div className="flex justify-between items-end mb-1">
+                  <Label label="Descripción (opcional)" className="mb-0" />
+                  <span className="font-label-sm text-label-sm text-on-surface-variant">
+                    {form.description.length}/{DESCRIPTION_MAX}
+                  </span>
+                </div>
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  maxLength={DESCRIPTION_MAX}
+                  placeholder="Describe brevemente el producto..."
+                  className="textarea textarea-bordered border-outline-variant bg-surface focus:border-primary focus:ring-1 focus:ring-primary w-full font-body-md text-body-md rounded-2xl resize-none h-28"
+                />
+              </div>
+            </Card>
           </div>
 
           {/* Columna derecha: imagen, specs y acciones */}
           <div className="lg:col-span-5">
-            <div className="card bg-surface-container-low border border-outline-variant rounded-2xl shadow-sm lg:sticky lg:top-4">
-              <div className="card-body p-4 sm:p-6 gap-5 flex flex-col h-full">
-                <Label label="Imagen del producto" />
+            <Card
+              className="bg-surface-container-low lg:sticky lg:top-4"
+              bodyClassName="p-4 sm:p-6 gap-5 flex flex-col h-full"
+            >
+              <Label label="Imagen del producto" />
 
-                {/* Zona de imagen / vista previa */}
-                <div className="relative rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-center bg-surface-container-lowest min-h-40 overflow-hidden">
-                  {previewUrl && !photoError ? (
-                    <>
-                      <img
-                        src={previewUrl}
-                        alt="Vista previa"
-                        className="min-h-40 object-cover"
-                        onError={() => setPhotoError(true)}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleRemovePhoto}
-                        className="btn btn-circle btn-sm absolute top-2 right-2 bg-surface/90 hover:bg-error hover:text-on-error border-none shadow-sm"
-                        aria-label="Quitar imagen"
-                      >
-                        <MdClose className="text-base" />
-                      </button>
-                    </>
-                  ) : previewUrl && photoError ? (
-                    <div className="flex flex-col items-center gap-2 text-error p-8">
-                      <MdBrokenImage className="text-3xl" />
-                      <p className="font-label-md text-label-md">
-                        No se pudo cargar la imagen
-                      </p>
-                    </div>
-                  ) : (
-                    <label
-                      htmlFor="photo-upload"
-                      className="flex flex-col items-center p-8 cursor-pointer w-full h-full"
-                    >
-                      <div className="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center mb-4">
-                        <MdAddAPhoto className="text-primary text-3xl" />
-                      </div>
-                      <p className="font-label-md text-label-md text-on-surface mb-1">
-                        Aún no hay imagen
-                      </p>
-                      <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        Haz clic para subir una imagen
-                      </p>
-                    </label>
-                  )}
-                  <input
-                    id="photo-upload"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handlePhotoChange}
-                    className="hidden"
-                  />
-                </div>
+              <PhotoUpload
+                id="photo-upload"
+                previewUrl={previewUrl}
+                error={photoError}
+                onError={() => setPhotoError(true)}
+                onChange={handlePhotoChange}
+                onRemove={handleRemovePhoto}
+              />
 
-                {previewUrl && (
-                  <label
-                    htmlFor="photo-upload"
-                    className="btn btn-sm btn-outline w-full rounded-full cursor-pointer"
-                  >
-                    Cambiar imagen
-                  </label>
-                )}
-
-                {/* Especificaciones recomendadas */}
-                <div className="space-y-3">
-                  <h3 className="font-label-md text-label-md text-on-surface flex items-center gap-2">
-                    <MdOutlineInfo className="text-base text-secondary" />{" "}
-                    Especificaciones recomendadas
-                  </h3>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2.5">
-                      <MdCheckCircle className="text-primary text-sm mt-0.5 shrink-0" />
-                      <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        Resolución mínima de 800x800 píxeles para mayor nitidez.
-                      </p>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <MdCheckCircle className="text-primary text-sm mt-0.5 shrink-0" />
-                      <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        Fondo claro o neutro para resaltar el producto en el
-                        catálogo.
-                      </p>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <MdCheckCircle className="text-primary text-sm mt-0.5 shrink-0" />
-                      <p className="font-label-sm text-label-sm text-on-surface-variant">
-                        Formatos permitidos: JPG, PNG o WEBP (máx. 5MB).
-                      </p>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Acciones */}
-                <div className="mt-auto pt-4 space-y-3">
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="btn bg-primary text-on-primary border-none w-full rounded-full font-label-md text-label-md h-12 hover:bg-primary-container shadow-sm shadow-primary/25 gap-2"
-                  >
-                    {saving ? (
-                      <span className="loading loading-spinner loading-sm" />
-                    ) : (
-                      <>
-                        <MdSave className="text-lg" />
-                        {isEditing ? "Guardar cambios" : "Publicar producto"}
-                      </>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/panel/productos")}
-                    className="btn btn-secondary w-full rounded-full font-label-md text-label-md h-12 text-on-secondary"
-                  >
-                    Cancelar y salir
-                  </button>
-                </div>
+              {/* Especificaciones recomendadas */}
+              <div className="space-y-3">
+                <h3 className="font-label-md text-label-md text-on-surface flex items-center gap-2">
+                  <MdOutlineInfo className="text-base text-secondary" />{" "}
+                  Especificaciones recomendadas
+                </h3>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2.5">
+                    <MdCheckCircle className="text-primary text-sm mt-0.5 shrink-0" />
+                    <p className="font-label-sm text-label-sm text-on-surface-variant">
+                      Resolución mínima de 800x800 píxeles para mayor nitidez.
+                    </p>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <MdCheckCircle className="text-primary text-sm mt-0.5 shrink-0" />
+                    <p className="font-label-sm text-label-sm text-on-surface-variant">
+                      Fondo claro o neutro para resaltar el producto en el
+                      catálogo.
+                    </p>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <MdCheckCircle className="text-primary text-sm mt-0.5 shrink-0" />
+                    <p className="font-label-sm text-label-sm text-on-surface-variant">
+                      Formatos permitidos: JPG, PNG o WEBP (máx. 5MB).
+                    </p>
+                  </li>
+                </ul>
               </div>
-            </div>
+
+              {/* Acciones */}
+              <div className="mt-auto pt-4 space-y-3">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="btn bg-primary text-on-primary border-none w-full rounded-full font-label-md text-label-md h-12 hover:bg-primary-container shadow-sm shadow-primary/25 gap-2"
+                >
+                  {saving ? (
+                    <span className="loading loading-spinner loading-sm" />
+                  ) : (
+                    <>
+                      <MdSave className="text-lg" />
+                      {isEditing ? "Guardar cambios" : "Publicar producto"}
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/panel/productos")}
+                  className="btn btn-secondary w-full rounded-full font-label-md text-label-md h-12 text-on-secondary"
+                >
+                  Cancelar y salir
+                </button>
+              </div>
+            </Card>
           </div>
         </form>
       </main>

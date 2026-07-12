@@ -11,11 +11,11 @@ import ToastContainer from "../../components/ui/ToastContainer";
 import useToast from "../../hooks/useToast";
 import useAuth from "../../hooks/useAuth";
 import fetchCliente from "../../config/fetchCliente";
+import Card from "../../components/ui/Card";
 
 const PerfilUsuario = () => {
   const { addToast, toasts, removeToast } = useToast();
   const { auth, setAuth } = useAuth();
-  console.log(auth);
 
   const [form, setForm] = useState({
     name: auth?.name || "",
@@ -105,7 +105,6 @@ const PerfilUsuario = () => {
     }
 
     setPasswordLoading(true);
-    console.log(passwordForm);
     try {
       await fetchCliente("/auth/profile", {
         method: "PUT",
@@ -153,223 +152,215 @@ const PerfilUsuario = () => {
         </div>
 
         {/* Tarjeta resumen */}
-        <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
-          <div className="card-body p-4 sm:p-5 flex-row items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center shrink-0">
-              <span className="text-title-lg font-bold text-on-primary-container">
-                {initials}
-              </span>
-            </div>
-            <div className="min-w-0">
-              <p className="font-semibold text-on-surface text-body-lg truncate">
-                {form.name || "Usuario"}
-              </p>
-              <p className="text-body-sm text-on-surface-variant truncate">
-                {form.email}
-              </p>
-            </div>
+        <Card bodyClassName="p-4 sm:p-5 flex-row items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center shrink-0">
+            <span className="text-title-lg font-bold text-on-primary-container">
+              {initials}
+            </span>
           </div>
-        </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-on-surface text-body-lg truncate">
+              {form.name || "Usuario"}
+            </p>
+            <p className="text-body-sm text-on-surface-variant truncate">
+              {form.email}
+            </p>
+          </div>
+        </Card>
 
         <div className="md:grid md:grid-cols-2 gap-10">
           {/* Formulario datos personales */}
-          <div className="card bg-surface-container-lowest border my-4 md:my-0 border-outline-variant/70 rounded-2xl shadow-sm">
-            <div className="card-body p-4 sm:p-6 gap-4">
-              <div className="flex items-center gap-2">
-                <MdEdit className="text-base text-secondary" />
-                <h2 className="font-bold text-title-md text-on-surface">
-                  Datos personales
-                </h2>
-              </div>
-
-              <form onSubmit={handleProfileSubmit} className="space-y-4 mt-1">
-                <div className="form-control">
-                  <label className="label pb-1">
-                    <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                      Nombre
-                    </span>
-                  </label>
-                  <div className="relative">
-                    <MdOutlinePersonOutline className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
-                    <input
-                      onChange={(e) =>
-                        setForm({ ...form, name: e.target.value })
-                      }
-                      value={form.name}
-                      type="text"
-                      placeholder="Tu nombre completo"
-                      className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full pl-10"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-control">
-                  <label className="label pb-1">
-                    <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                      Email
-                    </span>
-                  </label>
-                  <div className="relative">
-                    <MdEmail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
-                    <input
-                      onChange={(e) =>
-                        setForm({ ...form, email: e.target.value })
-                      }
-                      value={form.email}
-                      type="email"
-                      placeholder="tucorreo@ejemplo.com"
-                      className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full pl-10"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-control">
-                  <label className="label pb-1">
-                    <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                      Teléfono
-                    </span>
-                  </label>
-                  <div className="relative">
-                    <MdPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
-                    <input
-                      onChange={(e) =>
-                        setForm({ ...form, phone: e.target.value })
-                      }
-                      value={form.phone}
-                      type="tel"
-                      placeholder="3158905738"
-                      className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full pl-10"
-                    />
-                  </div>
-                </div>
-
-                {profileError && (
-                  <div className="alert bg-error-container border-none rounded-xl py-2.5">
-                    <span className="text-body-sm text-on-error-container">
-                      {profileError}
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex justify-end pt-2">
-                  <button
-                    type="submit"
-                    disabled={profileLoading}
-                    className="btn bg-primary text-on-primary border-none rounded-full font-label-md hover:bg-primary-container gap-2 w-full sm:w-auto"
-                  >
-                    {profileLoading ? (
-                      <span className="loading loading-spinner loading-sm" />
-                    ) : (
-                      <>
-                        <MdSave className="text-lg" />
-                        Guardar cambios
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
+          <Card className="my-4 md:my-0" bodyClassName="p-4 sm:p-6 gap-4">
+            <div className="flex items-center gap-2">
+              <MdEdit className="text-base text-secondary" />
+              <h2 className="font-bold text-title-md text-on-surface">
+                Datos personales
+              </h2>
             </div>
-          </div>
-          {/* Formulario cambio de contraseña */}
-          <div className="card bg-surface-container-lowest border my-4 md:my-0 border-outline-variant/70 rounded-2xl shadow-sm">
-            <div className="card-body p-4 sm:p-6 gap-4">
-              <div className="flex items-center gap-2">
-                <MdLock className="text-base text-secondary" />
-                <h2 className="font-bold text-title-md text-on-surface">
-                  Cambiar contraseña
-                </h2>
+
+            <form onSubmit={handleProfileSubmit} className="space-y-4 mt-1">
+              <div className="form-control">
+                <label className="label pb-1">
+                  <span className="label-text text-label-md font-semibold text-on-surface-variant">
+                    Nombre
+                  </span>
+                </label>
+                <div className="relative">
+                  <MdOutlinePersonOutline className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
+                  <input
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    value={form.name}
+                    type="text"
+                    placeholder="Tu nombre completo"
+                    className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full pl-10"
+                  />
+                </div>
               </div>
 
-              <form onSubmit={handlePasswordSubmit} className="space-y-4 mt-1">
+              <div className="form-control">
+                <label className="label pb-1">
+                  <span className="label-text text-label-md font-semibold text-on-surface-variant">
+                    Email
+                  </span>
+                </label>
+                <div className="relative">
+                  <MdEmail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
+                  <input
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                    value={form.email}
+                    type="email"
+                    placeholder="tucorreo@ejemplo.com"
+                    className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="form-control">
+                <label className="label pb-1">
+                  <span className="label-text text-label-md font-semibold text-on-surface-variant">
+                    Teléfono
+                  </span>
+                </label>
+                <div className="relative">
+                  <MdPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
+                  <input
+                    onChange={(e) =>
+                      setForm({ ...form, phone: e.target.value })
+                    }
+                    value={form.phone}
+                    type="tel"
+                    placeholder="3158905738"
+                    className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full pl-10"
+                  />
+                </div>
+              </div>
+
+              {profileError && (
+                <div className="alert bg-error-container border-none rounded-xl py-2.5">
+                  <span className="text-body-sm text-on-error-container">
+                    {profileError}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={profileLoading}
+                  className="btn bg-primary text-on-primary border-none rounded-full font-label-md hover:bg-primary-container gap-2 w-full sm:w-auto"
+                >
+                  {profileLoading ? (
+                    <span className="loading loading-spinner loading-sm" />
+                  ) : (
+                    <>
+                      <MdSave className="text-lg" />
+                      Guardar cambios
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </Card>
+          {/* Formulario cambio de contraseña */}
+          <Card className="my-4 md:my-0" bodyClassName="p-4 sm:p-6 gap-4">
+            <div className="flex items-center gap-2">
+              <MdLock className="text-base text-secondary" />
+              <h2 className="font-bold text-title-md text-on-surface">
+                Cambiar contraseña
+              </h2>
+            </div>
+
+            <form onSubmit={handlePasswordSubmit} className="space-y-4 mt-1">
+              <div className="form-control">
+                <label className="label pb-1">
+                  <span className="label-text text-label-md font-semibold text-on-surface-variant">
+                    Contraseña actual
+                  </span>
+                </label>
+                <input
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      password: e.target.value,
+                    })
+                  }
+                  value={passwordForm.password}
+                  type="password"
+                  placeholder="••••••••"
+                  className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
+                />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-5">
                 <div className="form-control">
                   <label className="label pb-1">
                     <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                      Contraseña actual
+                      Nueva contraseña
                     </span>
                   </label>
                   <input
                     onChange={(e) =>
                       setPasswordForm({
                         ...passwordForm,
-                        password: e.target.value,
+                        new_password: e.target.value,
                       })
                     }
-                    value={passwordForm.password}
+                    value={passwordForm.new_password}
                     type="password"
                     placeholder="••••••••"
                     className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
                   />
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="form-control">
-                    <label className="label pb-1">
-                      <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                        Nueva contraseña
-                      </span>
-                    </label>
-                    <input
-                      onChange={(e) =>
-                        setPasswordForm({
-                          ...passwordForm,
-                          new_password: e.target.value,
-                        })
-                      }
-                      value={passwordForm.new_password}
-                      type="password"
-                      placeholder="••••••••"
-                      className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
-                    />
-                  </div>
-
-                  <div className="form-control">
-                    <label className="label pb-1">
-                      <span className="label-text text-label-md font-semibold text-on-surface-variant">
-                        Confirmar contraseña
-                      </span>
-                    </label>
-                    <input
-                      onChange={(e) =>
-                        setPasswordForm({
-                          ...passwordForm,
-                          confirm_password: e.target.value,
-                        })
-                      }
-                      value={passwordForm.confirm_password}
-                      type="password"
-                      placeholder="••••••••"
-                      className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
-                    />
-                  </div>
-                </div>
-
-                {passwordError && (
-                  <div className="alert bg-error-container border-none rounded-xl py-2.5">
-                    <span className="text-body-sm text-on-error-container">
-                      {passwordError}
+                <div className="form-control">
+                  <label className="label pb-1">
+                    <span className="label-text text-label-md font-semibold text-on-surface-variant">
+                      Confirmar contraseña
                     </span>
-                  </div>
-                )}
-
-                <div className="flex justify-end pt-2">
-                  <button
-                    type="submit"
-                    disabled={passwordLoading}
-                    className="btn bg-primary text-on-primary border-none rounded-full font-label-md hover:bg-primary-container gap-2 w-full sm:w-auto"
-                  >
-                    {passwordLoading ? (
-                      <span className="loading loading-spinner loading-sm" />
-                    ) : (
-                      <>
-                        <MdLock className="text-lg" />
-                        Actualizar contraseña
-                      </>
-                    )}
-                  </button>
+                  </label>
+                  <input
+                    onChange={(e) =>
+                      setPasswordForm({
+                        ...passwordForm,
+                        confirm_password: e.target.value,
+                      })
+                    }
+                    value={passwordForm.confirm_password}
+                    type="password"
+                    placeholder="••••••••"
+                    className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-xl w-full"
+                  />
                 </div>
-              </form>
-            </div>
-          </div>
+              </div>
+
+              {passwordError && (
+                <div className="alert bg-error-container border-none rounded-xl py-2.5">
+                  <span className="text-body-sm text-on-error-container">
+                    {passwordError}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={passwordLoading}
+                  className="btn bg-primary text-on-primary border-none rounded-full font-label-md hover:bg-primary-container gap-2 w-full sm:w-auto"
+                >
+                  {passwordLoading ? (
+                    <span className="loading loading-spinner loading-sm" />
+                  ) : (
+                    <>
+                      <MdLock className="text-lg" />
+                      Actualizar contraseña
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </Card>
         </div>
       </div>
 

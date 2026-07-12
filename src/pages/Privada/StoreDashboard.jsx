@@ -23,6 +23,8 @@ import {
   FiAlertTriangle,
   FiShoppingCart,
 } from "react-icons/fi";
+import Card from "../../components/ui/Card";
+import StatusBadge from "../../components/ui/StatusBadge";
 
 const COLORS = ["#2a78d6", "#1baf7a", "#eda100", "#4a3aa7", "#e34948"];
 
@@ -40,6 +42,8 @@ const fmt = (n) =>
     maximumFractionDigits: 0,
   }).format(n);
 
+// Nota: se mantiene manual (no usa Card) porque necesita alternar el color
+// del borde según `highlight`, algo que Card no expone.
 const StatCard = ({
   icon: Icon,
   label,
@@ -49,15 +53,15 @@ const StatCard = ({
   highlight,
 }) => (
   <div
-    className={`bg-base-100 rounded-2xl border p-5 flex gap-4 items-start ${highlight ? "border-primary" : "border-base-200"}`}
+    className={`bg-surface-container-lowest rounded-2xl border p-5 flex gap-4 items-start ${highlight ? "border-primary" : "border-outline-variant/70"}`}
   >
-    <div className={`p-3 rounded-xl bg-base-200 ${color}`}>
+    <div className={`p-3 rounded-xl bg-surface-container-low ${color}`}>
       <Icon size={20} />
     </div>
     <div>
-      <p className="text-on-surface/50 text-sm">{label}</p>
+      <p className="text-secondary text-sm">{label}</p>
       <p className="text-2xl font-bold text-on-surface">{value}</p>
-      {sub && <p className="text-xs text-on-surface/40 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-on-surface-variant mt-0.5">{sub}</p>}
     </div>
   </div>
 );
@@ -102,7 +106,6 @@ const StoreDashboard = () => {
 
   return (
     <div className="p-4 md:p-6 space-y-8">
-
       {/* Stock */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard
@@ -157,9 +160,9 @@ const StoreDashboard = () => {
           sub={fmt(data.sales.revenueLastMonth)}
           color="text-primary"
         />
-        <div className="bg-base-100 rounded-2xl border border-base-200 p-5 flex gap-4 items-start">
+        <Card bodyClassName="p-5 flex gap-4 items-start">
           <div
-            className={`p-3 rounded-xl bg-base-200 ${variacionPositiva ? "text-emerald-500" : "text-red-500"}`}
+            className={`p-3 rounded-xl bg-surface-container-low ${variacionPositiva ? "text-emerald-500" : "text-red-500"}`}
           >
             {variacionPositiva ? (
               <FiArrowUp size={20} />
@@ -168,7 +171,7 @@ const StoreDashboard = () => {
             )}
           </div>
           <div>
-            <p className="text-on-surface/50 text-sm">Variación mensual</p>
+            <p className="text-secondary text-sm">Variación mensual</p>
             <p
               className={`text-2xl font-bold ${variacionPositiva ? "text-emerald-600" : "text-red-500"}`}
             >
@@ -176,13 +179,15 @@ const StoreDashboard = () => {
                 ? `${variacionPositiva ? "+" : ""}${variacion.toFixed(1)}%`
                 : "—"}
             </p>
-            <p className="text-xs text-on-surface/40 mt-0.5">vs mes anterior</p>
+            <p className="text-xs text-on-surface-variant mt-0.5">
+              vs mes anterior
+            </p>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Ventas diarias */}
-      <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+      <Card bodyClassName="p-5">
         <SectionTitle>Ventas últimos 30 días</SectionTitle>
         <div className="w-full overflow-x-auto">
           <div className="min-w-[320px]">
@@ -233,7 +238,7 @@ const StoreDashboard = () => {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="flex gap-4 mt-2 text-xs text-on-surface/50">
+        <div className="flex gap-4 mt-2 text-xs text-secondary">
           <span className="flex items-center gap-1">
             <span className="w-3 h-0.5 bg-blue-500 inline-block" /> Ventas
           </span>
@@ -241,11 +246,11 @@ const StoreDashboard = () => {
             <span className="w-3 h-0.5 bg-emerald-500 inline-block" /> Ingresos
           </span>
         </div>
-      </div>
+      </Card>
 
       {/* Ventas por día de semana + Movimientos */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Ventas por día de semana (este mes)</SectionTitle>
           <div className="w-full overflow-x-auto">
             <div className="min-w-70">
@@ -270,9 +275,9 @@ const StoreDashboard = () => {
               </ResponsiveContainer>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Movimientos por tipo (este mes)</SectionTitle>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -297,11 +302,11 @@ const StoreDashboard = () => {
               />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       </div>
 
       {/* Top productos */}
-      <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+      <Card bodyClassName="p-5">
         <SectionTitle>Productos más vendidos (este mes)</SectionTitle>
         <div className="w-full overflow-x-auto">
           <div className="min-w-75">
@@ -335,11 +340,12 @@ const StoreDashboard = () => {
             </ResponsiveContainer>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Alertas de stock bajo */}
+      {/* Alertas de stock bajo — se mantiene manual, con borde de alerta
+          distinto al resto de tarjetas, algo que Card no expone */}
       {data.products.lowStockList.length > 0 && (
-        <div className="bg-base-100 border border-red-200 rounded-2xl p-5">
+        <div className="bg-surface-container-lowest border border-error/40 rounded-2xl p-5">
           <SectionTitle>⚠ Productos con stock bajo</SectionTitle>
           <div className="space-y-2">
             {data.products.lowStockList.map((p) => (
@@ -349,12 +355,13 @@ const StoreDashboard = () => {
               >
                 <p className="text-on-surface font-medium">{p.name}</p>
                 <div className="flex items-center gap-3">
-                  <span className="text-on-surface/40 text-xs">
+                  <span className="text-on-surface-variant text-xs">
                     Mínimo: {p.lowStockThreshold}
                   </span>
-                  <span className="badge badge-error badge-sm">
-                    Stock: {p.currentStock}
-                  </span>
+                  <StatusBadge
+                    label={`Stock: ${p.currentStock}`}
+                    tone="error"
+                  />
                 </div>
               </div>
             ))}
@@ -364,7 +371,7 @@ const StoreDashboard = () => {
 
       {/* Actividad reciente */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Ventas recientes</SectionTitle>
           <div className="space-y-3">
             {data.recentActivity.sales.map((s) => (
@@ -379,7 +386,7 @@ const StoreDashboard = () => {
                       .join(", ")
                       .slice(0, 40) || "Venta"}
                   </p>
-                  <p className="text-on-surface/40 text-xs">
+                  <p className="text-on-surface-variant text-xs">
                     {s.user?.name} ·{" "}
                     {new Date(s.date).toLocaleDateString("es-CO")}
                   </p>
@@ -390,9 +397,9 @@ const StoreDashboard = () => {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-base-100 border border-base-200 rounded-2xl p-5">
+        <Card bodyClassName="p-5">
           <SectionTitle>Movimientos recientes</SectionTitle>
           <div className="space-y-3">
             {data.recentActivity.movements.map((m) => (
@@ -408,20 +415,19 @@ const StoreDashboard = () => {
                       .slice(0, 40) ||
                       (MOVEMENT_TYPE_LABEL[m.type] ?? m.type)}
                   </p>
-                  <p className="text-on-surface/40 text-xs">
+                  <p className="text-on-surface-variant text-xs">
                     {m.user?.name} ·{" "}
                     {new Date(m.date).toLocaleDateString("es-CO")}
                   </p>
                 </div>
-                <span
-                  className={`badge badge-sm ${m.type === "Entry" ? "badge-success" : "badge-warning"}`}
-                >
-                  {MOVEMENT_TYPE_LABEL[m.type] ?? m.type}
-                </span>
+                <StatusBadge
+                  label={MOVEMENT_TYPE_LABEL[m.type] ?? m.type}
+                  tone={m.type === "Entry" ? "primary" : "error"}
+                />
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
