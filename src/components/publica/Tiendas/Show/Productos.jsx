@@ -28,16 +28,26 @@ const Productos = ({ producto }) => {
         {imagenUrl && !imgError ? (
           <>
             {!imgLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center z-10">
                 <span className="loading loading-spinner loading-sm text-primary" />
               </div>
             )}
+
+            {/* Fondo desenfocado con la misma imagen, para rellenar el espacio */}
+            <img
+              src={imagenUrl}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-50"
+            />
+
+            {/* Imagen real, completa y sin recortes, centrada encima */}
             <img
               src={imagenUrl}
               alt={producto.name}
               onLoad={() => setImgLoaded(true)}
               onError={() => setImgError(true)}
-              className={`w-full h-full object-cover transition-opacity duration-300 ${
+              className={`relative w-full h-full object-contain transition-opacity duration-300 ${
                 imgLoaded ? "opacity-100" : "opacity-0"
               }`}
             />
