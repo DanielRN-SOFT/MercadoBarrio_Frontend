@@ -54,6 +54,7 @@ const TONE_STYLES = {
 const SIZE_STYLES = {
   sm: "badge-sm",
   md: "badge-md",
+  lg: "badge-lg",
 };
 
 const StatusBadge = ({

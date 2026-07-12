@@ -29,6 +29,8 @@ import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Input from "../../components/ui/Input";
 import Label from "../../components/ui/Label";
+import StatusBadge from "../../components/ui/StatusBadge";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 
 const DESCRIPTION_MAX = 300;
 
@@ -251,10 +253,7 @@ const MiTienda = () => {
           </div>
 
           {hasStore && (
-            <span className="inline-flex items-center gap-1.5 badge badge-lg border-none font-medium bg-primary-fixed text-on-primary-fixed-variant self-start sm:self-auto">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              Tienda registrada
-            </span>
+            <StatusBadge label="Tienda registrada" tone="primary" size="lg" className="self-start sm:self-auto" />
           )}
         </div>
 
@@ -590,58 +589,21 @@ const MiTienda = () => {
       </main>
 
       {/* Modal de confirmación: pausar/reactivar visibilidad */}
-      {pendingVisibilityChange !== null && (
-        <dialog open className="modal modal-bottom sm:modal-middle">
-          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
-            <div
-              className={`w-11 h-11 rounded-2xl flex items-center justify-center mb-3 ${
-                pendingVisibilityChange ? "bg-primary-container" : "bg-surface-container-highest"
-              }`}
-            >
-              {pendingVisibilityChange ? (
-                <MdVisibility className="text-xl text-on-primary-container" />
-              ) : (
-                <MdVisibilityOff className="text-xl text-on-surface-variant" />
-              )}
-            </div>
-            <h3 className="font-bold text-title-md text-on-surface">
-              {pendingVisibilityChange ? "¿Reactivar la visibilidad de tu tienda?" : "¿Pausar la visibilidad de tu tienda?"}
-            </h3>
-            <p className="text-body-md text-secondary mt-2">
-              {pendingVisibilityChange
-                ? "Tu tienda volverá a aparecer de inmediato en el directorio público y el mapa."
-                : "Tu tienda dejará de aparecer en el directorio público y el mapa. Ningún dato se elimina y puedes reactivarla cuando quieras."}
-            </p>
-            <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
-              <button
-                onClick={() => setPendingVisibilityChange(null)}
-                disabled={togglingVisibility}
-                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmVisibilityChange}
-                disabled={togglingVisibility}
-                className={`btn border-none rounded-full font-label-md w-full sm:w-auto ${
-                  pendingVisibilityChange
-                    ? "bg-primary text-on-primary hover:bg-primary-container"
-                    : "bg-error text-on-error hover:brightness-95"
-                }`}
-              >
-                {togglingVisibility ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : pendingVisibilityChange ? (
-                  "Reactivar"
-                ) : (
-                  "Pausar"
-                )}
-              </button>
-            </div>
-          </div>
-          <div className="modal-backdrop" onClick={() => setPendingVisibilityChange(null)} />
-        </dialog>
-      )}
+      <ConfirmModal
+        open={pendingVisibilityChange !== null}
+        icon={pendingVisibilityChange ? MdVisibility : MdVisibilityOff}
+        tone={pendingVisibilityChange ? "primary" : "error"}
+        title={pendingVisibilityChange ? "¿Reactivar la visibilidad de tu tienda?" : "¿Pausar la visibilidad de tu tienda?"}
+        message={
+          pendingVisibilityChange
+            ? "Tu tienda volverá a aparecer de inmediato en el directorio público y el mapa."
+            : "Tu tienda dejará de aparecer en el directorio público y el mapa. Ningún dato se elimina y puedes reactivarla cuando quieras."
+        }
+        confirmLabel={pendingVisibilityChange ? "Reactivar" : "Pausar"}
+        loading={togglingVisibility}
+        onConfirm={handleConfirmVisibilityChange}
+        onCancel={() => setPendingVisibilityChange(null)}
+      />
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
