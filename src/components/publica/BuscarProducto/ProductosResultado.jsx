@@ -1,10 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaLocationDot, FaPhone } from "react-icons/fa6";
 import { IoStorefrontSharp } from "react-icons/io5";
 import { MdLocationCity } from "react-icons/md";
 import { Link } from "react-router-dom";
 
-const ProductosResultado = ({producto}) => {
+// Construye la URL completa de la imagen a partir de la ruta relativa que
+// devuelve el backend (ej: "/uploads/products/archivo.png")
+const getPhotoUrl = (photo) => {
+  if (!photo) return null;
+  if (photo.startsWith("http")) return photo; // ya es una URL absoluta
+  return `${import.meta.env.VITE_BACKEND_URL}${photo}`;
+};
+
+const ProductosResultado = ({ producto }) => {
+  const [imgError, setImgError] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
+  const fotoUrl = getPhotoUrl(producto.photo);
+  const logoUrl = getPhotoUrl(producto.store?.logo);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [producto.photo]);
+
+  useEffect(() => {
+    setLogoError(false);
+  }, [producto.store?.logo]);
+
   return (
     <Link
       key={producto.id}
@@ -15,10 +37,11 @@ const ProductosResultado = ({producto}) => {
         <div className="flex gap-4">
           {/* Foto producto */}
           <div className="w-20 h-20 rounded-xl bg-base-200 overflow-hidden shrink-0">
-            {producto.photo ? (
+            {fotoUrl && !imgError ? (
               <img
-                src={producto.photo}
+                src={fotoUrl}
                 alt={producto.name}
+                onError={() => setImgError(true)}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -65,11 +88,12 @@ const ProductosResultado = ({producto}) => {
 
             {/* Tienda */}
             <div className="mt-3 pt-3 border-t border-base-200 flex flex-wrap gap-3 items-center">
-              {producto.store.logo && (
+              {logoUrl && !logoError && (
                 <div className="w-6 h-6 rounded overflow-hidden bg-base-200 shrink-0">
                   <img
-                    src={producto.store.logo}
+                    src={logoUrl}
                     alt={producto.store.name}
+                    onError={() => setLogoError(true)}
                     className="w-full h-full object-cover"
                   />
                 </div>
