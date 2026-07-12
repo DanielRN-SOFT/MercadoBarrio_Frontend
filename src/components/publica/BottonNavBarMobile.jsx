@@ -6,7 +6,7 @@ const NAVLINKS = [
   { name: "Mapa", to: "/mapa", icon: "map", fill: false },
   { name: "Tiendas", to: "/tiendas", icon: "storefront", fill: false },
   { name: "Buscar", to: "/buscar", icon: "search", fill: false },
-  { name: "Perfil", to: "/perfil", icon: "person", fill: false },
+  { name: "Perfil", to: "/panel/perfil", icon: "person", fill: false },
 ];
 
 const BottonNavBarMobile = () => {
