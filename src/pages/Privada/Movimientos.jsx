@@ -23,6 +23,37 @@ import Avatar from "../../components/ui/Avatar";
 import ConfirmModal from "../../components/ui/ConfirmModal";
 import { exportMovementsToExcel } from "../../helpers/exportMovementsToExcel";
 
+const getInitials = (str = "") =>
+  str
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+
+const ProductAvatar = ({ product }) => {
+  const [imgError, setImgError] = useState(false);
+  if (product.photo && !imgError) {
+    return (
+      <img
+        src={product.photo}
+        alt={product.name}
+        onError={() => setImgError(true)}
+        className="w-10 h-10 rounded-xl object-cover shrink-0 border border-outline-variant/50"
+      />
+    );
+  }
+  return (
+    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0">
+      <span className="text-label-sm font-bold text-on-primary">
+        {getInitials(product.name) || (
+          <MdOutlineInventory2 className="text-on-primary text-lg" />
+        )}
+      </span>
+    </div>
+  );
+};
+
 const TYPE_LABELS = {
   Entry: "Entrada",
   Exit: "Salida",
@@ -78,7 +109,13 @@ const Movimientos = () => {
   const [cancelLoading, setCancelLoading] = useState(false);
 
   const isAdjust = movementType === "Ajuste";
-  const finalType = isAdjust ? (adjustSign === "positivo" ? "AdjustEntry" : "AdjustExit") : movementType === "Entrada" ? "Entry" : "Exit";
+  const finalType = isAdjust
+    ? adjustSign === "positivo"
+      ? "AdjustEntry"
+      : "AdjustExit"
+    : movementType === "Entrada"
+      ? "Entry"
+      : "Exit";
 
   useEffect(() => {
     setPage(1);
@@ -94,7 +131,9 @@ const Movimientos = () => {
           setResults(res?.data ?? []);
           setMeta(res?.meta ?? null);
         })
-        .catch(() => addToast({ message: "Error al buscar productos", type: "error" }))
+        .catch(() =>
+          addToast({ message: "Error al buscar productos", type: "error" }),
+        )
         .finally(() => setSearching(false));
     }, 350);
     return () => clearTimeout(timeout);
@@ -118,7 +157,11 @@ const Movimientos = () => {
   };
 
   const loadHistory = (targetPage = 1) => {
-    if (filterStartDate && filterEndDate && new Date(filterStartDate) > new Date(filterEndDate)) {
+    if (
+      filterStartDate &&
+      filterEndDate &&
+      new Date(filterStartDate) > new Date(filterEndDate)
+    ) {
       setLoadingHistory(false);
 
       addToast({
@@ -135,7 +178,9 @@ const Movimientos = () => {
         setMovements(res?.data ?? []);
         setMovementsMeta(res?.meta ?? null);
       })
-      .catch(() => addToast({ message: "Error al cargar el historial", type: "error" }))
+      .catch(() =>
+        addToast({ message: "Error al cargar el historial", type: "error" }),
+      )
       .finally(() => setLoadingHistory(false));
   };
 
@@ -167,11 +212,16 @@ const Movimientos = () => {
     setFilterProductId("");
   };
 
-  const hasFilters = filterStartDate || filterEndDate || filterType || filterProductId;
+  const hasFilters =
+    filterStartDate || filterEndDate || filterType || filterProductId;
 
   const handleExport = async (scope = "page") => {
     try {
-      if (filterStartDate && filterEndDate && new Date(filterStartDate) > new Date(filterEndDate)) {
+      if (
+        filterStartDate &&
+        filterEndDate &&
+        new Date(filterStartDate) > new Date(filterEndDate)
+      ) {
         addToast({
           message: "La fecha inicial no puede ser mayor que la fecha final.",
           type: "error",
@@ -231,11 +281,19 @@ const Movimientos = () => {
   const changeQuantity = (productId, value) => {
     // Permite que el input quede vacío temporalmente para que el usuario pueda borrar sin que le auto-escriba un '1'
     const qty = value === "" ? "" : Math.max(1, parseInt(value, 10) || 1);
-    setCart((prev) => prev.map((i) => (i.productId === productId ? { ...i, quantity: qty } : i)));
+    setCart((prev) =>
+      prev.map((i) =>
+        i.productId === productId ? { ...i, quantity: qty } : i,
+      ),
+    );
   };
 
   const changeCost = (productId, value) => {
-    setCart((prev) => prev.map((i) => (i.productId === productId ? { ...i, unitCost: value } : i)));
+    setCart((prev) =>
+      prev.map((i) =>
+        i.productId === productId ? { ...i, unitCost: value } : i,
+      ),
+    );
   };
 
   const removeFromCart = (productId) => {
@@ -257,10 +315,13 @@ const Movimientos = () => {
       return;
     }
 
-    const hasInvalidQuantity = cart.some((item) => item.quantity === "" || item.quantity <= 0);
+    const hasInvalidQuantity = cart.some(
+      (item) => item.quantity === "" || item.quantity <= 0,
+    );
     if (hasInvalidQuantity) {
       addToast({
-        message: "Por favor, ingresa una cantidad válida para todos los productos.",
+        message:
+          "Por favor, ingresa una cantidad válida para todos los productos.",
         type: "error",
       });
       return;
@@ -326,13 +387,9 @@ const Movimientos = () => {
 
   return (
     <>
-      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-0">
-        {/* Header — se mantiene manual: el botón "Volver" antes del ícono no
-            encaja en la estructura fija de PageHeader (ícono + título + acción). */}
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-0">
+        {/* Header */}
         <div className="flex items-center gap-3">
-          <Link to="/panel/inventario" className="btn btn-ghost btn-circle hover:bg-surface-container-high" aria-label="Volver">
-            <MdArrowBack className="text-xl text-on-surface" />
-          </Link>
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-sm shadow-primary/20">
             <MdSwapVert className="text-lg sm:text-xl text-on-primary" />
           </div>
@@ -340,7 +397,9 @@ const Movimientos = () => {
             <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">
               Movimientos de inventario
             </h1>
-            <p className="text-body-sm sm:text-body-md text-secondary">Registra entradas y ajustes de stock</p>
+            <p className="text-body-sm sm:text-body-md text-secondary">
+              Registra entradas y ajustes de stock
+            </p>
           </div>
         </div>
 
@@ -397,7 +456,9 @@ const Movimientos = () => {
                     </div>
                   ))
                 ) : results.length === 0 ? (
-                  <p className="text-body-sm text-secondary text-center py-8">No se encontraron productos</p>
+                  <p className="text-body-sm text-secondary text-center py-8">
+                    No se encontraron productos
+                  </p>
                 ) : (
                   results.map((p) => (
                     <button
@@ -407,8 +468,12 @@ const Movimientos = () => {
                     >
                       <Avatar text={p.name} photo={p.photo} icon={MdOutlineInventory2} size="w-10 h-10" />
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-on-surface text-body-sm truncate">{p.name}</p>
-                        <p className="text-label-sm text-on-surface-variant">Stock actual: {p.currentStock}</p>
+                        <p className="font-medium text-on-surface text-body-sm truncate">
+                          {p.name}
+                        </p>
+                        <p className="text-label-sm text-on-surface-variant">
+                          Stock actual: {p.currentStock}
+                        </p>
                       </div>
                       <MdAdd className="text-xl text-primary shrink-0" />
                     </button>
@@ -418,7 +483,12 @@ const Movimientos = () => {
 
               {!searching && meta && meta.totalPages > 1 && (
                 <div className="border-t border-outline-variant/50 p-3">
-                  <Paginacion meta={meta} onPageChange={(nuevaPagina) => setPage(nuevaPagina)} itemLabel="productos" scrollTop={false} />
+                  <Paginacion
+                    meta={meta}
+                    onPageChange={(nuevaPagina) => setPage(nuevaPagina)}
+                    itemLabel="productos"
+                    scrollTop={false}
+                  />
                 </div>
               )}
             </div>

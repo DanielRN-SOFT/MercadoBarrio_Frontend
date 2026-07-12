@@ -238,7 +238,7 @@ const MiTienda = () => {
 
   return (
     <>
-      <main className="max-w-5xl mx-auto w-full px-3 sm:px-4 lg:px-0 pb-8">
+      <main className="max-w-6xl mx-auto w-full px-3 sm:px-4 lg:px-0 pb-8">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
           <div className="flex items-center gap-3">

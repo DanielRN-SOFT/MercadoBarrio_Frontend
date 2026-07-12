@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   IoCheckmarkCircle,
   IoWarning,
@@ -52,12 +53,13 @@ const Toast = ({ toast, onRemove }) => {
 };
 
 const ToastContainer = ({ toasts, removeToast }) => {
-  return (
-    <div className="fixed bottom-6 right-4 md:right-6 z-50z flex flex-col gap-2 items-end">
+  return createPortal(
+    <div className="fixed bottom-6 right-4 md:right-6 z-50 flex flex-col gap-2 items-end">
       {toasts.map((toast) => (
         <Toast key={toast.id} toast={toast} onRemove={removeToast} />
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 };
 

@@ -23,6 +23,8 @@ import {
   MdCategory,
   MdPhone,
   MdOutlineDescription,
+  MdCheckCircle,
+  MdOutlineCancel,
 } from "react-icons/md";
 import { IoCloseSharp, IoCloseCircle } from "react-icons/io5";
 import { FaLocationDot } from "react-icons/fa6";
@@ -54,8 +56,29 @@ const STATUS_LABEL = {
   Active: "Activa",
   Inactive: "Inactiva",
   Pending: "Pendiente",
+  Incomplete: "Incompleta",
+  Rejected: "Rechazada",
 };
 
+<<<<<<< HEAD
+=======
+const STATUS_BADGE_CLASS = {
+  Active: "bg-primary-fixed text-on-primary-fixed-variant",
+  Inactive: "bg-error-container text-on-error-container",
+  Pending: "bg-secondary-container text-on-secondary-container",
+  Incomplete: "bg-secondary-container text-on-secondary-container",
+  Rejected: "bg-error-container text-on-error-container",
+};
+
+const STATUS_DOT_CLASS = {
+  Active: "bg-primary",
+  Inactive: "bg-error",
+  Pending: "bg-secondary",
+  Incomplete: "bg-secondary",
+  Rejected: "bg-error",
+};
+
+>>>>>>> origin
 const defaultIcon = L.icon({
   iconUrl,
   shadowUrl: iconShadow,
@@ -137,6 +160,8 @@ const AdminTiendas = () => {
   const [locatingForm, setLocatingForm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [restoreTarget, setRestoreTarget] = useState(null);
+  const [approveTarget, setApproveTarget] = useState(null);
+  const [rejectTarget, setRejectTarget] = useState(null);
 
   // Archivo de foto seleccionado en el formulario y su vista previa local
   const [photoFile, setPhotoFile] = useState(null);
@@ -433,6 +458,46 @@ const AdminTiendas = () => {
     }
   };
 
+  // --- Aprobar / Rechazar (tiendas pendientes) ----------------------------
+
+  const handleApprove = async () => {
+    setActionLoading(true);
+    try {
+      await fetchCliente(`/stores/approve/${approveTarget.id}`, {
+        method: "PUT",
+      });
+      addToast({ message: "Tienda aprobada correctamente", type: "success" });
+      setApproveTarget(null);
+      fetchStores(page);
+    } catch (err) {
+      addToast({
+        message: err.message ?? "Error al aprobar la tienda",
+        type: "error",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    setActionLoading(true);
+    try {
+      await fetchCliente(`/stores/reject/${rejectTarget.id}`, {
+        method: "PUT",
+      });
+      addToast({ message: "Tienda rechazada correctamente", type: "success" });
+      setRejectTarget(null);
+      fetchStores(page);
+    } catch (err) {
+      addToast({
+        message: err.message ?? "Error al rechazar la tienda",
+        type: "error",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-0">
@@ -566,13 +631,38 @@ const AdminTiendas = () => {
                         <IconButton
                           icon={MdEdit}
                           onClick={() => openEdit(s)}
-                          label="Editar"
-                          tone="secondary"
-                          showTooltip={false}
-                        />
-                        {s.status === "Inactive" ? (
-                          <IconButton
-                            icon={MdOutlineRestore}
+                          className="btn btn-ghost btn-sm btn-circle hover:bg-secondary-container/60"
+                          aria-label="Editar"
+                        >
+                          <MdEdit className="text-lg text-secondary" />
+                        </button>
+                        {s.status === "Pending" ? (
+                          <>
+                            <button
+                              onClick={() => setApproveTarget(s)}
+                              className="btn btn-ghost btn-sm btn-circle hover:bg-primary-container/60"
+                              aria-label="Aprobar"
+                            >
+                              <MdCheckCircle className="text-lg text-primary" />
+                            </button>
+                            <button
+                              onClick={() => setRejectTarget(s)}
+                              className="btn btn-ghost btn-sm btn-circle hover:bg-error-container/60"
+                              aria-label="Rechazar"
+                            >
+                              <MdOutlineCancel className="text-lg text-error" />
+                            </button>
+                          </>
+                        ) : s.status === "Rejected" ? (
+                          <button
+                            onClick={() => setApproveTarget(s)}
+                            className="btn btn-ghost btn-sm btn-circle hover:bg-primary-container/60"
+                            aria-label="Aprobar"
+                          >
+                            <MdCheckCircle className="text-lg text-primary" />
+                          </button>
+                        ) : s.status === "Inactive" ? (
+                          <button
                             onClick={() => setRestoreTarget(s)}
                             label="Restaurar"
                             tone="primary"
@@ -696,9 +786,100 @@ const AdminTiendas = () => {
                           </div>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-outline-variant/60">
+                      {filteredStores.map((s) => (
+                        <tr
+                          key={s.id}
+                          className="hover:bg-surface-container-low transition-colors"
+                        >
+                          <td>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <StoreAvatar store={s} size="w-10 h-10" />
+                              <div className="min-w-0">
+                                <p className="font-semibold text-on-surface text-body-md truncate">
+                                  {s.name}
+                                </p>
+                                <p className="text-body-sm text-secondary truncate max-w-xs">
+                                  {s.address}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="text-body-sm text-secondary">
+                            {categoryName(s.storeCategoryId)}
+                          </td>
+                          <td className="text-body-sm text-secondary">
+                            {s.phone || "—"}
+                          </td>
+                          <td>
+                            <StatusBadge status={s.status} />
+                          </td>
+                          <td className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => openDetail(s.id)}
+                                className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
+                                data-tip="Ver detalle"
+                              >
+                                <MdVisibility className="text-lg text-secondary" />
+                              </button>
+                              <button
+                                onClick={() => openEdit(s)}
+                                className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
+                                data-tip="Editar"
+                              >
+                                <MdEdit className="text-lg text-secondary" />
+                              </button>
+                              {s.status === "Pending" ? (
+                                <>
+                                  <button
+                                    onClick={() => setApproveTarget(s)}
+                                    className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-primary-container/60"
+                                    data-tip="Aprobar"
+                                  >
+                                    <MdCheckCircle className="text-lg text-primary" />
+                                  </button>
+                                  <button
+                                    onClick={() => setRejectTarget(s)}
+                                    className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-error-container/60"
+                                    data-tip="Rechazar"
+                                  >
+                                    <MdOutlineCancel className="text-lg text-error" />
+                                  </button>
+                                </>
+                              ) : s.status === "Rejected" ? (
+                                <button
+                                  onClick={() => setApproveTarget(s)}
+                                  className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-primary-container/60"
+                                  data-tip="Aprobar"
+                                >
+                                  <MdCheckCircle className="text-lg text-primary" />
+                                </button>
+                              ) : s.status === "Inactive" ? (
+                                <button
+                                  onClick={() => setRestoreTarget(s)}
+                                  className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-primary-container/60"
+                                  data-tip="Restaurar"
+                                >
+                                  <MdOutlineRestore className="text-lg text-primary" />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => setDeleteTarget(s)}
+                                  className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-error-container/60"
+                                  data-tip="Eliminar"
+                                >
+                                  <MdOutlineDeleteOutline className="text-lg text-error" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </Card>
           </>
@@ -1279,6 +1460,89 @@ const AdminTiendas = () => {
         onConfirm={handleRestore}
         onCancel={() => setRestoreTarget(null)}
       />
+
+      {/* Modal confirmación aprobar */}
+      {approveTarget && (
+        <dialog open className="modal modal-bottom sm:modal-middle">
+          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
+            <div className="w-11 h-11 rounded-2xl bg-primary-container flex items-center justify-center mb-3">
+              <MdCheckCircle className="text-xl text-on-primary-container" />
+            </div>
+            <h3 className="font-bold text-title-md text-on-surface">
+              ¿Aprobar la tienda "{approveTarget.name}"?
+            </h3>
+            <p className="text-body-md text-secondary mt-2">
+              La tienda pasará a estado Activa y será visible en el catálogo
+              público.
+            </p>
+            <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
+              <button
+                onClick={() => setApproveTarget(null)}
+                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleApprove}
+                disabled={actionLoading}
+                className="btn bg-primary text-on-primary border-none rounded-full font-label-md hover:bg-primary-container w-full sm:w-auto"
+              >
+                {actionLoading ? (
+                  <span className="loading loading-spinner loading-sm" />
+                ) : (
+                  "Aprobar"
+                )}
+              </button>
+            </div>
+          </div>
+          <div
+            className="modal-backdrop"
+            onClick={() => setApproveTarget(null)}
+          />
+        </dialog>
+      )}
+
+      {/* Modal confirmación rechazar */}
+      {rejectTarget && (
+        <dialog open className="modal modal-bottom sm:modal-middle">
+          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
+            <div className="w-11 h-11 rounded-2xl bg-error-container flex items-center justify-center mb-3">
+              <MdOutlineCancel className="text-xl text-on-error-container" />
+            </div>
+            <h3 className="font-bold text-title-md text-on-surface">
+              ¿Rechazar la tienda "{rejectTarget.name}"?
+            </h3>
+            <p className="text-body-md text-secondary mt-2">
+              La tienda quedará marcada como Rechazada y no será visible en el
+              catálogo público. El tendero deberá ser notificado por otro
+              medio, ya que el backend aún no admite un motivo de rechazo.
+            </p>
+            <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
+              <button
+                onClick={() => setRejectTarget(null)}
+                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleReject}
+                disabled={actionLoading}
+                className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto"
+              >
+                {actionLoading ? (
+                  <span className="loading loading-spinner loading-sm" />
+                ) : (
+                  "Rechazar"
+                )}
+              </button>
+            </div>
+          </div>
+          <div
+            className="modal-backdrop"
+            onClick={() => setRejectTarget(null)}
+          />
+        </dialog>
+      )}
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
