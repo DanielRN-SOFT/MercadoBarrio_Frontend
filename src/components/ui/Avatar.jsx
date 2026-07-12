@@ -14,6 +14,11 @@ import { useState, useEffect } from "react";
  * - size: string              → clases de tamaño, ej. "w-11 h-11" (default "w-11 h-11")
  * - textSize: string          → clases de tamaño de texto (default "text-label-sm")
  * - rounded: string           → radio de borde (default "rounded-xl")
+ * - mode: "initials" | "text"  → "initials" (default) aplica getInitials()
+ *   sobre `text` (para nombres: "Juan Pérez" → "JP"). "text" muestra `text`
+ *   tal cual, sin procesar (para casos como abreviaturas ya formateadas,
+ *   ej. "LUN" para el día lunes — getInitials() lo reduciría a "L" por ser
+ *   una sola palabra, que no es lo que se quiere mostrar).
  */
 
 const getInitials = (str = "") =>
@@ -32,6 +37,7 @@ const Avatar = ({
   size = "w-11 h-11",
   textSize = "text-label-sm",
   rounded = "rounded-xl",
+  mode = "initials",
 }) => {
   const [imgError, setImgError] = useState(false);
   const photoUrl = photo && buildPhotoUrl ? buildPhotoUrl(photo) : photo;
@@ -52,14 +58,14 @@ const Avatar = ({
     );
   }
 
-  const initials = getInitials(text);
+  const displayText = mode === "text" ? text : getInitials(text);
 
   return (
     <div
       className={`${size} ${rounded} bg-primary flex items-center justify-center shrink-0`}
     >
       <span className={`${textSize} font-bold text-on-primary`}>
-        {initials || (Icon ? <Icon className="text-on-primary text-lg" /> : "?")}
+        {displayText || (Icon ? <Icon className="text-on-primary text-lg" /> : "?")}
       </span>
     </div>
   );
