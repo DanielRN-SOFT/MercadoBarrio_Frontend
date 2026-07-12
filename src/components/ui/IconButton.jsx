@@ -12,6 +12,7 @@
  * - tone: "secondary" | "error" | "primary" | "neutral" (default "neutral")
  * - showTooltip: boolean         → muestra el tooltip de daisyUI (default true, solo aplica en escritorio vía data-tip)
  * - disabled: boolean
+ * - loading: boolean             → muestra spinner en vez del ícono y deshabilita el botón (default false)
  */
 
 const TONE_HOVER = {
@@ -37,9 +38,14 @@ const IconButton = ({
   tone = "neutral",
   showTooltip = true,
   disabled = false,
+  loading = false,
 }) => {
   const className = `btn btn-ghost btn-sm btn-circle ${showTooltip ? "tooltip" : ""} ${TONE_HOVER[tone] ?? TONE_HOVER.neutral}`;
-  const iconEl = <Icon className={`text-lg ${TONE_TEXT[tone] ?? TONE_TEXT.neutral}`} />;
+  const iconEl = loading ? (
+    <span className="loading loading-spinner loading-xs" />
+  ) : (
+    <Icon className={`text-lg ${TONE_TEXT[tone] ?? TONE_TEXT.neutral}`} />
+  );
 
   if (to && LinkComponent) {
     return (
@@ -52,7 +58,7 @@ const IconButton = ({
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || loading}
       className={className}
       data-tip={showTooltip ? label : undefined}
       aria-label={label}
