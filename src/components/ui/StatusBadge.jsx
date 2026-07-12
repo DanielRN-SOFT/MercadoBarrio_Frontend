@@ -6,7 +6,7 @@
  *
  * Props:
  * - label: string                → texto a mostrar
- * - tone: "primary" | "error" | "tertiary" | "secondary" | "neutral"
+ * - tone: "primary" | "error" | "tertiary" | "secondary" | "neutral" | "pending"
  * - size: "sm" | "md"            → tamaño del badge (default "sm")
  * - withDot: boolean             → muestra el puntito de color (default true)
  * - className: string            → clases extra (ej. "hidden sm:inline-flex")
@@ -42,6 +42,12 @@ const TONE_STYLES = {
     bg: "bg-surface-container-high",
     text: "text-secondary",
     dot: "bg-outline",
+  },
+  // Usado para: Pendiente (ej. tienda a la espera de aprobación)
+  pending: {
+    bg: "bg-secondary-container",
+    text: "text-on-secondary-container",
+    dot: "bg-secondary",
   },
 };
 

@@ -14,7 +14,6 @@ import {
   MdOutlineDeleteOutline,
   MdOutlineRestore,
   MdOutlineStorefront,
-  MdSearch,
   MdLocationOn,
   MdLocationCity,
   MdMyLocation,
@@ -31,25 +30,30 @@ import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Paginacion from "../../components/ui/Paginacion";
+import PageHeader from "../../components/ui/PageHeader";
+import SearchInput from "../../components/ui/SearchInput";
+import StatusBadge from "../../components/ui/StatusBadge";
+import IconButton from "../../components/ui/IconButton";
+import SkeletonList from "../../components/ui/SkeletonList";
+import EmptyState from "../../components/ui/EmptyState";
+import Card from "../../components/ui/Card";
+import ConfirmModal from "../../components/ui/ConfirmModal";
+import Avatar from "../../components/ui/Avatar";
 
 // --- Helpers de presentación ---------------------------------------------
+
+// Mapea el status del backend al tone de StatusBadge (mismos colores exactos
+// que tenía el badge local: Active→primary, Inactive→error, Pending→pending)
+const STATUS_TONE = {
+  Active: "primary",
+  Inactive: "error",
+  Pending: "pending",
+};
 
 const STATUS_LABEL = {
   Active: "Activa",
   Inactive: "Inactiva",
   Pending: "Pendiente",
-};
-
-const STATUS_BADGE_CLASS = {
-  Active: "bg-primary-fixed text-on-primary-fixed-variant",
-  Inactive: "bg-error-container text-on-error-container",
-  Pending: "bg-secondary-container text-on-secondary-container",
-};
-
-const STATUS_DOT_CLASS = {
-  Active: "bg-primary",
-  Inactive: "bg-error",
-  Pending: "bg-secondary",
 };
 
 const defaultIcon = L.icon({
@@ -75,65 +79,6 @@ const getPhotoUrl = (photo) => {
   if (photo.startsWith("http") || photo.startsWith("blob:")) return photo;
   return `${import.meta.env.VITE_BACKEND_URL}${photo}`;
 };
-
-const getInitials = (str = "") =>
-  str
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("");
-
-const StoreAvatar = ({
-  store,
-  size = "w-12 h-12",
-  textSize = "text-label-sm",
-}) => {
-  const [imgError, setImgError] = useState(false);
-  const name = store?.name ?? "";
-  const photoUrl = getPhotoUrl(store?.photo);
-
-  useEffect(() => {
-    setImgError(false);
-  }, [store?.photo]);
-
-  if (photoUrl && !imgError) {
-    return (
-      <img
-        src={photoUrl}
-        alt={name}
-        onError={() => setImgError(true)}
-        className={`${size} rounded-xl object-cover shrink-0 border border-outline-variant/50`}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`${size} rounded-xl bg-primary flex items-center justify-center shrink-0`}
-    >
-      <span className={`${textSize} font-bold text-on-primary`}>
-        {getInitials(name) || (
-          <MdOutlineStorefront className="text-on-primary text-lg" />
-        )}
-      </span>
-    </div>
-  );
-};
-
-const StatusBadge = ({ status }) => (
-  <span
-    className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
-      STATUS_BADGE_CLASS[status] ??
-      "bg-secondary-container text-on-secondary-container"
-    }`}
-  >
-    <span
-      className={`w-1.5 h-1.5 rounded-full ${STATUS_DOT_CLASS[status] ?? "bg-secondary"}`}
-    />
-    {STATUS_LABEL[status] ?? status}
-  </span>
-);
 
 // Campo de formulario reutilizable, estilo "horarios"
 const Field = ({ label, required, children }) => (
@@ -492,145 +437,96 @@ const AdminTiendas = () => {
     <>
       <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-0">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-sm shadow-primary/20">
-              <MdStorefront className="text-lg sm:text-xl text-on-primary" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">
-                Tiendas
-              </h1>
-              <p className="text-body-sm sm:text-body-md text-secondary">
-                Gestiona las tiendas registradas en la plataforma
-                {meta.total > 0 && (
-                  <span className="text-on-surface-variant">
-                    {" "}
-                    · {meta.total} en total
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button
-              onClick={openCreate}
-              className="btn bg-primary text-on-primary border-none hover:bg-primary-container gap-2 rounded-full font-label-md text-label-md shadow-sm shadow-primary/25 transition-colors flex-1 sm:flex-none"
-            >
-              <MdAdd className="text-xl" />
-              Nueva tienda
-            </button>
-          </div>
-        </div>
+        <PageHeader
+          icon={MdStorefront}
+          title="Tiendas"
+          subtitle={
+            <>
+              Gestiona las tiendas registradas en la plataforma
+              {meta.total > 0 && (
+                <span className="text-on-surface-variant">
+                  {" "}
+                  · {meta.total} en total
+                </span>
+              )}
+            </>
+          }
+          action={{ label: "Nueva tienda", onClick: openCreate, icon: MdAdd }}
+        />
 
         {/* Filtros (aplican sobre la página cargada) */}
-        <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
-          <div className="card-body p-4 sm:p-5 gap-3">
-            <div className="flex items-center gap-2 text-secondary">
-              <MdSearch className="text-base" />
-              <span className="text-label-sm uppercase tracking-wide font-semibold">
-                Filtros
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <label className="form-control sm:col-span-2">
-                <span className="text-label-sm text-on-surface-variant mb-1">
-                  Buscar
-                </span>
-                <div className="relative">
-                  <MdSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary text-lg" />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Nombre, dirección o teléfono"
-                    className="input input-bordered w-full pl-10 bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
-                  />
-                </div>
-              </label>
-
-              <label className="form-control">
-                <span className="text-label-sm text-on-surface-variant mb-1">
-                  Estado
-                </span>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
-                >
-                  <option value="">Todos</option>
-                  <option value="Active">Activa</option>
-                  <option value="Pending">Pendiente</option>
-                  <option value="Inactive">Inactiva</option>
-                </select>
-              </label>
-            </div>
-
-            {hasFilters && (
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  onClick={handleClearFilters}
-                  className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full"
-                >
-                  <IoCloseSharp className="text-sm" />
-                  Limpiar filtros
-                </button>
-              </div>
-            )}
+        <Card>
+          <div className="flex items-center gap-2 text-secondary">
+            <MdOutlineFilterAlt className="text-base" />
+            <span className="text-label-sm uppercase tracking-wide font-semibold">
+              Filtros
+            </span>
           </div>
-        </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label className="form-control sm:col-span-2">
+              <span className="text-label-sm text-on-surface-variant mb-1">
+                Buscar
+              </span>
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder="Nombre, dirección o teléfono"
+              />
+            </label>
+
+            <label className="form-control">
+              <span className="text-label-sm text-on-surface-variant mb-1">
+                Estado
+              </span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+              >
+                <option value="">Todos</option>
+                <option value="Active">Activa</option>
+                <option value="Pending">Pendiente</option>
+                <option value="Inactive">Inactiva</option>
+              </select>
+            </label>
+          </div>
+
+          {hasFilters && (
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={handleClearFilters}
+                className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full"
+              >
+                <IoCloseSharp className="text-sm" />
+                Limpiar filtros
+              </button>
+            </div>
+          )}
+        </Card>
 
         {/* Estado vacío / carga */}
         {loading ? (
-          <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm overflow-hidden">
-            <div className="space-y-4 p-4 sm:p-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex gap-4 items-center">
-                  <div className="skeleton w-11 h-11 rounded-xl shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="skeleton h-4 w-1/3 rounded-full" />
-                    <div className="skeleton h-3 w-1/4 rounded-full" />
-                  </div>
-                  <div className="skeleton h-8 w-20 rounded-full hidden sm:block" />
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card overflowHidden bodyClassName="p-0">
+            <SkeletonList rows={4} />
+          </Card>
         ) : filteredStores.length === 0 ? (
-          <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm overflow-hidden">
-            <div className="text-center py-16 sm:py-20 px-6 text-secondary">
-              <div className="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center mx-auto mb-4">
-                <MdStorefront className="text-3xl opacity-40" />
-              </div>
-              {hasFilters ? (
-                <>
-                  <p className="font-semibold text-on-surface text-body-lg">
-                    Sin resultados
-                  </p>
-                  <p className="text-body-md mt-1">
-                    No encontramos tiendas con esos filtros en esta página.
-                    Intenta limpiarlos o cambiar de página.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="font-semibold text-on-surface text-body-lg">
-                    Aún no hay tiendas
-                  </p>
-                  <p className="text-body-md mt-1">
-                    Registra la primera tienda para comenzar.
-                  </p>
-                  <button
-                    onClick={openCreate}
-                    className="btn bg-primary text-on-primary border-none rounded-full mt-6 font-label-md text-label-md hover:bg-primary-container"
-                  >
-                    <MdAdd className="text-xl" /> Registrar tienda
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+          <Card overflowHidden bodyClassName="p-0">
+            <EmptyState
+              icon={MdStorefront}
+              title={hasFilters ? "Sin resultados" : "Aún no hay tiendas"}
+              message={
+                hasFilters
+                  ? "No encontramos tiendas con esos filtros en esta página. Intenta limpiarlos o cambiar de página."
+                  : "Registra la primera tienda para comenzar."
+              }
+              action={
+                !hasFilters
+                  ? { label: "Registrar tienda", onClick: openCreate, icon: MdAdd }
+                  : undefined
+              }
+            />
+          </Card>
         ) : (
           <>
             {/* Vista de TARJETAS — móvil y tablet */}
@@ -643,7 +539,13 @@ const AdminTiendas = () => {
                   <div className="card-body p-4 gap-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <StoreAvatar store={s} />
+                        <Avatar
+                          text={s.name}
+                          photo={s.photo}
+                          buildPhotoUrl={getPhotoUrl}
+                          icon={MdOutlineStorefront}
+                          size="w-12 h-12"
+                        />
                         <div className="min-w-0">
                           <p className="font-semibold text-on-surface text-body-md truncate">
                             {s.name}
@@ -654,36 +556,36 @@ const AdminTiendas = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <button
+                        <IconButton
+                          icon={MdVisibility}
                           onClick={() => openDetail(s.id)}
-                          className="btn btn-ghost btn-sm btn-circle hover:bg-secondary-container/60"
-                          aria-label="Ver detalle"
-                        >
-                          <MdVisibility className="text-lg text-secondary" />
-                        </button>
-                        <button
+                          label="Ver detalle"
+                          tone="secondary"
+                          showTooltip={false}
+                        />
+                        <IconButton
+                          icon={MdEdit}
                           onClick={() => openEdit(s)}
-                          className="btn btn-ghost btn-sm btn-circle hover:bg-secondary-container/60"
-                          aria-label="Editar"
-                        >
-                          <MdEdit className="text-lg text-secondary" />
-                        </button>
+                          label="Editar"
+                          tone="secondary"
+                          showTooltip={false}
+                        />
                         {s.status === "Inactive" ? (
-                          <button
+                          <IconButton
+                            icon={MdOutlineRestore}
                             onClick={() => setRestoreTarget(s)}
-                            className="btn btn-ghost btn-sm btn-circle hover:bg-primary-container/60"
-                            aria-label="Restaurar"
-                          >
-                            <MdOutlineRestore className="text-lg text-primary" />
-                          </button>
+                            label="Restaurar"
+                            tone="primary"
+                            showTooltip={false}
+                          />
                         ) : (
-                          <button
+                          <IconButton
+                            icon={MdOutlineDeleteOutline}
                             onClick={() => setDeleteTarget(s)}
-                            className="btn btn-ghost btn-sm btn-circle hover:bg-error-container/60"
-                            aria-label="Eliminar"
-                          >
-                            <MdOutlineDeleteOutline className="text-lg text-error" />
-                          </button>
+                            label="Eliminar"
+                            tone="error"
+                            showTooltip={false}
+                          />
                         )}
                       </div>
                     </div>
@@ -692,7 +594,10 @@ const AdminTiendas = () => {
                       <span className="text-body-sm text-on-surface-variant">
                         {categoryName(s.storeCategoryId)}
                       </span>
-                      <StatusBadge status={s.status} />
+                      <StatusBadge
+                        label={STATUS_LABEL[s.status] ?? s.status}
+                        tone={STATUS_TONE[s.status] ?? "pending"}
+                      />
                     </div>
                   </div>
                 </div>
@@ -700,99 +605,102 @@ const AdminTiendas = () => {
             </div>
 
             {/* Vista de TABLA — escritorio */}
-            <div className="hidden lg:block card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm overflow-hidden">
-              <div className="card-body p-0">
-                <div className="overflow-x-auto">
-                  <table className="table">
-                    <thead>
-                      <tr className="bg-surface-container-high border-b border-outline-variant">
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 first:rounded-tl-2xl">
-                          Tienda
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Categoría
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Teléfono
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Estado
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 text-right last:rounded-tr-2xl">
-                          Acciones
-                        </th>
+            <Card overflowHidden bodyClassName="p-0" className="hidden lg:block">
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr className="bg-surface-container-high border-b border-outline-variant">
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 first:rounded-tl-2xl">
+                        Tienda
+                      </th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
+                        Categoría
+                      </th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
+                        Teléfono
+                      </th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
+                        Estado
+                      </th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 text-right last:rounded-tr-2xl">
+                        Acciones
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/60">
+                    {filteredStores.map((s) => (
+                      <tr
+                        key={s.id}
+                        className="hover:bg-surface-container-low transition-colors"
+                      >
+                        <td>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Avatar
+                              text={s.name}
+                              photo={s.photo}
+                              buildPhotoUrl={getPhotoUrl}
+                              icon={MdOutlineStorefront}
+                              size="w-10 h-10"
+                            />
+                            <div className="min-w-0">
+                              <p className="font-semibold text-on-surface text-body-md truncate">
+                                {s.name}
+                              </p>
+                              <p className="text-body-sm text-secondary truncate max-w-xs">
+                                {s.address}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="text-body-sm text-secondary">
+                          {categoryName(s.storeCategoryId)}
+                        </td>
+                        <td className="text-body-sm text-secondary">
+                          {s.phone || "—"}
+                        </td>
+                        <td>
+                          <StatusBadge
+                            label={STATUS_LABEL[s.status] ?? s.status}
+                            tone={STATUS_TONE[s.status] ?? "pending"}
+                          />
+                        </td>
+                        <td className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <IconButton
+                              icon={MdVisibility}
+                              onClick={() => openDetail(s.id)}
+                              label="Ver detalle"
+                              tone="secondary"
+                            />
+                            <IconButton
+                              icon={MdEdit}
+                              onClick={() => openEdit(s)}
+                              label="Editar"
+                              tone="secondary"
+                            />
+                            {s.status === "Inactive" ? (
+                              <IconButton
+                                icon={MdOutlineRestore}
+                                onClick={() => setRestoreTarget(s)}
+                                label="Restaurar"
+                                tone="primary"
+                              />
+                            ) : (
+                              <IconButton
+                                icon={MdOutlineDeleteOutline}
+                                onClick={() => setDeleteTarget(s)}
+                                label="Eliminar"
+                                tone="error"
+                              />
+                            )}
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant/60">
-                      {filteredStores.map((s) => (
-                        <tr
-                          key={s.id}
-                          className="hover:bg-surface-container-low transition-colors"
-                        >
-                          <td>
-                            <div className="flex items-center gap-3 min-w-0">
-                              <StoreAvatar store={s} size="w-10 h-10" />
-                              <div className="min-w-0">
-                                <p className="font-semibold text-on-surface text-body-md truncate">
-                                  {s.name}
-                                </p>
-                                <p className="text-body-sm text-secondary truncate max-w-xs">
-                                  {s.address}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="text-body-sm text-secondary">
-                            {categoryName(s.storeCategoryId)}
-                          </td>
-                          <td className="text-body-sm text-secondary">
-                            {s.phone || "—"}
-                          </td>
-                          <td>
-                            <StatusBadge status={s.status} />
-                          </td>
-                          <td className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => openDetail(s.id)}
-                                className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
-                                data-tip="Ver detalle"
-                              >
-                                <MdVisibility className="text-lg text-secondary" />
-                              </button>
-                              <button
-                                onClick={() => openEdit(s)}
-                                className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
-                                data-tip="Editar"
-                              >
-                                <MdEdit className="text-lg text-secondary" />
-                              </button>
-                              {s.status === "Inactive" ? (
-                                <button
-                                  onClick={() => setRestoreTarget(s)}
-                                  className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-primary-container/60"
-                                  data-tip="Restaurar"
-                                >
-                                  <MdOutlineRestore className="text-lg text-primary" />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => setDeleteTarget(s)}
-                                  className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-error-container/60"
-                                  data-tip="Eliminar"
-                                >
-                                  <MdOutlineDeleteOutline className="text-lg text-error" />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
+            </Card>
           </>
         )}
 
@@ -838,7 +746,10 @@ const AdminTiendas = () => {
               {!detailLoading && (
                 <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
                   <div className="mb-1.5">
-                    <StatusBadge status={detailStore.status} />
+                    <StatusBadge
+                      label={STATUS_LABEL[detailStore.status] ?? detailStore.status}
+                      tone={STATUS_TONE[detailStore.status] ?? "pending"}
+                    />
                   </div>
                   <h3
                     className={`font-bold text-title-lg leading-tight truncate ${
@@ -1344,85 +1255,30 @@ const AdminTiendas = () => {
       )}
 
       {/* Modal confirmación eliminar */}
-      {deleteTarget && (
-        <dialog open className="modal modal-bottom sm:modal-middle">
-          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
-            <div className="w-11 h-11 rounded-2xl bg-error-container flex items-center justify-center mb-3">
-              <IoCloseCircle className="text-xl text-on-error-container" />
-            </div>
-            <h3 className="font-bold text-title-md text-on-surface">
-              ¿Eliminar la tienda "{deleteTarget.name}"?
-            </h3>
-            <p className="text-body-md text-secondary mt-2">
-              La tienda quedará marcada como inactiva y dejará de ser visible en
-              el catálogo público. Puedes restaurarla en cualquier momento.
-            </p>
-            <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
-              <button
-                onClick={() => setDeleteTarget(null)}
-                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={actionLoading}
-                className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto"
-              >
-                {actionLoading ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : (
-                  "Eliminar"
-                )}
-              </button>
-            </div>
-          </div>
-          <div
-            className="modal-backdrop"
-            onClick={() => setDeleteTarget(null)}
-          />
-        </dialog>
-      )}
+      <ConfirmModal
+        open={!!deleteTarget}
+        icon={IoCloseCircle}
+        tone="error"
+        title={`¿Eliminar la tienda "${deleteTarget?.name}"?`}
+        message="La tienda quedará marcada como inactiva y dejará de ser visible en el catálogo público. Puedes restaurarla en cualquier momento."
+        confirmLabel="Eliminar"
+        loading={actionLoading}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
 
       {/* Modal confirmación restaurar */}
-      {restoreTarget && (
-        <dialog open className="modal modal-bottom sm:modal-middle">
-          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
-            <div className="w-11 h-11 rounded-2xl bg-primary-container flex items-center justify-center mb-3">
-              <MdOutlineRestore className="text-xl text-on-primary-container" />
-            </div>
-            <h3 className="font-bold text-title-md text-on-surface">
-              ¿Restaurar la tienda "{restoreTarget.name}"?
-            </h3>
-            <p className="text-body-md text-secondary mt-2">
-              La tienda volverá a estar activa y visible en el catálogo público.
-            </p>
-            <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
-              <button
-                onClick={() => setRestoreTarget(null)}
-                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleRestore}
-                disabled={actionLoading}
-                className="btn bg-primary text-on-primary border-none rounded-full font-label-md hover:bg-primary-container w-full sm:w-auto"
-              >
-                {actionLoading ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : (
-                  "Restaurar"
-                )}
-              </button>
-            </div>
-          </div>
-          <div
-            className="modal-backdrop"
-            onClick={() => setRestoreTarget(null)}
-          />
-        </dialog>
-      )}
+      <ConfirmModal
+        open={!!restoreTarget}
+        icon={MdOutlineRestore}
+        tone="primary"
+        title={`¿Restaurar la tienda "${restoreTarget?.name}"?`}
+        message="La tienda volverá a estar activa y visible en el catálogo público."
+        confirmLabel="Restaurar"
+        loading={actionLoading}
+        onConfirm={handleRestore}
+        onCancel={() => setRestoreTarget(null)}
+      />
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>

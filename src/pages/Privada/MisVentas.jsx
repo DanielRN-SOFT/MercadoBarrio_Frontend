@@ -1,11 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MdReceiptLong, MdAdd, MdOutlineFilterAlt, MdVisibility, MdOutlineFileDownload, MdOutlineInventory2 } from "react-icons/md";
-import { IoCloseCircle, IoCloseSharp, IoTimeOutline, IoWarning } from "react-icons/io5";
+import { IoCloseCircle, IoCloseSharp, IoWarning } from "react-icons/io5";
 import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Paginacion from "../../components/ui/Paginacion";
+import StatusBadge from "../../components/ui/StatusBadge";
+import IconButton from "../../components/ui/IconButton";
+import SkeletonList from "../../components/ui/SkeletonList";
+import EmptyState from "../../components/ui/EmptyState";
+import Card from "../../components/ui/Card";
+import Avatar from "../../components/ui/Avatar";
 import { exportSalesToExcel } from "../../helpers/exportSalesToExcel";
 import { exportSalesDetailedToExcel } from "../../helpers/exportSalesDetailedToExcel";
 
@@ -26,40 +32,6 @@ const formatDateTime = (d) =>
 const hoursSince = (date) => (Date.now() - new Date(date).getTime()) / (1000 * 60 * 60);
 
 const canCancel = (sale) => sale.status === "Completed" && hoursSince(sale.date) <= MAX_CANCEL_HOURS;
-
-// Iniciales para el avatar del producto cuando no hay imagen
-const getInitials = (str = "") =>
-  str
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join("");
-
-// Avatar/foto del producto con fallback a iniciales si no hay foto o falla la carga
-const ProductAvatar = ({ product, size = "w-12 h-12", textSize = "text-label-sm" }) => {
-  const [imgError, setImgError] = useState(false);
-  const name = product?.name ?? "";
-
-  if (product?.photo && !imgError) {
-    return (
-      <img
-        src={product.photo}
-        alt={name}
-        onError={() => setImgError(true)}
-        className={`${size} rounded-xl object-cover shrink-0 border border-outline-variant/50`}
-      />
-    );
-  }
-
-  return (
-    <div className={`${size} rounded-xl bg-primary flex items-center justify-center shrink-0`}>
-      <span className={`${textSize} font-bold text-on-primary`}>
-        {getInitials(name) || <MdOutlineInventory2 className="text-on-primary text-lg" />}
-      </span>
-    </div>
-  );
-};
 
 const MisVentas = () => {
   const { toasts, addToast, removeToast } = useToast();
@@ -276,7 +248,9 @@ const MisVentas = () => {
   return (
     <>
       <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-0">
-        {/* Header */}
+        {/* Header — se mantiene manual: combina un dropdown de exportación y un
+            botón de acción, un patrón de dos acciones que PageHeader no cubre
+            (solo admite una acción a la derecha). */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-sm shadow-primary/20">
@@ -362,143 +336,119 @@ const MisVentas = () => {
         </div>
 
         {/* Filtros */}
-        <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
-          <div className="card-body p-4 sm:p-5 gap-3">
-            <div className="flex items-center gap-2 text-secondary">
-              <MdOutlineFilterAlt className="text-base" />
-              <span className="text-label-sm uppercase tracking-wide font-semibold">Filtros</span>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-              <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">Desde</span>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
-                />
-              </label>
-
-              <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">Hasta</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
-                />
-              </label>
-
-              <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">Monto mín.</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={minTotal}
-                  onChange={(e) => setMinTotal(e.target.value)}
-                  placeholder="0"
-                  className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
-                />
-              </label>
-
-              <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">Monto máx.</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={maxTotal}
-                  onChange={(e) => setMaxTotal(e.target.value)}
-                  placeholder="999999"
-                  className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
-                />
-              </label>
-
-              <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">Producto</span>
-                <select
-                  value={productId}
-                  onChange={(e) => setProductId(e.target.value)}
-                  className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
-                >
-                  <option value="">Todos</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="form-control col-span-1">
-                <span className="text-label-sm text-on-surface-variant mb-1">Estado</span>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
-                >
-                  <option value="">Todos</option>
-                  <option value="Completed">Completada</option>
-                  <option value="Cancelled">Cancelada</option>
-                </select>
-              </label>
-            </div>
-
-            {hasFilters && (
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  onClick={handleClearFilters}
-                  className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full"
-                >
-                  <IoCloseSharp className="text-sm" />
-                  Limpiar filtros
-                </button>
-              </div>
-            )}
+        <Card>
+          <div className="flex items-center gap-2 text-secondary">
+            <MdOutlineFilterAlt className="text-base" />
+            <span className="text-label-sm uppercase tracking-wide font-semibold">Filtros</span>
           </div>
-        </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mt-2">
+            <label className="form-control col-span-1">
+              <span className="text-label-sm text-on-surface-variant mb-1">Desde</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+              />
+            </label>
+
+            <label className="form-control col-span-1">
+              <span className="text-label-sm text-on-surface-variant mb-1">Hasta</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+              />
+            </label>
+
+            <label className="form-control col-span-1">
+              <span className="text-label-sm text-on-surface-variant mb-1">Monto mín.</span>
+              <input
+                type="number"
+                min="0"
+                value={minTotal}
+                onChange={(e) => setMinTotal(e.target.value)}
+                placeholder="0"
+                className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+              />
+            </label>
+
+            <label className="form-control col-span-1">
+              <span className="text-label-sm text-on-surface-variant mb-1">Monto máx.</span>
+              <input
+                type="number"
+                min="0"
+                value={maxTotal}
+                onChange={(e) => setMaxTotal(e.target.value)}
+                placeholder="999999"
+                className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+              />
+            </label>
+
+            <label className="form-control col-span-1">
+              <span className="text-label-sm text-on-surface-variant mb-1">Producto</span>
+              <select
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+                className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+              >
+                <option value="">Todos</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="form-control col-span-1">
+              <span className="text-label-sm text-on-surface-variant mb-1">Estado</span>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary rounded-full text-body-sm"
+              >
+                <option value="">Todos</option>
+                <option value="Completed">Completada</option>
+                <option value="Cancelled">Cancelada</option>
+              </select>
+            </label>
+          </div>
+
+          {hasFilters && (
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={handleClearFilters}
+                className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full"
+              >
+                <IoCloseSharp className="text-sm" />
+                Limpiar filtros
+              </button>
+            </div>
+          )}
+        </Card>
 
         {/* Estado vacío / carga */}
         {loading ? (
-          <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm overflow-hidden">
-            <div className="space-y-4 p-4 sm:p-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex gap-4 items-center">
-                  <div className="skeleton w-11 h-11 rounded-xl shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="skeleton h-4 w-1/3 rounded-full" />
-                    <div className="skeleton h-3 w-1/4 rounded-full" />
-                  </div>
-                  <div className="skeleton h-8 w-20 rounded-full hidden sm:block" />
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card overflowHidden bodyClassName="p-0">
+            <SkeletonList rows={4} />
+          </Card>
         ) : sales.length === 0 ? (
-          <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm overflow-hidden">
-            <div className="text-center py-16 sm:py-20 px-6 text-secondary">
-              <div className="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center mx-auto mb-4">
-                <MdReceiptLong className="text-3xl opacity-40" />
-              </div>
-              {hasFilters ? (
-                <>
-                  <p className="font-semibold text-on-surface text-body-lg">Sin resultados</p>
-                  <p className="text-body-md mt-1">No encontramos ventas con esos filtros. Intenta ajustarlos.</p>
-                </>
-              ) : (
-                <>
-                  <p className="font-semibold text-on-surface text-body-lg">Aún no tienes ventas</p>
-                  <p className="text-body-md mt-1">Registra tu primera venta para comenzar.</p>
-                  <Link
-                    to="/panel/ventas/nueva"
-                    className="btn bg-primary text-on-primary border-none rounded-full mt-6 font-label-md text-label-md hover:bg-primary-container"
-                  >
-                    <MdAdd className="text-xl" /> Registrar venta
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
+          <Card overflowHidden bodyClassName="p-0">
+            <EmptyState
+              icon={MdReceiptLong}
+              title={hasFilters ? "Sin resultados" : "Aún no tienes ventas"}
+              message={
+                hasFilters
+                  ? "No encontramos ventas con esos filtros. Intenta ajustarlos."
+                  : "Registra tu primera venta para comenzar."
+              }
+              action={!hasFilters ? { label: "Registrar venta", to: "/panel/ventas/nueva", icon: MdAdd } : undefined}
+              actionAs={Link}
+            />
+          </Card>
         ) : (
           <>
             {/* Vista de TARJETAS — móvil y tablet */}
@@ -512,37 +462,19 @@ const MisVentas = () => {
                         <p className="text-body-sm text-secondary">{formatDateTime(s.date)}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          onClick={() => openDetail(s.id)}
-                          className="btn btn-ghost btn-sm btn-circle hover:bg-secondary-container/60"
-                          aria-label="Ver detalle"
-                        >
-                          <MdVisibility className="text-lg text-secondary" />
-                        </button>
+                        <IconButton icon={MdVisibility} onClick={() => openDetail(s.id)} label="Ver detalle" tone="secondary" showTooltip={false} />
                         {canCancel(s) && (
-                          <button
-                            onClick={() => setCancelSale(s)}
-                            className="btn btn-ghost btn-sm btn-circle hover:bg-error-container/60"
-                            aria-label="Cancelar"
-                          >
-                            <IoCloseCircle className="text-lg text-error" />
-                          </button>
+                          <IconButton icon={IoCloseCircle} onClick={() => setCancelSale(s)} label="Cancelar" tone="error" showTooltip={false} />
                         )}
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-outline-variant/50">
                       <span className="text-primary font-bold text-body-md">{formatCOP(s.total)}</span>
-                      <span
-                        className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
-                          s.status === "Completed"
-                            ? "bg-primary-fixed text-on-primary-fixed-variant"
-                            : "bg-error-container text-on-error-container"
-                        }`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${s.status === "Completed" ? "bg-primary" : "bg-error"}`} />
-                        {s.status === "Completed" ? "Completada" : "Cancelada"}
-                      </span>
+                      <StatusBadge
+                        label={s.status === "Completed" ? "Completada" : "Cancelada"}
+                        tone={s.status === "Completed" ? "primary" : "error"}
+                      />
                     </div>
                   </div>
                 </div>
@@ -550,68 +482,46 @@ const MisVentas = () => {
             </div>
 
             {/* Vista de TABLA — escritorio */}
-            <div className="hidden lg:block card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm overflow-hidden">
-              <div className="card-body p-0">
-                <div className="overflow-x-auto">
-                  <table className="table">
-                    <thead>
-                      <tr className="bg-surface-container-high border-b border-outline-variant">
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 first:rounded-tl-2xl">
-                          # Venta
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Fecha</th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Total</th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Estado</th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 text-right last:rounded-tr-2xl">
-                          Acciones
-                        </th>
+            <Card overflowHidden bodyClassName="p-0" className="hidden lg:block">
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr className="bg-surface-container-high border-b border-outline-variant">
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 first:rounded-tl-2xl">
+                        # Venta
+                      </th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Fecha</th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Total</th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">Estado</th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 text-right last:rounded-tr-2xl">
+                        Acciones
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/60">
+                    {sales.map((s) => (
+                      <tr key={s.id} className="hover:bg-surface-container-low transition-colors">
+                        <td className="font-semibold text-on-surface text-body-md">#{s.id}</td>
+                        <td className="text-body-sm text-secondary">{formatDateTime(s.date)}</td>
+                        <td className="text-primary font-bold text-body-md">{formatCOP(s.total)}</td>
+                        <td>
+                          <StatusBadge
+                            label={s.status === "Completed" ? "Completada" : "Cancelada"}
+                            tone={s.status === "Completed" ? "primary" : "error"}
+                          />
+                        </td>
+                        <td className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <IconButton icon={MdVisibility} onClick={() => openDetail(s.id)} label="Ver detalle" tone="secondary" />
+                            {canCancel(s) && <IconButton icon={IoCloseCircle} onClick={() => setCancelSale(s)} label="Cancelar" tone="error" />}
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant/60">
-                      {sales.map((s) => (
-                        <tr key={s.id} className="hover:bg-surface-container-low transition-colors">
-                          <td className="font-semibold text-on-surface text-body-md">#{s.id}</td>
-                          <td className="text-body-sm text-secondary">{formatDateTime(s.date)}</td>
-                          <td className="text-primary font-bold text-body-md">{formatCOP(s.total)}</td>
-                          <td>
-                            <span
-                              className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
-                                s.status === "Completed"
-                                  ? "bg-primary-fixed text-on-primary-fixed-variant"
-                                  : "bg-error-container text-on-error-container"
-                              }`}
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-full ${s.status === "Completed" ? "bg-primary" : "bg-error"}`} />
-                              {s.status === "Completed" ? "Completada" : "Cancelada"}
-                            </span>
-                          </td>
-                          <td className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => openDetail(s.id)}
-                                className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
-                                data-tip="Ver detalle"
-                              >
-                                <MdVisibility className="text-lg text-secondary" />
-                              </button>
-                              {canCancel(s) && (
-                                <button
-                                  onClick={() => setCancelSale(s)}
-                                  className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-error-container/60"
-                                  data-tip="Cancelar"
-                                >
-                                  <IoCloseCircle className="text-lg text-error" />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
+            </Card>
           </>
         )}
 
@@ -619,7 +529,9 @@ const MisVentas = () => {
         <Paginacion meta={meta} onPageChange={(nuevaPagina) => setPage(nuevaPagina)} itemLabel="ventas" />
       </div>
 
-      {/* Modal detalle de venta */}
+      {/* Modal detalle de venta — queda manual: es un panel de solo lectura con
+          lista de productos, resumen y motivo de cancelación, no un formulario
+          ni una confirmación, así que no encaja en ningún componente genérico. */}
       {detailSale && (
         <dialog open className="modal modal-bottom sm:modal-middle">
           <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl max-w-2xl p-0 overflow-hidden">
@@ -636,16 +548,11 @@ const MisVentas = () => {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {!detailLoading && (
-                  <span
-                    className={`hidden sm:inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
-                      detailSale.status === "Completed"
-                        ? "bg-primary-fixed text-on-primary-fixed-variant"
-                        : "bg-error-container text-on-error-container"
-                    }`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${detailSale.status === "Completed" ? "bg-primary" : "bg-error"}`} />
-                    {detailSale.status === "Completed" ? "Completada" : "Cancelada"}
-                  </span>
+                  <StatusBadge
+                    className="hidden sm:inline-flex"
+                    label={detailSale.status === "Completed" ? "Completada" : "Cancelada"}
+                    tone={detailSale.status === "Completed" ? "primary" : "error"}
+                  />
                 )}
                 <button onClick={() => setDetailSale(null)} className="btn btn-ghost btn-sm btn-circle">
                   <IoCloseSharp className="text-lg" />
@@ -654,31 +561,15 @@ const MisVentas = () => {
             </div>
 
             {detailLoading ? (
-              <div className="space-y-3 p-4 sm:p-5">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex gap-3 items-center">
-                    <div className="skeleton w-12 h-12 rounded-xl shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="skeleton h-4 w-1/2 rounded-full" />
-                      <div className="skeleton h-3 w-1/3 rounded-full" />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SkeletonList rows={3} actionPill={false} />
             ) : (
               <>
                 {/* Estado en móvil (badge ya no cabe junto al header) */}
                 <div className="sm:hidden px-4 pt-3">
-                  <span
-                    className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
-                      detailSale.status === "Completed"
-                        ? "bg-primary-fixed text-on-primary-fixed-variant"
-                        : "bg-error-container text-on-error-container"
-                    }`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${detailSale.status === "Completed" ? "bg-primary" : "bg-error"}`} />
-                    {detailSale.status === "Completed" ? "Completada" : "Cancelada"}
-                  </span>
+                  <StatusBadge
+                    label={detailSale.status === "Completed" ? "Completada" : "Cancelada"}
+                    tone={detailSale.status === "Completed" ? "primary" : "error"}
+                  />
                 </div>
 
                 {/* Lista de productos */}
@@ -693,7 +584,7 @@ const MisVentas = () => {
                         key={d.id}
                         className="flex items-center gap-3 p-3 rounded-2xl bg-surface-container-low border border-outline-variant/40"
                       >
-                        <ProductAvatar product={d.product} size="w-12 h-12" />
+                        <Avatar text={d.product?.name ?? ""} photo={d.product?.photo} icon={MdOutlineInventory2} size="w-12 h-12" textSize="text-label-sm" />
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-on-surface text-body-sm truncate">
                             {d.product?.name ?? `Producto #${d.productId}`}
@@ -736,7 +627,9 @@ const MisVentas = () => {
         </dialog>
       )}
 
-      {/* Modal confirmación cancelar */}
+      {/* Modal confirmación cancelar — queda manual: a diferencia de ConfirmModal
+          (mensaje estático), este requiere un campo de texto controlado
+          (motivo de cancelación) con su propia validación antes de confirmar. */}
       {cancelSale && (
         <dialog open className="modal modal-bottom sm:modal-middle">
           <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl p-6">

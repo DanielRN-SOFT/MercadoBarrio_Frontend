@@ -1,14 +1,8 @@
 import {
-  MdPeopleAlt,
   MdAdd,
   MdEdit,
   MdRestoreFromTrash,
-  MdEmail,
-  MdPhone,
-  MdBadge,
-  MdLock,
   MdOutlineFilterAlt,
-  MdSearch,
   MdNewLabel,
 } from "react-icons/md";
 import { IoCloseCircle, IoCloseSharp } from "react-icons/io5";
@@ -17,27 +11,14 @@ import fetchCliente from "../../config/fetchCliente";
 import useToast from "../../hooks/useToast";
 import ToastContainer from "../../components/ui/ToastContainer";
 import Paginacion from "../../components/ui/Paginacion";
-
-const users = [
-  {
-    id: 1,
-    name: "Juan Pérez",
-    email: "juan.perez@correo.com",
-    phone: "3001234567",
-    roleId: 1,
-    role: { name: "Administrador" },
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "María Gómez",
-    email: "maria.gomez@correo.com",
-    phone: "3007654321",
-    roleId: 2,
-    role: { name: "Vendedor" },
-    status: "Inactive",
-  },
-];
+import PageHeader from "../../components/ui/PageHeader";
+import SearchInput from "../../components/ui/SearchInput";
+import StatusBadge from "../../components/ui/StatusBadge";
+import IconButton from "../../components/ui/IconButton";
+import SkeletonList from "../../components/ui/SkeletonList";
+import EmptyState from "../../components/ui/EmptyState";
+import Card from "../../components/ui/Card";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 
 const EMPTY_FORM = { name: "" };
 
@@ -139,29 +120,24 @@ const AdminCategoriasTienda = () => {
     setFormLoading(true);
     try {
       if (editingCategory) {
-        const res = await fetchCliente(
-          `/store-categories/${editingCategory.id}`,
-          {
-            method: "PUT",
-            body: {
-              name: form.name,
-            },
+        await fetchCliente(`/store-categories/${editingCategory.id}`, {
+          method: "PUT",
+          body: {
+            name: form.name,
           },
-        );
+        });
 
         addToast({
           message: "Categoria de tienda actualizada correctamente",
           type: "success",
         });
       } else {
-        const res = await fetchCliente("/store-categories", {
+        await fetchCliente("/store-categories", {
           method: "POST",
           body: {
             name: form.name,
           },
         });
-
-        console.log(res);
 
         addToast({
           message: "Categoria de tienda creada correctamente",
@@ -175,7 +151,7 @@ const AdminCategoriasTienda = () => {
       fetchCategoriasTienda(page);
     } catch (err) {
       // El backend puede devolver 409 si el nombre ya se encuentra registrado
-      setFormError(err.message ?? "Error al guardar el usuario");
+      setFormError(err.message ?? "Error al guardar la categoria");
     } finally {
       setFormLoading(false);
     }
@@ -200,7 +176,7 @@ const AdminCategoriasTienda = () => {
       });
     } finally {
       setActionLoading(false);
-      setConfirmId(false);
+      setConfirmId(null);
     }
   };
 
@@ -218,7 +194,7 @@ const AdminCategoriasTienda = () => {
       fetchCategoriasTienda(page);
     } catch (err) {
       addToast({
-        message: err.message ?? "Error al desactivar",
+        message: err.message ?? "Error al restablecer",
         type: "error",
       });
     } finally {
@@ -232,123 +208,99 @@ const AdminCategoriasTienda = () => {
     <>
       <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 px-3 sm:px-0">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-sm shadow-primary/20">
-              <MdNewLabel className="text-lg sm:text-xl text-on-primary" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-headline-lg-mobile sm:text-headline-lg font-bold text-on-surface leading-tight truncate">
-                Categorias de tiendas
-              </h1>
-              <p className="text-body-sm sm:text-body-md text-secondary">
-                Administra todas las categorias de tienda del sistema
-                {meta.total > 0 && (
-                  <span className="text-on-surface-variant">
-                    {" "}
-                    · {meta.total} en total
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={openCreateModal}
-            className="btn bg-primary text-on-primary border-none hover:bg-primary-container gap-2 rounded-full font-label-md text-label-md shadow-sm shadow-primary/25 transition-colors w-full sm:w-auto"
-          >
-            <MdAdd className="text-xl" />
-            Nuevo usuario
-          </button>
-        </div>
+        <PageHeader
+          icon={MdNewLabel}
+          title="Categorias de tiendas"
+          subtitle={
+            <>
+              Administra todas las categorias de tienda del sistema
+              {meta.total > 0 && (
+                <span className="text-on-surface-variant">
+                  {" "}
+                  · {meta.total} en total
+                </span>
+              )}
+            </>
+          }
+          action={{
+            label: "Nueva categoria",
+            onClick: openCreateModal,
+            icon: MdAdd,
+          }}
+        />
 
         {/* Filtros */}
-        <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm">
-          <div className="card-body p-4 sm:p-5 gap-3">
-            <div className="flex items-center gap-2 text-secondary">
-              <MdOutlineFilterAlt className="text-base" />
-              <span className="text-label-sm uppercase tracking-wide font-semibold">
-                Filtros
-              </span>
-            </div>
-
-            <div className="sm:grid sm:grid-cols-3 sm:gap-5">
-              <div className="relative col-span-2 my-2">
-                <MdSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg z-10 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="Buscar por nombre, correo o teléfono..."
-                  className="input input-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full pl-10 relative z-0 transition-colors"
-                />
-              </div>
-
-              <div className="">
-                <select
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  value={statusFilter}
-                  className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full sm:w-56 transition-colors my-2"
-                >
-                  <option value="">Todos los estados</option>
-                  <option value="Active">Activo</option>
-                  <option value="Inactive">Inactivo</option>
-                </select>
-              </div>
-            </div>
-
-            {hasFilters && (
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  onClick={handleClearFilters}
-                  className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full"
-                >
-                  <IoCloseSharp className="text-sm" />
-                  Limpiar filtros
-                </button>
-              </div>
-            )}
+        <Card>
+          <div className="flex items-center gap-2 text-secondary">
+            <MdOutlineFilterAlt className="text-base" />
+            <span className="text-label-sm uppercase tracking-wide font-semibold">
+              Filtros
+            </span>
           </div>
-        </div>
+
+          <div className="sm:grid sm:grid-cols-3 sm:gap-5">
+            <div className="col-span-2 my-2">
+              <SearchInput
+                value={searchInput}
+                onChange={setSearchInput}
+                placeholder="Buscar por nombre, correo o teléfono..."
+              />
+            </div>
+
+            <div className="">
+              <select
+                onChange={(e) => setStatusFilter(e.target.value)}
+                value={statusFilter}
+                className="select select-bordered bg-surface-container-low border-outline-variant focus:border-primary font-body-md text-body-sm sm:text-body-md rounded-full w-full sm:w-56 transition-colors my-2"
+              >
+                <option value="">Todos los estados</option>
+                <option value="Active">Activo</option>
+                <option value="Inactive">Inactivo</option>
+              </select>
+            </div>
+          </div>
+
+          {hasFilters && (
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={handleClearFilters}
+                className="btn btn-ghost btn-sm gap-1 text-secondary hover:text-error font-label-sm rounded-full"
+              >
+                <IoCloseSharp className="text-sm" />
+                Limpiar filtros
+              </button>
+            </div>
+          )}
+        </Card>
 
         {/* Estado vacío / carga compartido */}
         {loading ? (
-          <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm overflow-hidden">
-            <div className="space-y-4 p-4 sm:p-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex gap-4 items-center">
-                  <div className="skeleton w-11 h-11 rounded-xl shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="skeleton h-4 w-1/3 rounded-full" />
-                    <div className="skeleton h-3 w-1/4 rounded-full" />
-                  </div>
-                  <div className="skeleton h-8 w-20 rounded-full hidden sm:block" />
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card overflowHidden bodyClassName="p-0">
+            <SkeletonList rows={4} />
+          </Card>
         ) : categorias.length === 0 ? (
-          <div className="card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm overflow-hidden">
-            <div className="text-center py-16 sm:py-20 px-6 text-secondary">
-              <div className="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center mx-auto mb-4">
-                <MdNewLabel className="text-3xl opacity-40" />
-              </div>
-              <p className="font-semibold text-on-surface text-body-lg">
-                {hasFilters
-                  ? "Sin resultados"
-                  : "Aún no tienes categorias de tiendas"}
-              </p>
-              <p className="text-body-md mt-1">
-                {hasFilters
+          <Card overflowHidden bodyClassName="p-0">
+            <EmptyState
+              icon={MdNewLabel}
+              title={
+                hasFilters ? "Sin resultados" : "Aún no tienes categorias de tiendas"
+              }
+              message={
+                hasFilters
                   ? "No encontramos categorias de tiendas con esos filtros. Intenta ajustarlos."
-                  : "Agrega tu primer categoria de tienda para comenzar."}
-              </p>
-              {!hasFilters && (
-                <button className="btn bg-primary text-on-primary border-none rounded-full mt-6 font-label-md text-label-md hover:bg-primary-container">
-                  <MdAdd className="text-xl" /> Agregar categoria
-                </button>
-              )}
-            </div>
-          </div>
+                  : "Agrega tu primer categoria de tienda para comenzar."
+              }
+              action={
+                !hasFilters
+                  ? {
+                      label: "Agregar categoria",
+                      onClick: openCreateModal,
+                      icon: MdAdd,
+                    }
+                  : undefined
+              }
+            />
+          </Card>
         ) : (
           <>
             {/* Vista de TARJETAS — móvil y tablet */}
@@ -368,50 +320,38 @@ const AdminCategoriasTienda = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <button
+                        <IconButton
+                          icon={MdEdit}
                           onClick={() => openEditModal(cat)}
-                          className="btn btn-ghost btn-sm btn-circle hover:bg-secondary-container/60"
-                          aria-label="Editar"
-                        >
-                          <MdEdit className="text-lg text-secondary" />
-                        </button>
+                          label="Editar"
+                          tone="secondary"
+                          showTooltip={false}
+                        />
                         {cat.status === "Active" ? (
-                          <button
+                          <IconButton
+                            icon={IoCloseCircle}
                             onClick={() => setConfirmId(cat.id)}
-                            className="btn btn-ghost btn-sm btn-circle hover:bg-error-container/60"
-                            aria-label="Desactivar"
-                          >
-                            <IoCloseCircle className="text-lg text-error" />
-                          </button>
+                            label="Desactivar"
+                            tone="error"
+                            showTooltip={false}
+                          />
                         ) : (
-                          <button
+                          <IconButton
+                            icon={MdRestoreFromTrash}
                             onClick={() => handleRestore(cat.id)}
-                            className="btn btn-ghost btn-sm btn-circle hover:bg-primary-container/20"
-                            aria-label="Reactivar"
-                          >
-                            <MdRestoreFromTrash className="text-lg text-primary" />
-                          </button>
+                            label="Reactivar"
+                            tone="primary"
+                            showTooltip={false}
+                          />
                         )}
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-outline-variant/50">
-                      <span
-                        className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
-                          cat.status === "Active"
-                            ? "bg-primary-fixed text-on-primary-fixed-variant"
-                            : "bg-surface-container-high text-secondary"
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            cat.status === "Active"
-                              ? "bg-primary"
-                              : "bg-outline"
-                          }`}
-                        />
-                        {cat.status === "Active" ? "Activo" : "Inactivo"}
-                      </span>
+                      <StatusBadge
+                        label={cat.status === "Active" ? "Activo" : "Inactivo"}
+                        tone={cat.status === "Active" ? "primary" : "neutral"}
+                      />
                     </div>
                   </div>
                 </div>
@@ -419,89 +359,72 @@ const AdminCategoriasTienda = () => {
             </div>
 
             {/* Vista de TABLA — escritorio */}
-            <div className="hidden lg:block card bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-sm overflow-hidden">
-              <div className="card-body p-0">
-                <div className="overflow-x-auto">
-                  <table className="table">
-                    <thead>
-                      <tr className="bg-surface-container-high border-b border-outline-variant">
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Nombre
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
-                          Estado
-                        </th>
-                        <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 text-right last:rounded-tr-2xl">
-                          Acciones
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant/60">
-                      {categorias.map((cat) => (
-                        <tr
-                          key={cat.id}
-                          className="hover:bg-scatrface-container-low transition-colors"
-                        >
-                          <td>
-                            <div className="flex items-center gap-3">
-                              <span className="font-semibold text-on-scatrface text-body-md">
-                                {cat.name}
-                              </span>
-                            </div>
-                          </td>
-                          <td>
-                            <span
-                              className={`inline-flex items-center gap-1.5 badge badge-sm border-none font-medium ${
-                                cat.status === "Active"
-                                  ? "bg-primary-fixed text-on-primary-fixed-variant"
-                                  : "bg-surface-container-high text-secondary"
-                              }`}
-                            >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  cat.status === "Active"
-                                    ? "bg-primary"
-                                    : "bg-outline"
-                                }`}
-                              />
-                              {cat.status === "Active" ? "Activo" : "Inactivo"}
+            <Card overflowHidden bodyClassName="p-0" className="hidden lg:block">
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr className="bg-surface-container-high border-b border-outline-variant">
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
+                        Nombre
+                      </th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5">
+                        Estado
+                      </th>
+                      <th className="text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold py-3.5 text-right last:rounded-tr-2xl">
+                        Acciones
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/60">
+                    {categorias.map((cat) => (
+                      <tr
+                        key={cat.id}
+                        className="hover:bg-surface-container-low transition-colors"
+                      >
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold text-on-surface text-body-md">
+                              {cat.name}
                             </span>
-                          </td>
-                          <td className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => openEditModal(cat)}
-                                className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-secondary-container/60"
-                                data-tip="Editar"
-                              >
-                                <MdEdit className="text-lg text-secondary" />
-                              </button>
-                              {cat.status === "Active" ? (
-                                <button
-                                  onClick={() => setConfirmId(cat.id)}
-                                  className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-error-container/60"
-                                  data-tip="Desactivar"
-                                >
-                                  <IoCloseCircle className="text-lg text-error" />
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleRestore(cat.id)}
-                                  className="btn btn-ghost btn-sm btn-circle tooltip hover:bg-primary-container/20"
-                                  data-tip="Reactivar"
-                                >
-                                  <MdRestoreFromTrash className="text-lg text-primary" />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </div>
+                        </td>
+                        <td>
+                          <StatusBadge
+                            label={cat.status === "Active" ? "Activo" : "Inactivo"}
+                            tone={cat.status === "Active" ? "primary" : "neutral"}
+                          />
+                        </td>
+                        <td className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <IconButton
+                              icon={MdEdit}
+                              onClick={() => openEditModal(cat)}
+                              label="Editar"
+                              tone="secondary"
+                            />
+                            {cat.status === "Active" ? (
+                              <IconButton
+                                icon={IoCloseCircle}
+                                onClick={() => setConfirmId(cat.id)}
+                                label="Desactivar"
+                                tone="error"
+                              />
+                            ) : (
+                              <IconButton
+                                icon={MdRestoreFromTrash}
+                                onClick={() => handleRestore(cat.id)}
+                                label="Reactivar"
+                                tone="primary"
+                              />
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
+            </Card>
           </>
         )}
 
@@ -509,11 +432,11 @@ const AdminCategoriasTienda = () => {
         <Paginacion
           meta={meta}
           onPageChange={(nuevaPagina) => setPage(nuevaPagina)}
-          itemLabel="usuarios"
+          itemLabel="categorias"
         />
       </div>
 
-      {/* Modal editar usuario */}
+      {/* Modal crear/editar categoria */}
       {showFormModal && (
         <dialog open className="modal modal-bottom sm:modal-middle">
           <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
@@ -581,7 +504,7 @@ const AdminCategoriasTienda = () => {
                   ) : editingCategory ? (
                     "Guardar cambios"
                   ) : (
-                    "Crear usuario"
+                    "Crear categoria"
                   )}
                 </button>
               </div>
@@ -592,43 +515,17 @@ const AdminCategoriasTienda = () => {
       )}
 
       {/* Modal confirmación desactivar */}
-      {confirmId && (
-        <dialog open className="modal modal-bottom sm:modal-middle">
-          <div className="modal-box bg-surface-container-lowest rounded-t-2xl sm:rounded-2xl">
-            <div className="w-11 h-11 rounded-2xl bg-error-container flex items-center justify-center mb-3">
-              <IoCloseCircle className="text-xl text-on-error-container" />
-            </div>
-            <h3 className="font-bold text-title-md text-on-surface">
-              ¿Desactivar categoria de tienda?
-            </h3>
-            <p className="text-body-md text-secondary mt-2">
-              Esta categoria no se podrá utilizar en ninguna otra tienda hasta
-              que vuelevas restablecerla, recuerda que no puedes eliminar una
-              categoria asociada a una tienda.
-            </p>
-            <div className="modal-action gap-2 flex-col-reverse sm:flex-row">
-              <button
-                onClick={() => setConfirmId(null)}
-                className="btn btn-ghost rounded-full font-label-md w-full sm:w-auto"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => handleDelete(confirmId)}
-                disabled={actionLoading}
-                className="btn bg-error text-on-error border-none rounded-full font-label-md hover:brightness-95 w-full sm:w-auto"
-              >
-                {actionLoading ? (
-                  <span className="loading loading-spinner loading-sm" />
-                ) : (
-                  "Desactivar"
-                )}
-              </button>
-            </div>
-          </div>
-          <div className="modal-backdrop" onClick={() => setConfirmId(null)} />
-        </dialog>
-      )}
+      <ConfirmModal
+        open={!!confirmId}
+        icon={IoCloseCircle}
+        tone="error"
+        title="¿Desactivar categoria de tienda?"
+        message="Esta categoria no se podrá utilizar en ninguna otra tienda hasta que vuelvas a restablecerla, recuerda que no puedes eliminar una categoria asociada a una tienda."
+        confirmLabel="Desactivar"
+        loading={actionLoading}
+        onConfirm={() => handleDelete(confirmId)}
+        onCancel={() => setConfirmId(null)}
+      />
       <ToastContainer toasts={toasts} removeToast={removeToast} />
     </>
   );
