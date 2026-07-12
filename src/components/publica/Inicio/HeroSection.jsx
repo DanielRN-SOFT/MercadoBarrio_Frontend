@@ -124,7 +124,7 @@ const HeroSection = () => {
       {/* Capa de fondo: mesh gradient animado + wallpaper de íconos */}
       <div className="absolute inset-0 overflow-hidden bg-primary">
         <div
-          className="absolute -inset-[10%] opacity-90"
+          className="absolute inset-[-10%] opacity-90"
           style={{
             background:
               "radial-gradient(circle at 20% 30%, theme(colors.secondary) 0%, transparent 45%), radial-gradient(circle at 80% 20%, theme(colors.primary) 0%, transparent 50%), radial-gradient(circle at 50% 90%, theme(colors.secondary-container) 0%, transparent 55%)",
@@ -133,12 +133,12 @@ const HeroSection = () => {
         />
 
         {/* Íconos flotando con drift, no estáticos */}
-        <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_10%,transparent_65%)]">
+        <div className="absolute inset-0 mask-[radial-gradient(ellipse_at_center,black_10%,transparent_65%)]">
           <div className="grid grid-cols-8 md:grid-cols-12 gap-6 place-items-center h-full p-6 rotate-[-8deg] scale-125">
             {ICON_GRID.map((_, i) => (
               <IoStorefrontSharp
                 key={i}
-                className="text-white motion-safe:[animation:drift_ease-in-out_infinite]"
+                className="text-white motion-safe:animate-[drift_ease-in-out_infinite]"
                 style={{
                   fontSize: i % 5 === 0 ? "2.25rem" : "1.35rem",
                   opacity: i % 3 === 0 ? 0.9 : 0.45,
@@ -163,7 +163,7 @@ const HeroSection = () => {
       </div>
 
       {/* Franja de rayas tipo toldo */}
-      <div className="absolute bottom-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(90deg,theme(colors.primary-container)_0px,theme(colors.primary-container)_20px,theme(colors.secondary-container)_20px,theme(colors.secondary-container)_40px)]" />
+      <div className="absolute bottom-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(90deg,var(--color-primary-container)_0px,var(--color-primary-container)_20px,var(--color-secondary-container)_20px,var(--color-secondary-container)_40px)]" />
 
       {/* Capa de contenido */}
       <div className="relative z-10 max-w-5xl mx-auto text-center px-margin-mobile md:px-margin-desktop">
@@ -176,7 +176,7 @@ const HeroSection = () => {
 
         <h2 className="font-headline-lg-mobile text-headline-lg-mobile md:text-6xl md:font-headline-lg mb-2 text-white drop-shadow-md tracking-tight">
           Merca
-          <span className="bg-gradient-to-r from-white to-secondary-container bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-white to-secondary-container bg-clip-text text-transparent">
             doBarrio
           </span>
         </h2>
@@ -278,7 +278,7 @@ const HeroSection = () => {
         </div>
 
         {/* Marquee de categorías: da movimiento y es información real, no decoración */}
-        <div className="mt-8 max-w-xl mx-auto overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_15%,black_85%,transparent)]">
+        <div className="mt-8 max-w-xl mx-auto overflow-hidden mask-[linear-gradient(90deg,transparent,black_15%,black_85%,transparent)]">
           <div
             className="flex gap-3 w-max"
             style={{ animation: "marquee 22s linear infinite" }}

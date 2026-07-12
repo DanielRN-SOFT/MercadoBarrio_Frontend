@@ -52,7 +52,7 @@ const ComoFunciona = () => {
           color: "var(--outline-variant, #9199a1)",
         }}
       />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[36rem] h-[36rem] bg-primary/5 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-xl h-144 bg-primary/5 rounded-full blur-3xl -z-10" />
 
       <div className="text-center mb-14 max-w-lg mx-auto">
         <span className="badge badge-primary badge-outline mb-4">
@@ -72,7 +72,7 @@ const ComoFunciona = () => {
       <div className="relative max-w-4xl mx-auto">
         {/* Línea de ruta conectando los pasos (solo desktop) */}
         <svg
-          className="hidden md:block absolute top-7 left-0 w-full h-4 -z-0"
+          className="hidden md:block absolute top-7 left-0 w-full h-4 z-0"
           viewBox="0 0 100 4"
           preserveAspectRatio="none"
         >

@@ -84,10 +84,10 @@ const FilterBar = ({ onFilter }) => {
       <button
         type="button"
         onClick={() => setExpandido((v) => !v)}
-        className="w-full flex items-center justify-between px-5 py-3 border-b border-base-200 md:cursor-default"
+        className="w-full flex items-center justify-between px-5 py-3.5 border-b border-base-200 md:cursor-default"
         aria-expanded={expandido}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="bg-primary/10 p-1.5 rounded-lg">
             <IoSearchSharp className="text-primary text-base" />
           </div>
@@ -109,6 +109,12 @@ const FilterBar = ({ onFilter }) => {
               onClick={(e) => {
                 e.stopPropagation();
                 handleLimpiar();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.stopPropagation();
+                  handleLimpiar();
+                }
               }}
               className="btn btn-ghost btn-xs text-error gap-1 hover:bg-error/10"
             >
@@ -133,7 +139,11 @@ const FilterBar = ({ onFilter }) => {
               <IoStorefrontSharp className="text-primary text-xs" />
               Nombre
             </label>
-            <label className="input input-bordered input-sm flex items-center gap-2 pr-1">
+            <label
+              className={`input input-bordered input-sm flex items-center gap-2 pr-1 transition-colors ${
+                filtros.name ? "input-primary" : ""
+              }`}
+            >
               <IoSearchSharp className="text-base-content/30 shrink-0" />
               <input
                 type="text"
@@ -160,7 +170,11 @@ const FilterBar = ({ onFilter }) => {
               <FaLocationDot className="text-primary text-xs" />
               Barrio
             </label>
-            <label className="input input-bordered input-sm flex items-center gap-2 pr-1">
+            <label
+              className={`input input-bordered input-sm flex items-center gap-2 pr-1 transition-colors ${
+                filtros.neighborhood ? "input-primary" : ""
+              }`}
+            >
               <FaLocationDot className="text-base-content/30 shrink-0" />
               <input
                 type="text"
@@ -191,7 +205,9 @@ const FilterBar = ({ onFilter }) => {
               name="storeCategoryId"
               value={filtros.storeCategoryId}
               onChange={handleChange}
-              className="select select-bordered select-sm w-full"
+              className={`select select-bordered select-sm w-full transition-colors ${
+                filtros.storeCategoryId ? "select-primary" : ""
+              }`}
             >
               <option value="">Todas las categorías</option>
               {categorias.map((cat) => (
@@ -211,16 +227,21 @@ const FilterBar = ({ onFilter }) => {
             <label
               className={`flex items-center justify-between px-3 h-8 rounded-lg border cursor-pointer transition-all duration-200 ${
                 filtros.openNow
-                  ? "border-primary/40 bg-primary/8 shadow-[inset_0_0_0_1px_oklch(var(--p)/0.15)]"
+                  ? "border-primary/40 bg-primary/8"
                   : "border-base-300 bg-base-100 hover:border-base-400"
               }`}
             >
               <div className="flex items-center gap-2">
-                <span
-                  className={`inline-block w-1.5 h-1.5 rounded-full transition-colors ${
-                    filtros.openNow ? "bg-success" : "bg-base-300"
-                  }`}
-                />
+                <span className="relative flex w-1.5 h-1.5">
+                  {filtros.openNow && (
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-success motion-safe:animate-ping" />
+                  )}
+                  <span
+                    className={`relative inline-flex w-1.5 h-1.5 rounded-full ${
+                      filtros.openNow ? "bg-success" : "bg-base-300"
+                    }`}
+                  />
+                </span>
                 <span
                   className={`text-sm transition-colors ${
                     filtros.openNow
@@ -245,7 +266,7 @@ const FilterBar = ({ onFilter }) => {
         {filtrosActivos > 0 && (
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-base-200">
             {filtros.name && (
-              <div className="badge badge-outline gap-1 badge-sm">
+              <div className="badge badge-primary badge-outline gap-1 badge-sm">
                 <IoStorefrontSharp className="text-xs" />
                 {filtros.name}
                 <button onClick={() => limpiarCampo("name")} className="ml-0.5">
@@ -254,7 +275,7 @@ const FilterBar = ({ onFilter }) => {
               </div>
             )}
             {filtros.neighborhood && (
-              <div className="badge badge-outline gap-1 badge-sm">
+              <div className="badge badge-primary badge-outline gap-1 badge-sm">
                 <FaLocationDot className="text-xs" />
                 {filtros.neighborhood}
                 <button
@@ -266,7 +287,7 @@ const FilterBar = ({ onFilter }) => {
               </div>
             )}
             {filtros.storeCategoryId && (
-              <div className="badge badge-outline gap-1 badge-sm">
+              <div className="badge badge-primary badge-outline gap-1 badge-sm">
                 <IoStorefrontSharp className="text-xs" />
                 {
                   categorias.find(
