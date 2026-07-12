@@ -82,15 +82,22 @@ const Mapa = () => {
       <div className="md:hidden px-4 pb-3">
         <div
           role="tablist"
-          className="tabs tabs-boxed grid grid-cols-2 bg-surface-container-low p-1 rounded-full"
+          className="relative grid grid-cols-2 bg-surface-container-low p-1 rounded-full gap-1"
         >
+          {/* Fondo deslizante detrás del tab activo, en vez de recolorear cada tab por separado */}
+          <span
+            className={`absolute inset-y-1 w-[calc(50%-4px)] rounded-full bg-linear-to-br from-primary to-primary/80 shadow-md shadow-primary/25 transition-transform duration-300 ease-out ${
+              vistaMobile === "lista"
+                ? "translate-x-[calc(100%+8px)]"
+                : "translate-x-0"
+            }`}
+          />
+
           <button
             role="tab"
             onClick={() => setVistaMobile("mapa")}
-            className={`tab gap-1.5 rounded-full border-0! transition-colors ${
-              vistaMobile === "mapa"
-                ? "bg-primary text-on-primary font-semibold"
-                : "text-on-surface/50"
+            className={`relative z-10 flex items-center justify-center gap-1.5 h-9 rounded-full text-sm font-semibold transition-colors ${
+              vistaMobile === "mapa" ? "text-on-primary" : "text-on-surface/50"
             }`}
           >
             <MdMap className="text-base" />
@@ -99,16 +106,20 @@ const Mapa = () => {
           <button
             role="tab"
             onClick={() => setVistaMobile("lista")}
-            className={`tab gap-1.5 rounded-full border-0! transition-colors ${
-              vistaMobile === "lista"
-                ? "bg-primary text-on-primary font-semibold"
-                : "text-on-surface/50"
+            className={`relative z-10 flex items-center justify-center gap-1.5 h-9 rounded-full text-sm font-semibold transition-colors ${
+              vistaMobile === "lista" ? "text-on-primary" : "text-on-surface/50"
             }`}
           >
             <MdFormatListBulleted className="text-base" />
             Lista
             {!loading && (
-              <span className="badge badge-sm badge-neutral ml-1">
+              <span
+                className={`text-[10px] font-bold rounded-full min-w-4.5 h-4.5 px-1 flex items-center justify-center transition-colors ${
+                  vistaMobile === "lista"
+                    ? "bg-on-primary/25 text-on-primary"
+                    : "bg-outline-variant/50 text-on-surface/50"
+                }`}
+              >
                 {tiendas.length}
               </span>
             )}
@@ -125,8 +136,13 @@ const Mapa = () => {
           }`}
         >
           {loading && (
-            <div className="absolute inset-0 z-400 flex items-center justify-center bg-surface/60">
-              <span className="loading loading-spinner loading-md text-primary" />
+            <div className="absolute inset-0 z-400 flex items-center justify-center bg-surface/70 backdrop-blur-[2px]">
+              <div className="flex flex-col items-center gap-2.5 rounded-2xl bg-surface px-6 py-4 shadow-lg ring-1 ring-outline-variant/50">
+                <span className="loading loading-spinner loading-md text-primary" />
+                <span className="text-xs font-medium text-on-surface/60">
+                  Buscando tiendas cerca de ti...
+                </span>
+              </div>
             </div>
           )}
           <ContainerMapa

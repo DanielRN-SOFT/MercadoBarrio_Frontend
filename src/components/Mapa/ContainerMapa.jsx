@@ -1,3 +1,4 @@
+// ContainerMapa.jsx
 import React, { useEffect, useMemo } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -48,18 +49,36 @@ const TiendaPopup = ({ tienda, color, abierto }) => (
         <img
           src={tienda.photo}
           alt={tienda.name}
-          className="w-full h-full object-cover block"
+          className={`w-full h-full object-cover block ${!abierto ? "grayscale opacity-70" : ""}`}
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center">
-          <IoStorefrontOutline className="text-3xl text-on-surface/20" />
+        <div
+          className="w-full h-full flex items-center justify-center"
+          style={{
+            background: `linear-gradient(135deg, ${color}22, transparent)`,
+          }}
+        >
+          <IoStorefrontOutline
+            className="text-3xl"
+            style={{ color: `${color}80` }}
+          />
         </div>
       )}
+
+      {/* Degradado para que el badge se lea sobre cualquier foto */}
+      <div className="absolute inset-x-0 top-0 h-10 bg-linear-to-b from-black/35 to-transparent pointer-events-none" />
+
       <span
-        className={`absolute top-2 left-2 badge badge-sm border-0 font-medium shadow-sm ${
+        className={`absolute top-2 left-2 inline-flex items-center gap-1 badge badge-sm border-0 font-medium shadow-sm ${
           abierto ? "badge-success text-white" : "bg-neutral text-white"
         }`}
       >
+        <span className="relative flex w-1.5 h-1.5">
+          {abierto && (
+            <span className="absolute inline-flex w-full h-full rounded-full bg-white opacity-70 animate-ping" />
+          )}
+          <span className="relative w-1.5 h-1.5 rounded-full bg-white" />
+        </span>
         {abierto ? "Abierto" : "Cerrado"}
       </span>
     </div>
@@ -87,11 +106,10 @@ const TiendaPopup = ({ tienda, color, abierto }) => (
 
       <Link
         to={`/tiendas/${tienda.id}`}
-        className="btn btn-primary btn-sm w-full mt-1 gap-1 text-white"
+        className="group btn btn-primary btn-sm w-full mt-1 gap-1 text-white"
       >
         <span className="text-white">Ver perfil</span>
-
-        <MdArrowForward className="text-sm" />
+        <MdArrowForward className="text-sm transition-transform group-hover:translate-x-0.5" />
       </Link>
     </div>
   </div>
