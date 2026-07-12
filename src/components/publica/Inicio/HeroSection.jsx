@@ -166,7 +166,7 @@ const HeroSection = () => {
       <div className="absolute bottom-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(90deg,var(--color-primary-container)_0px,var(--color-primary-container)_20px,var(--color-secondary-container)_20px,var(--color-secondary-container)_40px)]" />
 
       {/* Capa de contenido */}
-      <div className="relative z-10 max-w-5xl mx-auto text-center px-margin-mobile md:px-margin-desktop">
+      <div className="relative z-10 w-full min-w-0 max-w-5xl mx-auto text-center px-margin-mobile md:px-margin-desktop">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 mb-4 ring-1 ring-white/20">
           <span className="w-1.5 h-1.5 rounded-full bg-white motion-safe:animate-pulse" />
           <span className="font-label-sm text-label-sm text-white">
@@ -190,7 +190,6 @@ const HeroSection = () => {
             className="absolute -inset-4 rounded-full bg-secondary blur-2xl -z-10"
             style={{ animation: "glowPulse 3s ease-in-out infinite" }}
           />
-
           <div
             className={`flex items-center bg-surface/95 backdrop-blur-sm rounded-full p-1 shadow-2xl transition-all duration-300 ${
               focused
@@ -208,7 +207,7 @@ const HeroSection = () => {
                 resultados.length > 0 && setOpen(true);
               }}
               onBlur={() => setFocused(false)}
-              className="rounded-full mx-2 sm:w-md text-on-surface px-4 py-2 font-body-md text-body-md outline-none"
+              className="flex-1 min-w-0 rounded-full mx-2 text-on-surface px-4 py-2 font-body-md text-body-md outline-none"
               placeholder="¿Qué producto buscas hoy en tu barrio?"
               type="text"
               autoComplete="off"
